@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="{{LANG}}" data-theme="{{THEME}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+{{HEAD}}
+<meta name="theme-color" content="{{PRIMARY}}">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" href="{{FAVICON}}">
+<link rel="apple-touch-icon" href="{{FAVICON}}">
+{{FONT_LINK}}
+<link rel="stylesheet" href="/css/fonts.css?v={{V}}">
+<style id="brand-vars">{{BRAND_CSS}}</style>
+<link rel="stylesheet" href="/css/store.css?v={{V}}">
+<script>(function(){var d=document.documentElement;try{var t=localStorage.getItem('tn_theme')||d.getAttribute('data-theme');if(t==='system')t=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';d.setAttribute('data-theme',t==='dark'?'dark':'light');var l=localStorage.getItem('tn_lang');if(l==='bn'||l==='en')d.lang=l}catch(e){if(d.getAttribute('data-theme')==='system')d.setAttribute('data-theme','light')}})()</script>
+{{TRACKING}}
+</head>
+<body>
+<div id="app"></div>
+<noscript><p style="padding:24px;font-family:sans-serif">এই সাইট দেখতে JavaScript চালু করুন। | Please enable JavaScript to use this store.</p></noscript>
+<script>window.__BOOT__={{BOOT}};</script>
+<script type="module" src="/js/app.js?v={{V}}"></script>
+</body>
+</html>
