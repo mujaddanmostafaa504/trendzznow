@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login - TrendzzNow</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="login-body">
+    <div class="login-card">
+        <h2>TrendzzNow Admin</h2>
+        <% if (error) { %>
+            <p class="error-msg"><%= error %></p>
+        <% } %>
+        <form action="/admin/login" method="POST">
+            <div class="form-group">
+                <input type="password" name="password" placeholder="অ্যাডমিন পাসওয়ার্ড দিন" required>
+            </div>
+            <button type="submit" class="login-btn">লগইন করুন</button>
+        </form>
+        <p style="text-align: center; margin-top: 15px;"><a href="/" style="color: #9c1448; text-decoration: none;">&larr; ওয়েবসাইটে ফিরে যান</a></p>
+    </div>
+</body>
+</html>

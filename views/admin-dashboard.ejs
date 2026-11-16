@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - TrendzzNow</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="admin-body">
+    <header class="admin-header">
+        <h2>TrendzzNow Admin Dashboard</h2>
+        <a href="/admin/logout" class="logout-btn">লগআউট</a>
+    </header>
+
+    <div class="admin-container">
+        <!-- Settings Section -->
+        <section class="admin-section">
+            <h3>ওয়েবসাইট সেটিংস ও লোগো</h3>
+            <form action="/admin/settings/update" method="POST">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>লাইট থিম লোগো URL:</label>
+                        <input type="text" name="logo_light" value="<%= settings.logo_light || '' %>" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label>ডার্ক থিম লোগো URL:</label>
+                        <input type="text" name="logo_dark" value="<%= settings.logo_dark || '' %>" placeholder="https://...">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>ট্যাগলাইন (বাংলা):</label>
+                        <input type="text" name="tagline_bn" value="<%= settings.tagline_bn || 'ট্রেডে থাকুন, স্টাইলে থাকুন' %>">
+                    </div>
+                    <div class="form-group">
+                        <label>ট্যাগলাইন (English):</label>
+                        <input type="text" name="tagline_en" value="<%= settings.tagline_en || 'Stay on trend. Stay in style.' %>">
+                    </div>
+                </div>
+                <button type="submit" class="save-settings-btn">সেটিংস সেভ করুন</button>
+            </form>
+        </section>
+
+        <!-- Add Product Section -->
+        <section class="admin-section">
+            <h3>নতুন প্রোডাক্ট যোগ করুন</h3>
+            <form action="/admin/products/add" method="POST">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>প্রোডাক্টের নাম:</label>
+                        <input type="text" name="title" required placeholder="প্রোডাক্টের শিরোনাম">
+                    </div>
+                    <div class="form-group">
+                        <label>মূল্য (BDT):</label>
+                        <input type="number" name="price" required placeholder="999">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>ছবির URL:</label>
+                    <input type="text" name="image" placeholder="https://image-url.com/photo.jpg">
+                </div>
+                <div class="form-group">
+                    <label>বিবরণ:</label>
+                    <textarea name="description" placeholder="প্রোডাক্ট সম্পর্কে বিস্তারিত..."></textarea>
+                </div>
+                <button type="submit" class="add-product-btn">প্রোডাক্ট সেভ করুন</button>
+            </form>
+        </section>
+
+        <!-- Products List -->
+        <section class="admin-section">
+            <h3>সকল প্রোডাক্ট (<%= products.length %>)</h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ছবি</th>
+                            <th>নাম</th>
+                            <th>দাম</th>
+                            <th>অ্যাকশন</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% products.forEach(p => { %>
+                            <tr>
+                                <td>
+                                    <% if (p.image) { %>
+                                        <img src="<%= p.image %>" width="40" height="40" style="object-fit:cover; border-radius:4px;">
+                                    <% } else { %>
+                                        -
+                                    <% } %>
+                                </td>
+                                <td><%= p.title %></td>
+                                <td>৳ <%= p.price %></td>
+                                <td>
+                                    <form action="/admin/products/delete/<%= p.id %>" method="POST" onsubmit="return confirm('নিশ্চিত ডিলিট করতে চান?');" style="display:inline;">
+                                        <button type="submit" class="delete-btn">ডিলিট</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Orders List -->
+        <section class="admin-section">
+            <h3>গ্রাহকদের অর্ডারসমূহ (<%= orders.length %>)</h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>তারিখ</th>
+                            <th>গ্রাহক</th>
+                            <th>ফোন</th>
+                            <th>প্রোডাক্ট</th>
+                            <th>দাম</th>
+                            <th>ঠিকানা</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (orders.length > 0) { %>
+                            <% orders.forEach(o => { %>
+                                <tr>
+                                    <td><%= new Date(o.created_at).toLocaleDateString('bn-BD') %></td>
+                                    <td><%= o.customer_name %></td>
+                                    <td><%= o.phone %></td>
+                                    <td><%= o.product_title %></td>
+                                    <td>৳ <%= o.price %></td>
+                                    <td><%= o.address %></td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr><td colspan="6" style="text-align: center;">কোনো অর্ডার নেই।</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

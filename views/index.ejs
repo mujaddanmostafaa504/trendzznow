@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= settings.site_title || 'TrendzzNow - Stay on trend. Stay in style.' %></title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo-area">
+            <% if (settings.logo_light) { %>
+                <img src="<%= settings.logo_light %>" alt="TrendzzNow" class="brand-logo">
+            <% } else { %>
+                <span class="brand-name">TrendzzNow</span>
+            <% } %>
+        </div>
+        <nav class="nav-links">
+            <a href="/">হোম</a>
+            <a href="#products">প্রোডাক্টস</a>
+            <a href="/admin">অ্যাডমিন</a>
+        </nav>
+    </header>
+
+    <div class="banner-notice">
+        <%= settings.banner_text || 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি। পণ্য হাতে পেয়ে দাম দিন।' %>
+    </div>
+
+    <main class="container" id="products">
+        <div class="hero-section">
+            <h1><%= settings.hero_title || 'নতুন কালেকশন এসে গেছে' %></h1>
+            <p><%= settings.hero_subtitle || 'প্রতিদিনের স্টাইল, সারা বাংলাদেশে দ্রুত হোম ডেলিভারি।' %></p>
+        </div>
+
+        <div class="product-grid">
+            <% if (products.length > 0) { %>
+                <% products.forEach(p => { %>
+                    <div class="product-card">
+                        <% if (p.image) { %>
+                            <img src="<%= p.image %>" alt="<%= p.title %>" class="product-img">
+                        <% } else { %>
+                            <div class="no-img">ছবি নেই</div>
+                        <% } %>
+                        <h3 class="product-title"><%= p.title %></h3>
+                        <p class="product-desc"><%= p.description %></p>
+                        <div class="price-action">
+                            <span class="price">৳ <%= p.price %></span>
+                            <button class="buy-btn" onclick="openCheckout('<%= p.title %>', '<%= p.price %>')">এখনই কিনুন</button>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <p class="no-products">বর্তমানে কোনো প্রোডাক্ট উপলব্ধ নেই।</p>
+            <% } %>
+        </div>
+    </main>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCheckout()">&times;</span>
+            <h2>অর্ডার কনফার্ম করুন</h2>
+            <p id="modalProductTitle" style="font-weight: bold; color: #9c1448; margin-bottom: 15px;"></p>
+            <form id="orderForm" onsubmit="submitOrder(event)">
+                <input type="hidden" id="orderProductTitle" name="product_title">
+                <input type="hidden" id="orderProductPrice" name="price">
+                
+                <div class="form-group">
+                    <label>আপনার নাম:</label>
+                    <input type="text" name="customer_name" required placeholder="পূর্ণ নাম লিখুন">
+                </div>
+                <div class="form-group">
+                    <label>মোবাইল নাম্বার:</label>
+                    <input type="text" name="phone" required placeholder="017xxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label>সম্পূর্ণ ঠিকানা:</label>
+                    <textarea name="address" required placeholder="বাসা/হোল্ডিং, রোড, থানা, জেলা"></textarea>
+                </div>
+                <button type="submit" class="submit-order-btn">অর্ডার কনফার্ম করুন</button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 TrendzzNow. All rights reserved.</p>
+            <p class="tagline"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></p>
+        </div>
+    </footer>
+
+    <script>
+        function openCheckout(title, price) {
+            document.getElementById('modalProductTitle').innerText = title + ' - ৳ ' + price;
+            document.getElementById('orderProductTitle').value = title;
+            document.getElementById('orderProductPrice').value = price;
+            document.getElementById('checkoutModal').style.display = 'block';
+        }
+        function closeCheckout() {
+            document.getElementById('checkoutModal').style.display = 'none';
+        }
+        async function submitOrder(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            data.quantity = 1;
+
+            try {
+                const res = await fetch('/order/place', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    alert('আপনার অর্ডারটি সফলভাবে গৃহীত হয়েছে!');
+                    closeCheckout();
+                    e.target.reset();
+                } else {
+                    alert('সমস্যা হয়েছে: ' + result.message);
+                }
+            } catch (err) {
+                alert('অর্ডার সাবমিট করতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।');
+            }
+        }
+    </script>
+</body>
+</html>
