@@ -1,17 +1,15 @@
 {
   "name": "trendzznow",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Trendzznow: custom ecommerce store for Bangladesh",
-  "main": "server/index.js",
+  "version": "3.0.0",
+  "description": "TrendzzNow E-commerce Platform with Full Supabase Persistence",
+  "main": "server.js",
   "scripts": {
-    "start": "node server/index.js",
-    "reset-admin": "node server/index.js --reset-admin"
+    "start": "node server.js"
   },
-  "engines": { "node": ">=18" },
   "dependencies": {
-    "compression": "^1.7.4",
+    "@supabase/supabase-js": "^2.39.8",
+    "ejs": "^3.1.9",
     "express": "^4.19.2",
-    "web-push": "^3.6.7"
+    "express-session": "^1.18.0"
   }
 }
