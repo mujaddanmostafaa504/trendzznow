@@ -237,21 +237,15 @@ app.get('/admin', (req, res) => {
 });
 
 // Admin Login Submit
-app.post('/admin/login', async (req, res) => {
-  const { password } = req.body;
-  const entered = (password || '').trim();
-  
-  const settings = await getSettings();
-  const dbPass = settings.admin_password ? settings.admin_password.trim() : null;
-  const envPass = process.env.ADMIN_PASSWORD ? process.env.ADMIN_PASSWORD.trim() : null;
+app.post('/admin/login', (req, res) => {
+  const entered = (req.body.password || '').trim();
+  const envPass = process.env.ADMIN_PASSWORD ? process.env.ADMIN_PASSWORD.trim() : '';
 
-  const validPasswords = ['admin123'];
-  if (dbPass) validPasswords.push(dbPass);
-  if (envPass) validPasswords.push(envPass);
-
-  if (validPasswords.includes(entered)) {
+  if (entered === 'admin123' || (envPass && entered === envPass)) {
     req.session.isAdmin = true;
-    return res.redirect('/admin/dashboard');
+    req.session.save(() => {
+      return res.redirect('/admin/dashboard');
+    });
   } else {
     return res.render('admin-login', { error: 'Invalid password! Default is admin123' });
   }
