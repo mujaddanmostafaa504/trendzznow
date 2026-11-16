@@ -1,6 +1,5 @@
 const webpush = require('web-push');
 
-// Configure web-push if VAPID keys are provided in environment variables
 const publicVapidKey = process.env.VAPID_PUBLIC_KEY || '';
 const privateVapidKey = process.env.VAPID_PRIVATE_KEY || '';
 
