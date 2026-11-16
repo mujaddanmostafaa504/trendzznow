@@ -10,9 +10,8 @@
     <meta property="og:image" content="<%= settings.logo_light || 'https://trendzznow.com/images/banner.jpg' %>">
     <meta property="og:url" content="https://trendzznow.com">
     <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
     <link rel="stylesheet" href="/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
     <% if (settings.facebook_pixel) { %>
     <script>
       !function(f,b,e,v,n,t,s)
@@ -38,10 +37,15 @@
         <div class="nav-container">
             <a href="/" class="logo-area">
                 <% if (settings.logo_light) { %>
-                    <img src="<%= settings.logo_light %>" alt="TrendzzNow" class="brand-logo">
+                    <img src="<%= settings.logo_light %>" alt="<%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %>" class="brand-logo">
+                    <div class="brand-badge" style="margin-left:10px;">
+                        <span class="brand-name" style="font-size:21px;"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
+                        <small class="brand-sub"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></small>
+                    </div>
                 <% } else { %>
-                    <div class="brand-badge">
-                        <span class="brand-name">Trendzz<span class="accent">Now</span></span>
+                    <div class="brand-logo-icon">⚡</div>
+                    <div class="brand-badge" style="margin-left:8px;">
+                        <span class="brand-name"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
                         <small class="brand-sub">
                             <span class="en-text"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></span>
                             <span class="bn-text" style="display:none;"><%= settings.tagline_bn || 'ট্রেন্ডে থাকুন, স্টাইলে থাকুন' %></span>
@@ -58,6 +62,7 @@
             <nav class="nav-links">
                 <a href="/" class="en-text">Home</a><a href="/" class="bn-text" style="display:none;">হোম</a>
                 <a href="#products" class="en-text">Products</a><a href="#products" class="bn-text" style="display:none;">প্রোডাক্টস</a>
+                <a href="#faq" class="en-text">FAQ</a><a href="#faq" class="bn-text" style="display:none;">প্রশ্নোত্তর</a>
                 <a href="#" onclick="openTrackingModal(); return false;" class="en-text">📦 Track Order</a><a href="#" onclick="openTrackingModal(); return false;" class="bn-text" style="display:none;">📦 অর্ডার ট্র্যাক</a>
                 <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="wa-nav-btn">💬 WhatsApp</a>
                 <button class="lang-toggle-btn" onclick="toggleLanguage()"><span id="langLabel">বাংলা</span></button>
@@ -74,8 +79,8 @@
             <p class="en-text"><%= settings.hero_subtitle_en || 'Discover trending gadgets, lamps, and everyday essentials with cash on delivery.' %></p>
             <p class="bn-text" style="display:none;"><%= settings.hero_subtitle_bn || 'আধুনিক গ্যাজেট, ল্যাম্প এবং লাইফস্টাইল পণ্য — ক্যাশ অন ডেলিভারিতে অর্ডার করুন।' %></p>
             <div class="hero-badges">
-                <div class="h-badge">🚚 Courier: <%= settings.courier_partners || 'SteadFast / Pathao' %></div>
-                <div class="h-badge">💳 Payment: COD / bKash / Nagad</div>
+                <div class="h-badge">🚚 Fast Courier Delivery</div>
+                <div class="h-badge">💳 COD / bKash / Nagad</div>
                 <div class="h-badge">📞 Hotline: <%= settings.whatsapp_number || '01731763504' %></div>
             </div>
             <a href="#products" class="cta-btn en-text">Shop Collection &darr;</a>
@@ -154,23 +159,97 @@
         </div>
     </main>
 
-    <section class="info-strip">
-        <div class="container info-grid">
-            <div class="info-box">
-                <h4>🚚 Fast Courier Delivery</h4>
-                <p>Reliable home delivery across Bangladesh via <%= settings.courier_partners || 'SteadFast & Pathao' %>.</p>
-            </div>
-            <div class="info-box">
-                <h4>💳 Pay After Checking</h4>
-                <p>100% Cash on Delivery upon inspection, or instant bKash & Nagad payment.</p>
-            </div>
-            <div class="info-box">
-                <h4>📞 Direct Hotline</h4>
-                <p>Call or WhatsApp anytime: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p>
+    <!-- Delivery Partners & Payment Logo Showcase Strip -->
+    <section class="partners-section">
+        <div class="container">
+            <div class="partners-wrapper">
+                <div class="partner-group">
+                    <span class="partner-label en-text">🚚 Official Delivery Partners:</span>
+                    <span class="partner-label bn-text" style="display:none;">🚚 আমাদের ডেলিভারি পার্টনার:</span>
+                    <div class="partner-badges">
+                        <div class="courier-logo-card sf-card">
+                            <span class="c-icon">🚚</span>
+                            <div><strong>SteadFast</strong><small>Courier</small></div>
+                        </div>
+                        <div class="courier-logo-card pathao-card">
+                            <span class="c-icon">🛵</span>
+                            <div><strong>Pathao</strong><small>Parcel</small></div>
+                        </div>
+                        <div class="courier-logo-card redx-card">
+                            <span class="c-icon">📦</span>
+                            <div><strong>REDX</strong><small>Logistics</small></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="partner-group">
+                    <span class="partner-label en-text">💳 Accepted Payment Methods:</span>
+                    <span class="partner-label bn-text" style="display:none;">💳 পেমেন্ট মাধ্যমসমূহ:</span>
+                    <div class="partner-badges">
+                        <div class="pay-logo-card cod-card">💵 Cash on Delivery</div>
+                        <div class="pay-logo-card bkash-card">📱 bKash</div>
+                        <div class="pay-logo-card nagad-card">📲 Nagad</div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
+    <!-- Interactive FAQ Section -->
+    <section class="faq-section" id="faq">
+        <div class="container" style="max-width: 860px;">
+            <div class="section-header">
+                <h2 class="en-text">Frequently Asked Questions (FAQ)</h2>
+                <h2 class="bn-text" style="display:none;">সাধারণ জিজ্ঞাসা (FAQ)</h2>
+                <p class="en-text">Everything you need to know about ordering, delivery & returns</p>
+                <p class="bn-text" style="display:none;">অর্ডার, ডেলিভারি এবং রিটার্ন পলিসি সম্পর্কে বিস্তারিত জানুন</p>
+            </div>
+
+            <div class="faq-list">
+                <div class="faq-item active">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        <span>1. <%= settings.faq_1_q || 'How long does delivery take across Bangladesh?' %></span>
+                        <span class="faq-arrow">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p><%= settings.faq_1_a || 'Inside Dhaka delivery takes 24–48 hours, and outside Dhaka takes 2–4 business days via SteadFast, Pathao, or RedX.' %></p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        <span>2. <%= settings.faq_2_q || 'Can I check the product before paying?' %></span>
+                        <span class="faq-arrow">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p><%= settings.faq_2_a || 'Yes! We offer 100% Cash on Delivery (COD). You can inspect the parcel in front of the delivery rider before paying.' %></p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        <span>3. <%= settings.faq_3_q || 'What is your return & replacement policy?' %></span>
+                        <span class="faq-arrow">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p><%= settings.faq_3_a || 'If you receive a damaged or wrong item, notify us immediately via WhatsApp (01731763504) for a free instant replacement.' %></p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        <span>4. <%= settings.faq_4_q || 'How can I track my order?' %></span>
+                        <span class="faq-arrow">▼</span>
+                    </button>
+                    <div class="faq-answer">
+                        <p><%= settings.faq_4_a || 'Click the "Track Order" button in the top menu and enter your mobile number to see live order status.' %></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Checkout Modal -->
     <div id="checkoutModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeCheckout()">&times;</span>
@@ -265,6 +344,7 @@
         </div>
     </div>
 
+    <!-- Order Tracking Modal -->
     <div id="trackingModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeTrackingModal()">&times;</span>
@@ -274,6 +354,15 @@
                 <button type="button" class="submit-order-btn" onclick="fetchOrdersByPhone()">🔍 Search Orders</button>
             </div>
             <div id="trackingResultContainer" style="margin-top: 15px; max-height: 250px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- Policy Modal (Privacy Policy, Return Policy, Terms & Conditions) -->
+    <div id="policyModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close" onclick="closePolicyModal()">&times;</span>
+            <h2 id="policyModalTitle" style="color:#1F1B5C; margin-top:0;">Policy</h2>
+            <div id="policyModalBody" style="line-height: 1.7; font-size: 14.5px; color: #333; white-space: pre-line; background:#f8f9fc; padding:18px; border-radius:8px; border:1px solid #e2e8f0;"></div>
         </div>
     </div>
 
@@ -290,18 +379,28 @@
     <footer class="footer">
         <div class="container footer-grid">
             <div>
-                <h3>TrendzzNow</h3>
+                <h3><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></h3>
                 <p><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></p>
                 <p>🌐 www.trendzznow.com</p>
+            </div>
+            <div>
+                <h4>Policies & Quick Links</h4>
+                <ul class="footer-policy-links">
+                    <li><a href="#" onclick="openPolicyModal('privacy'); return false;">🔒 Privacy Policy</a></li>
+                    <li><a href="#" onclick="openPolicyModal('return'); return false;">🔄 Return & Replacement Policy</a></li>
+                    <li><a href="#" onclick="openPolicyModal('terms'); return false;">📜 Terms & Conditions</a></li>
+                    <li><a href="#faq">❓ Frequently Asked Questions (FAQ)</a></li>
+                </ul>
             </div>
             <div>
                 <h4>Support & Payment</h4>
                 <p>📞 WhatsApp / Call: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p>
                 <p>💳 bKash / Nagad: <%= settings.bkash_number || '01731763504' %></p>
+                <p>🚚 Delivery: Inside Dhaka ৳<%= settings.delivery_inside_dhaka || 70 %> | Outside ৳<%= settings.delivery_outside_dhaka || 130 %></p>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 TrendzzNow (trendzznow.com). All rights reserved.</p>
+            <p>&copy; 2026 <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %> (trendzznow.com). All rights reserved.</p>
         </div>
     </footer>
 
@@ -313,6 +412,35 @@
         const nagadNum = "<%= settings.nagad_number || '01731763504' %>";
         const validPromoCode = ("<%= settings.promo_code || 'TREND50' %>").trim().toUpperCase();
         const validPromoDiscount = parseFloat("<%= settings.promo_discount || '50' %>") || 0;
+
+        const policiesData = {
+            privacy: {
+                title: "🔒 Privacy Policy",
+                body: `<%= (settings.privacy_policy || '').replace(/`/g, "'") %>`
+            },
+            return: {
+                title: "🔄 Return & Replacement Policy",
+                body: `<%= (settings.return_policy || '').replace(/`/g, "'") %>`
+            },
+            terms: {
+                title: "📜 Terms & Conditions",
+                body: `<%= (settings.terms_conditions || '').replace(/`/g, "'") %>`
+            }
+        };
+
+        function openPolicyModal(type) {
+            const p = policiesData[type];
+            if (!p) return;
+            document.getElementById('policyModalTitle').innerText = p.title;
+            document.getElementById('policyModalBody').innerText = p.body;
+            document.getElementById('policyModal').style.display = 'block';
+        }
+        function closePolicyModal() { document.getElementById('policyModal').style.display = 'none'; }
+
+        function toggleFaq(btn) {
+            const item = btn.parentElement;
+            item.classList.toggle('active');
+        }
 
         function applyLanguage(lang) {
             currentLang = lang;
@@ -490,6 +618,7 @@
         window.onclick = function(e) {
             if (e.target === document.getElementById('checkoutModal')) closeCheckout();
             if (e.target === document.getElementById('trackingModal')) closeTrackingModal();
+            if (e.target === document.getElementById('policyModal')) closePolicyModal();
         }
     </script>
 </body>

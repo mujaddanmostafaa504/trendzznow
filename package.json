@@ -1,7 +1,7 @@
 {
   "name": "trendzznow",
-  "version": "12.0.0",
-  "description": "TrendzzNow Bulletproof Production E-commerce Platform with Cookie-Session Auth, Dynamic SEO, Specific Product Pages, Bilingual EN/BN, Tracking & Supabase Persistence",
+  "version": "13.0.0",
+  "description": "TrendzzNow Complete Master E-commerce Platform with Direct Image Upload, Custom Brand Logos, Delivery Partner Badges, Interactive FAQ, Legal Policy Pages & Bulletproof Cookie-Session",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js"
@@ -11,6 +11,7 @@
     "compression": "^1.7.4",
     "cookie-session": "^2.1.0",
     "ejs": "^3.1.9",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1"
   }
 }

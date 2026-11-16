@@ -12,12 +12,14 @@
         .copy-btn { background-color: #00b894; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; }
         .edit-btn { background-color: #fdcb6e; color: #222; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; }
         .export-btn { background-color: #6c5ce7; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+        .upload-box { background: #f8f9fc; border: 2px dashed #b2bec3; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+        .upload-box label { color: #1F1B5C; font-weight: 700; }
     </style>
 </head>
 <body class="admin-body">
     <header class="admin-header">
         <div class="admin-brand">
-            <h2>⚡ TrendzzNow Master Dashboard</h2>
+            <h2>⚡ <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %> Master Dashboard</h2>
             <span class="live-badge">● Live Connected</span>
         </div>
         <div class="admin-header-actions">
@@ -62,6 +64,7 @@
             </div>
         </div>
 
+        <!-- Customer Orders Table -->
         <section class="admin-section">
             <div class="sec-head" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
                 <h3 style="margin:0; border:none;">📦 Customer Orders (<%= orders.length %>)</h3>
@@ -136,16 +139,22 @@
             </div>
         </section>
 
+        <!-- Product Management with Direct Image Upload -->
         <div class="two-col-grid">
             <section class="admin-section">
-                <h3>➕ Add New Product</h3>
-                <form action="/admin/products/add" method="POST">
+                <h3>➕ Add New Product (Direct Image Upload)</h3>
+                <form action="/admin/products/add" method="POST" enctype="multipart/form-data">
                     <div class="form-group"><label>Product Title *</label><input type="text" name="title" required placeholder="e.g. Dynamic Leaf Table Lamp"></div>
                     <div class="form-row">
                         <div class="form-group"><label>Selling Price (BDT) *</label><input type="number" name="price" required placeholder="950"></div>
                         <div class="form-group"><label>Regular Price</label><input type="number" name="regular_price" placeholder="1250"></div>
                     </div>
-                    <div class="form-group"><label>Image Direct URL</label><input type="text" name="image" placeholder="https://..."></div>
+                    <div class="upload-box">
+                        <label>📸 Upload Product Image Directly (JPG/PNG/WebP)</label>
+                        <input type="file" name="image_file" accept="image/*" style="margin-top:6px;">
+                        <small style="display:block; color:#666; margin-top:4px;">OR paste an external Image URL below:</small>
+                        <input type="text" name="image" placeholder="https://..." style="margin-top:6px;">
+                    </div>
                     <div class="form-group"><label>Variants (comma separated)</label><input type="text" name="variant_options" placeholder="Cream, Black, Wood"></div>
                     <div class="form-group"><label>Description</label><textarea name="description" rows="3"></textarea></div>
                     <button type="submit" class="add-product-btn">➕ Add Product</button>
@@ -154,13 +163,13 @@
 
             <section class="admin-section">
                 <h3>🛍️ Existing Products (<%= products.length %>)</h3>
-                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <div class="table-responsive" style="max-height: 460px; overflow-y: auto;">
                     <table class="data-table">
                         <thead><tr><th>Image</th><th>Name & Price</th><th>Action</th></tr></thead>
                         <tbody>
                             <% products.forEach(p => { %>
                                 <tr>
-                                    <td><% if (p.image) { %><img src="<%= p.image %>" width="40" height="40" style="object-fit:cover;border-radius:4px;"><% } %></td>
+                                    <td><% if (p.image) { %><img src="<%= p.image %>" width="45" height="45" style="object-fit:cover;border-radius:4px;"><% } %></td>
                                     <td><strong><%= p.title %></strong><br><span class="price-pill">৳ <%= p.price %></span></td>
                                     <td>
                                         <div style="display:flex; gap:5px;">
@@ -176,15 +185,21 @@
             </section>
         </div>
 
+        <!-- Edit Product Section -->
         <section class="admin-section" id="editSection" style="display:none; background:#fff8e5; border:1px solid #ffd166;">
             <h3>✏️ Edit Product (<span id="editProductIdTitle"></span>)</h3>
-            <form id="editProductForm" method="POST">
+            <form id="editProductForm" method="POST" enctype="multipart/form-data">
                 <div class="form-group"><label>Product Title *</label><input type="text" id="editTitle" name="title" required></div>
                 <div class="form-row">
                     <div class="form-group"><label>Selling Price *</label><input type="number" id="editPrice" name="price" required></div>
                     <div class="form-group"><label>Regular Price</label><input type="number" id="editRegularPrice" name="regular_price"></div>
                 </div>
-                <div class="form-group"><label>Image URL</label><input type="text" id="editImage" name="image"></div>
+                <div class="upload-box">
+                    <label>📸 Upload New Image File (Optional)</label>
+                    <input type="file" name="image_file" accept="image/*" style="margin-top:6px;">
+                    <small style="display:block; color:#666; margin-top:4px;">Current Image URL:</small>
+                    <input type="text" id="editImage" name="image" style="margin-top:4px;">
+                </div>
                 <div class="form-group"><label>Variants</label><input type="text" id="editVariants" name="variant_options"></div>
                 <div class="form-group"><label>Description</label><textarea id="editDesc" name="description" rows="2"></textarea></div>
                 <div style="display:flex; gap:10px;">
@@ -194,9 +209,25 @@
             </form>
         </section>
 
+        <!-- Master Brand, Logo, FAQ, Policies & Store Settings -->
         <section class="admin-section">
-            <h3>⚙️ Store, Payment & Promo Settings</h3>
-            <form action="/admin/settings/update" method="POST">
+            <h3>🎨 Brand Identity, Logo Upload, FAQ & Legal Policies</h3>
+            <form action="/admin/settings/update" method="POST" enctype="multipart/form-data">
+                <h4 style="color:#9c1448; margin-bottom:10px;">1. Website Name & Brand Logo</h4>
+                <div class="form-row">
+                    <div class="form-group"><label>Brand Name (Part 1)</label><input type="text" name="brand_name_first" value="<%= settings.brand_name_first || 'Trendzz' %>"></div>
+                    <div class="form-group"><label>Brand Name (Part 2 Accent)</label><input type="text" name="brand_name_second" value="<%= settings.brand_name_second || 'Now' %>"></div>
+                    <div class="form-group"><label>Website Tagline</label><input type="text" name="tagline_en" value="<%= settings.tagline_en || 'Stay on trend. Stay in style.' %>"></div>
+                </div>
+
+                <div class="upload-box">
+                    <label>🖼️ Upload Website Logo Directly (PNG/SVG/JPG)</label>
+                    <input type="file" name="logo_file" accept="image/*" style="margin-top:6px;">
+                    <small style="display:block; color:#666; margin-top:4px;">OR paste Logo URL:</small>
+                    <input type="text" name="logo_light" value="<%= settings.logo_light || '' %>" placeholder="https://..." style="margin-top:4px;">
+                </div>
+
+                <h4 style="color:#9c1448; margin:20px 0 10px 0;">2. Payment, Delivery & Promo Settings</h4>
                 <div class="form-row">
                     <div class="form-group"><label>📞 WhatsApp Number</label><input type="text" name="whatsapp_number" value="<%= settings.whatsapp_number || '01731763504' %>"></div>
                     <div class="form-group"><label>📲 bKash Number</label><input type="text" name="bkash_number" value="<%= settings.bkash_number || '01731763504' %>"></div>
@@ -208,10 +239,35 @@
                     <div class="form-group"><label>🎟️ Promo Code</label><input type="text" name="promo_code" value="<%= settings.promo_code || 'TREND50' %>"></div>
                     <div class="form-group"><label>💰 Promo Discount (৳)</label><input type="number" name="promo_discount" value="<%= settings.promo_discount || '50' %>"></div>
                 </div>
-                <button type="submit" class="save-settings-btn">💾 Save All Settings</button>
+
+                <h4 style="color:#9c1448; margin:20px 0 10px 0;">3. Interactive FAQ Questions & Answers</h4>
+                <div class="form-row">
+                    <div class="form-group"><label>FAQ 1 Question</label><input type="text" name="faq_1_q" value="<%= settings.faq_1_q %>"></div>
+                    <div class="form-group"><label>FAQ 1 Answer</label><input type="text" name="faq_1_a" value="<%= settings.faq_1_a %>"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>FAQ 2 Question</label><input type="text" name="faq_2_q" value="<%= settings.faq_2_q %>"></div>
+                    <div class="form-group"><label>FAQ 2 Answer</label><input type="text" name="faq_2_a" value="<%= settings.faq_2_a %>"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>FAQ 3 Question</label><input type="text" name="faq_3_q" value="<%= settings.faq_3_q %>"></div>
+                    <div class="form-group"><label>FAQ 3 Answer</label><input type="text" name="faq_3_a" value="<%= settings.faq_3_a %>"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>FAQ 4 Question</label><input type="text" name="faq_4_q" value="<%= settings.faq_4_q %>"></div>
+                    <div class="form-group"><label>FAQ 4 Answer</label><input type="text" name="faq_4_a" value="<%= settings.faq_4_a %>"></div>
+                </div>
+
+                <h4 style="color:#9c1448; margin:20px 0 10px 0;">4. Store Policies (Privacy, Return & Terms)</h4>
+                <div class="form-group"><label>🔒 Privacy Policy</label><textarea name="privacy_policy" rows="2"><%= settings.privacy_policy %></textarea></div>
+                <div class="form-group"><label>🔄 Return & Replacement Policy</label><textarea name="return_policy" rows="2"><%= settings.return_policy %></textarea></div>
+                <div class="form-group"><label>📜 Terms & Conditions</label><textarea name="terms_conditions" rows="2"><%= settings.terms_conditions %></textarea></div>
+
+                <button type="submit" class="save-settings-btn">💾 Save All Brand, Logo, FAQ & Policy Settings</button>
             </form>
         </section>
 
+        <!-- Password Change Section -->
         <section class="admin-section password-box">
             <h3>🔐 Change Admin Password Anytime</h3>
             <form action="/admin/password/change" method="POST">

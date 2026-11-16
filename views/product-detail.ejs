@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= product.title %> | TrendzzNow</title>
+    <title><%= product.title %> | <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></title>
     <link rel="canonical" href="https://trendzznow.com/product/<%= product.id %>">
     <meta property="og:title" content="<%= product.title %> - ৳<%= product.price %> | TrendzzNow">
     <meta property="og:description" content="<%= product.description || 'Order premium lifestyle product with cash on delivery across Bangladesh.' %>">
@@ -38,14 +38,20 @@
     <header class="navbar">
         <div class="nav-container">
             <a href="/" class="logo-area">
-                <div class="brand-badge">
-                    <span class="brand-name">Trendzz<span class="accent">Now</span></span>
-                    <small class="brand-sub">Official Store</small>
+                <% if (settings.logo_light) { %>
+                    <img src="<%= settings.logo_light %>" alt="Logo" class="brand-logo">
+                <% } else { %>
+                    <div class="brand-logo-icon">⚡</div>
+                <% } %>
+                <div class="brand-badge" style="margin-left:8px;">
+                    <span class="brand-name"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
+                    <small class="brand-sub"><%= settings.tagline_en || 'Official Store' %></small>
                 </div>
             </a>
             <nav class="nav-links">
                 <a href="/">Home</a>
                 <a href="/#products">All Products</a>
+                <a href="/#faq">FAQ</a>
                 <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="wa-nav-btn">💬 WhatsApp</a>
             </nav>
         </div>
@@ -140,7 +146,7 @@
 
     <footer class="footer">
         <div class="container footer-grid">
-            <div><h3>TrendzzNow</h3><p>🌐 www.trendzznow.com</p></div>
+            <div><h3><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></h3><p>🌐 www.trendzznow.com</p></div>
             <div><h4>Support</h4><p>📞 WhatsApp: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p></div>
         </div>
     </footer>
