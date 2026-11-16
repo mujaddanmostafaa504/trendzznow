@@ -5,25 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= settings.site_title || 'TrendzzNow - Stay on trend. Stay in style.' %></title>
     <link rel="canonical" href="https://trendzznow.com/">
-    
-    <!-- Open Graph / Social Media Meta Tags -->
     <meta property="og:title" content="<%= settings.site_title || 'TrendzzNow - Stay on trend. Stay in style.' %>">
     <meta property="og:description" content="<%= settings.hero_subtitle_en || 'Discover trending gadgets, lamps, and everyday essentials with cash on delivery.' %>">
     <meta property="og:image" content="<%= settings.logo_light || 'https://trendzznow.com/images/banner.jpg' %>">
     <meta property="og:url" content="https://trendzznow.com">
     <meta property="og:type" content="website">
-
-    <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<%= settings.site_title || 'TrendzzNow - Stay on trend. Stay in style.' %>">
-    <meta name="twitter:description" content="<%= settings.hero_subtitle_en || 'Discover trending gadgets, lamps, and everyday essentials with cash on delivery.' %>">
-    <meta name="twitter:image" content="<%= settings.logo_light || 'https://trendzznow.com/images/banner.jpg' %>">
-
     <link rel="stylesheet" href="/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
     <% if (settings.facebook_pixel) { %>
-    <!-- Fixed Official Facebook Pixel Code -->
     <script>
       !function(f,b,e,v,n,t,s)
       {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -39,13 +29,11 @@
     <% } %>
 </head>
 <body>
-    <!-- Top Notice Banner -->
     <div class="banner-notice">
-        <span class="en-text"><%= settings.banner_text || '🚚 Free Home Delivery on Featured Items | Cash on Delivery Available' %></span>
+        <span class="en-text"><%= settings.banner_text || '🚚 Free Home Delivery on Featured Items | Cash on Delivery Available across Bangladesh' %></span>
         <span class="bn-text" style="display:none;"><%= settings.banner_text_bn || '🚚 সারা বাংলাদেশে ক্যাশ অন ডেলিভারি ও দ্রুত হোম ডেলিভারি!' %></span>
     </div>
 
-    <!-- Navigation Bar -->
     <header class="navbar">
         <div class="nav-container">
             <a href="/" class="logo-area">
@@ -62,7 +50,6 @@
                 <% } %>
             </a>
 
-            <!-- Search Bar -->
             <div class="search-bar-wrap">
                 <input type="text" id="searchInput" placeholder="Search products..." onkeyup="filterProducts()">
                 <span class="search-icon">🔍</span>
@@ -72,22 +59,13 @@
                 <a href="/" class="en-text">Home</a><a href="/" class="bn-text" style="display:none;">হোম</a>
                 <a href="#products" class="en-text">Products</a><a href="#products" class="bn-text" style="display:none;">প্রোডাক্টস</a>
                 <a href="#" onclick="openTrackingModal(); return false;" class="en-text">📦 Track Order</a><a href="#" onclick="openTrackingModal(); return false;" class="bn-text" style="display:none;">📦 অর্ডার ট্র্যাক</a>
-                
-                <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="wa-nav-btn">
-                    💬 WhatsApp
-                </a>
-
-                <!-- Language Switcher -->
-                <button class="lang-toggle-btn" onclick="toggleLanguage()">
-                    <span id="langLabel">বাংলা</span>
-                </button>
-
+                <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="wa-nav-btn">💬 WhatsApp</a>
+                <button class="lang-toggle-btn" onclick="toggleLanguage()"><span id="langLabel">বাংলা</span></button>
                 <a href="/admin" class="admin-link">Admin</a>
             </nav>
         </div>
     </header>
 
-    <!-- Hero Section -->
     <section class="hero-section">
         <div class="hero-inner">
             <span class="hero-pill">✨ Official Store — trendzznow.com</span>
@@ -105,12 +83,11 @@
         </div>
     </section>
 
-    <!-- Products Section -->
     <main class="container" id="products">
         <div class="section-header">
             <h2 class="en-text">Featured Products</h2>
             <h2 class="bn-text" style="display:none;">আমাদের জনপ্রিয় পণ্যসমূহ</h2>
-            <p class="en-text">Click "Order Now" for instant checkout or "Details" for full product specifications</p>
+            <p class="en-text">Click "Order Now" for instant checkout or "Details" for full specifications</p>
             <p class="bn-text" style="display:none;">সরাসরি অর্ডার করতে "অর্ডার করুন" অথবা বিস্তারিত দেখতে ছবির ওপর ক্লিক করুন</p>
         </div>
 
@@ -137,13 +114,9 @@
                                 <h3 class="product-title"><%= p.title %></h3>
                             </a>
                             <p class="product-desc"><%= p.description ? p.description.substring(0, 75) + (p.description.length > 75 ? '...' : '') : 'Premium quality lifestyle product.' %></p>
-                            
                             <% if (p.variant_options) { %>
-                                <div class="variant-display">
-                                    <small>🎨 Variants: <%= p.variant_options %></small>
-                                </div>
+                                <div class="variant-display"><small>🎨 Variants: <%= p.variant_options %></small></div>
                             <% } %>
-
                             <div class="price-action">
                                 <div>
                                     <% if (hasDiscount) { %>
@@ -152,7 +125,7 @@
                                     <span class="price">৳ <%= p.price %></span>
                                 </div>
                                 <div style="display:flex; gap:6px;">
-                                    <a href="/product/<%= p.id %>" class="details-btn" title="View Full Page">
+                                    <a href="/product/<%= p.id %>" class="details-btn">
                                         <span class="en-text">Details</span><span class="bn-text" style="display:none;">বিস্তারিত</span>
                                     </a>
                                     <button type="button" class="buy-btn" 
@@ -164,7 +137,7 @@
                                     </button>
                                 </div>
                             </div>
-                            <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>?text=<%= encodeURIComponent('Hello TrendzzNow, I want to order: ' + p.title + ' (Price: ৳' + p.price + ') - https://trendzznow.com/product/' + p.id) %>" target="_blank" class="wa-card-btn">
+                            <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>?text=<%= encodeURIComponent('Hello TrendzzNow, I want to order: ' + p.title + ' (Price: ৳' + p.price + ')') %>" target="_blank" class="wa-card-btn">
                                 📱 <span class="en-text">Order via WhatsApp</span><span class="bn-text" style="display:none;">WhatsApp-এ অর্ডার করুন</span>
                             </a>
                         </div>
@@ -174,44 +147,30 @@
                 <div class="empty-state">
                     <h3 class="en-text">No products available right now</h3>
                     <h3 class="bn-text" style="display:none;">বর্তমানে কোনো প্রোডাক্ট তালিকাভুক্ত নেই</h3>
-                    <p class="en-text">Please check back later or contact us on WhatsApp.</p>
-                    <p class="bn-text" style="display:none;">অ্যাডমিন প্যানেল থেকে নতুন প্রোডাক্ট যোগ করুন অথবা আমাদের WhatsApp-এ যোগাযোগ করুন।</p>
+                    <p class="en-text">Log in to Admin Panel to add your products.</p>
+                    <p class="bn-text" style="display:none;">অ্যাডমিন প্যানেল থেকে নতুন প্রোডাক্ট যোগ করুন।</p>
                 </div>
             <% } %>
         </div>
     </main>
 
-    <!-- Customer Reviews & Trust Badges Section -->
     <section class="info-strip">
-        <div class="container">
-            <div class="section-header" style="margin-bottom: 22px;">
-                <h2 class="en-text" style="font-size:24px;">Why Shop With TrendzzNow?</h2>
-                <h2 class="bn-text" style="display:none; font-size:24px;">কেন TrendzzNow থেকে কেনাকাটা করবেন?</h2>
+        <div class="container info-grid">
+            <div class="info-box">
+                <h4>🚚 Fast Courier Delivery</h4>
+                <p>Reliable home delivery across Bangladesh via <%= settings.courier_partners || 'SteadFast & Pathao' %>.</p>
             </div>
-            <div class="info-grid">
-                <div class="info-box">
-                    <h4 class="en-text">🚚 Fast Courier Delivery</h4>
-                    <h4 class="bn-text" style="display:none;">🚚 দ্রুত কুরিয়ার ডেলিভারি</h4>
-                    <p class="en-text">Reliable home delivery across Bangladesh via <%= settings.courier_partners || 'SteadFast & Pathao' %>.</p>
-                    <p class="bn-text" style="display:none;"><%= settings.courier_partners || 'SteadFast ও Pathao' %>-এর মাধ্যমে সারা বাংলাদেশে নিরাপদ হোম ডেলিভারি।</p>
-                </div>
-                <div class="info-box">
-                    <h4 class="en-text">💳 Pay After Checking</h4>
-                    <h4 class="bn-text" style="display:none;">💳 পণ্য দেখে পেমেন্ট</h4>
-                    <p class="en-text">100% Cash on Delivery upon inspection, or instant bKash & Nagad payment.</p>
-                    <p class="bn-text" style="display:none;">পণ্য হাতে পেয়ে দেখে ক্যাশ অন ডেলিভারি অথবা bKash ও Nagad পেমেন্টের সুবিধা।</p>
-                </div>
-                <div class="info-box">
-                    <h4 class="en-text">⭐ Verified Quality & Support</h4>
-                    <h4 class="bn-text" style="display:none;">⭐ শতভাগ মানসম্মত পণ্য ও সাপোর্ট</h4>
-                    <p class="en-text">Every item is tested before dispatch. Direct hotline: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p>
-                    <p class="bn-text" style="display:none;">প্রতিটি পণ্য চেক করে পাঠানো হয়। সরাসরি হটলাইন: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p>
-                </div>
+            <div class="info-box">
+                <h4>💳 Pay After Checking</h4>
+                <p>100% Cash on Delivery upon inspection, or instant bKash & Nagad payment.</p>
+            </div>
+            <div class="info-box">
+                <h4>📞 Direct Hotline</h4>
+                <p>Call or WhatsApp anytime: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p>
             </div>
         </div>
     </section>
 
-    <!-- Instant Checkout Modal (Works Directly from Home Page!) -->
     <div id="checkoutModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeCheckout()">&times;</span>
@@ -227,64 +186,61 @@
                 <input type="hidden" id="orderDiscountApplied" name="discount_applied" value="0">
 
                 <div id="variantGroup" class="form-group" style="display:none;">
-                    <label><span class="en-text">Select Variant / Color *</span><span class="bn-text" style="display:none;">কালার বা ভ্যারিয়েন্ট নির্বাচন করুন *</span></label>
+                    <label>Select Variant / Color *</label>
                     <select id="orderVariant" name="variant"></select>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label><span class="en-text">Your Name *</span><span class="bn-text" style="display:none;">আপনার নাম *</span></label>
-                        <input type="text" name="customer_name" required placeholder="Full Name / পূর্ণ নাম">
+                        <label>Your Name *</label>
+                        <input type="text" name="customer_name" required placeholder="Full Name">
                     </div>
                     <div class="form-group">
-                        <label><span class="en-text">Mobile Number (11 digits) *</span><span class="bn-text" style="display:none;">মোবাইল নাম্বার (১১ ডিজিট) *</span></label>
-                        <input type="tel" id="phoneInput" name="phone" required placeholder="017xxxxxxxx" pattern="01[3-9][0-9]{8}" title="Enter valid 11-digit BD mobile number (e.g. 017xxxxxxxx)">
+                        <label>Mobile Number (11 digits) *</label>
+                        <input type="tel" id="phoneInput" name="phone" required placeholder="017xxxxxxxx" pattern="01[3-9][0-9]{8}">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label><span class="en-text">Quantity</span><span class="bn-text" style="display:none;">পরিমাণ</span></label>
+                        <label>Quantity</label>
                         <input type="number" id="orderQty" name="quantity" value="1" min="1" max="50" onchange="updateTotal()">
                     </div>
                     <div class="form-group">
-                        <label><span class="en-text">Delivery Area *</span><span class="bn-text" style="display:none;">ডেলিভারি এরিয়া *</span></label>
+                        <label>Delivery Area *</label>
                         <select id="deliveryArea" name="delivery_area" onchange="updateTotal()">
-                            <option value="Inside Dhaka" data-charge="<%= settings.delivery_inside_dhaka || 70 %>">Inside Dhaka / ঢাকার ভেতরে (৳ <%= settings.delivery_inside_dhaka || 70 %>)</option>
-                            <option value="Outside Dhaka" data-charge="<%= settings.delivery_outside_dhaka || 130 %>">Outside Dhaka / ঢাকার বাইরে (৳ <%= settings.delivery_outside_dhaka || 130 %>)</option>
+                            <option value="Inside Dhaka" data-charge="<%= settings.delivery_inside_dhaka || 70 %>">Inside Dhaka (৳ <%= settings.delivery_inside_dhaka || 70 %>)</option>
+                            <option value="Outside Dhaka" data-charge="<%= settings.delivery_outside_dhaka || 130 %>">Outside Dhaka (৳ <%= settings.delivery_outside_dhaka || 130 %>)</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label><span class="en-text">Preferred Courier</span><span class="bn-text" style="display:none;">পছন্দের কুরিয়ার</span></label>
+                        <label>Preferred Courier</label>
                         <select name="courier_choice">
-                            <option value="SteadFast Courier">SteadFast Courier (Home Delivery)</option>
+                            <option value="SteadFast Courier">SteadFast Courier</option>
                             <option value="Pathao Courier">Pathao Courier</option>
                             <option value="RedX Courier">RedX Courier</option>
-                            <option value="Sundarban Courier">Sundarban Courier</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label><span class="en-text">Payment Method *</span><span class="bn-text" style="display:none;">পেমেন্ট মেথড *</span></label>
+                        <label>Payment Method *</label>
                         <select id="paymentMethod" name="payment_method" onchange="togglePaymentDetails()">
-                            <option value="Cash on Delivery (COD)">Cash on Delivery (পণ্য হাতে পেয়ে পেমেন্ট)</option>
-                            <option value="bKash">bKash (বিকাশ পেমেন্ট / সেন্ড মানি)</option>
-                            <option value="Nagad">Nagad (নগদ পেমেন্ট / সেন্ড মানি)</option>
+                            <option value="Cash on Delivery (COD)">Cash on Delivery (COD)</option>
+                            <option value="bKash">bKash (Send Money)</option>
+                            <option value="Nagad">Nagad (Send Money)</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Digital Payment Box -->
                 <div id="digitalPaymentBox" class="payment-info-box" style="display: none;">
                     <p id="paymentInstructionText" style="margin: 0 0 8px 0; font-size: 13px;"></p>
-                    <input type="text" id="trxIdInput" name="trx_id" placeholder="Enter Transaction ID or last 4 digits">
+                    <input type="text" id="trxIdInput" name="trx_id" placeholder="Transaction ID or last 4 digits">
                 </div>
 
-                <!-- Promo Code Box -->
                 <div class="form-group">
-                    <label><span class="en-text">Promo / Coupon Code (Optional)</span><span class="bn-text" style="display:none;">প্রোমো / ডিসকাউন্ট কোড (যদি থাকে)</span></label>
+                    <label>Promo Code (Optional)</label>
                     <div style="display:flex; gap:8px;">
                         <input type="text" id="promoInput" placeholder="e.g. TREND50" style="flex:1;">
                         <button type="button" onclick="applyPromoCode()" style="background:#1F1B5C; color:#fff; border:none; padding:0 16px; border-radius:7px; cursor:pointer; font-weight:600;">Apply</button>
@@ -293,67 +249,55 @@
                 </div>
 
                 <div class="form-group">
-                    <label><span class="en-text">Complete Delivery Address *</span><span class="bn-text" style="display:none;">সম্পূর্ণ ডেলিভারি ঠিকানা *</span></label>
-                    <textarea name="address" rows="2" required placeholder="House/Holding, Road, Area, Thana & District / বাসা, রোড, এলাকা, থানা ও জেলা"></textarea>
+                    <label>Complete Delivery Address *</label>
+                    <textarea name="address" rows="2" required placeholder="House, Road, Area, Thana & District"></textarea>
                 </div>
 
                 <div class="order-summary-box">
-                    <div class="summary-line"><span><span class="en-text">Product Total:</span><span class="bn-text" style="display:none;">পণ্যের মূল্য:</span></span> <span id="sumProductPrice">৳ 0</span></div>
-                    <div class="summary-line"><span><span class="en-text">Delivery Charge:</span><span class="bn-text" style="display:none;">ডেলিভারি চার্জ:</span></span> <span id="sumDeliveryCharge">৳ <%= settings.delivery_inside_dhaka || 70 %></span></div>
+                    <div class="summary-line"><span>Product Total:</span> <span id="sumProductPrice">৳ 0</span></div>
+                    <div class="summary-line"><span>Delivery Charge:</span> <span id="sumDeliveryCharge">৳ <%= settings.delivery_inside_dhaka || 70 %></span></div>
                     <div class="summary-line" id="discountRow" style="display:none; color:#00b894; font-weight:600;"><span>Discount:</span> <span id="sumDiscount">-৳ 0</span></div>
-                    <div class="summary-line total-line"><span><span class="en-text">Total Payable:</span><span class="bn-text" style="display:none;">সর্বমোট বিল:</span></span> <span id="sumTotalBill">৳ 0</span></div>
+                    <div class="summary-line total-line"><span>Total Payable:</span> <span id="sumTotalBill">৳ 0</span></div>
                 </div>
 
-                <button type="submit" id="submitBtn" class="submit-order-btn">
-                    ✅ <span class="en-text">Confirm Order</span><span class="bn-text" style="display:none;">অর্ডার কনফার্ম করুন</span>
-                </button>
+                <button type="submit" id="submitBtn" class="submit-order-btn">✅ Confirm Order</button>
             </form>
         </div>
     </div>
 
-    <!-- Order Tracking Modal -->
     <div id="trackingModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeTrackingModal()">&times;</span>
-            <h2>📦 <span class="en-text">Track Your Order</span><span class="bn-text" style="display:none;">আপনার অর্ডার ট্র্যাক করুন</span></h2>
-            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">
-                <span class="en-text">Enter your mobile number to check live order status:</span>
-                <span class="bn-text" style="display:none;">অর্ডারের বর্তমান অবস্থা জানতে আপনার মোবাইল নাম্বার দিন:</span>
-            </p>
+            <h2>📦 Track Your Order</h2>
             <div class="form-group">
                 <input type="tel" id="trackPhone" placeholder="017xxxxxxxx" style="margin-bottom: 10px;">
-                <button type="button" class="submit-order-btn" onclick="fetchOrdersByPhone()">🔍 <span class="en-text">Search Orders</span><span class="bn-text" style="display:none;">অর্ডার খুঁজুন</span></button>
+                <button type="button" class="submit-order-btn" onclick="fetchOrdersByPhone()">🔍 Search Orders</button>
             </div>
             <div id="trackingResultContainer" style="margin-top: 15px; max-height: 250px; overflow-y: auto;"></div>
         </div>
     </div>
 
-    <!-- Floating WhatsApp Desktop -->
-    <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>?text=<%= encodeURIComponent('Hello TrendzzNow, I am contacting you from your website.') %>" target="_blank" class="floating-wa">
+    <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="floating-wa">
         <span>💬 WhatsApp Chat</span>
     </a>
 
-    <!-- Sticky Mobile Bottom Bar -->
     <div class="mobile-bottom-bar">
-        <a href="#products" class="m-bar-btn m-shop">🛍️ <span class="en-text">Products</span><span class="bn-text" style="display:none;">প্রোডাক্টস</span></a>
-        <a href="#" onclick="openTrackingModal(); return false;" class="m-bar-btn m-track">📦 <span class="en-text">Track</span><span class="bn-text" style="display:none;">ট্র্যাকিং</span></a>
+        <a href="#products" class="m-bar-btn m-shop">🛍️ Products</a>
+        <a href="#" onclick="openTrackingModal(); return false;" class="m-bar-btn m-track">📦 Track</a>
         <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="m-bar-btn m-wa">💬 WhatsApp</a>
     </div>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="container footer-grid">
             <div>
                 <h3>TrendzzNow</h3>
-                <p class="en-text"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></p>
-                <p class="bn-text" style="display:none;"><%= settings.tagline_bn || 'ট্রেন্ডে থাকুন, স্টাইলে থাকুন' %></p>
+                <p><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></p>
                 <p>🌐 www.trendzznow.com</p>
             </div>
             <div>
-                <h4 class="en-text">Support & Payment</h4><h4 class="bn-text" style="display:none;">সাপোর্ট ও পেমেন্ট</h4>
+                <h4>Support & Payment</h4>
                 <p>📞 WhatsApp / Call: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p>
                 <p>💳 bKash / Nagad: <%= settings.bkash_number || '01731763504' %></p>
-                <p>🚚 Courier: <%= settings.courier_partners || 'SteadFast, Pathao, RedX' %></p>
             </div>
         </div>
         <div class="footer-bottom">
@@ -375,10 +319,8 @@
             localStorage.setItem('trendzz_lang', lang);
             document.getElementById('htmlRoot').setAttribute('lang', lang);
             document.getElementById('langLabel').innerText = lang === 'en' ? 'বাংলা' : 'English';
-
             const enEls = document.querySelectorAll('.en-text');
             const bnEls = document.querySelectorAll('.bn-text');
-
             if (lang === 'bn') {
                 enEls.forEach(el => el.style.display = 'none');
                 bnEls.forEach(el => el.style.display = 'inline-block');
@@ -387,28 +329,18 @@
                 bnEls.forEach(el => el.style.display = 'none');
             }
         }
-
-        function toggleLanguage() {
-            applyLanguage(currentLang === 'en' ? 'bn' : 'en');
-        }
-
-        // Initialize language on load
+        function toggleLanguage() { applyLanguage(currentLang === 'en' ? 'bn' : 'en'); }
         applyLanguage(currentLang);
 
         function filterProducts() {
             const query = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('.product-card');
-            cards.forEach(card => {
-                const title = card.getAttribute('data-title');
-                card.style.display = title.includes(query) ? 'flex' : 'none';
+            document.querySelectorAll('.product-card').forEach(card => {
+                card.style.display = card.getAttribute('data-title').includes(query) ? 'flex' : 'none';
             });
         }
 
         function openCheckoutFromBtn(btn) {
-            const title = btn.getAttribute('data-title');
-            const price = btn.getAttribute('data-price');
-            const variants = btn.getAttribute('data-variants');
-            openCheckout(title, price, variants);
+            openCheckout(btn.getAttribute('data-title'), btn.getAttribute('data-price'), btn.getAttribute('data-variants'));
         }
 
         function openCheckout(title, price, variants) {
@@ -418,8 +350,7 @@
             document.getElementById('promoInput').value = '';
             document.getElementById('promoMessage').style.display = 'none';
             document.getElementById('discountRow').style.display = 'none';
-
-            document.getElementById('modalProductTitle').innerText = (currentLang === 'en' ? 'Product: ' : 'পণ্য: ') + title + ' (৳ ' + currentBasePrice + ')';
+            document.getElementById('modalProductTitle').innerText = 'Product: ' + title + ' (৳ ' + currentBasePrice + ')';
             document.getElementById('orderProductTitle').value = title;
             document.getElementById('orderProductPrice').value = currentBasePrice;
             document.getElementById('orderQty').value = 1;
@@ -440,14 +371,11 @@
             } else {
                 variantGroup.style.display = 'none';
             }
-
             updateTotal();
             document.getElementById('checkoutModal').style.display = 'block';
         }
 
-        function closeCheckout() {
-            document.getElementById('checkoutModal').style.display = 'none';
-        }
+        function closeCheckout() { document.getElementById('checkoutModal').style.display = 'none'; }
 
         function applyPromoCode() {
             const input = document.getElementById('promoInput').value.trim().toUpperCase();
@@ -475,12 +403,9 @@
         function updateTotal() {
             const qty = parseInt(document.getElementById('orderQty').value) || 1;
             const areaSelect = document.getElementById('deliveryArea');
-            const selectedOption = areaSelect.options[areaSelect.selectedIndex];
-            const deliveryCharge = parseFloat(selectedOption.getAttribute('data-charge')) || 0;
-
+            const deliveryCharge = parseFloat(areaSelect.options[areaSelect.selectedIndex].getAttribute('data-charge')) || 0;
             const productTotal = currentBasePrice * qty;
             const grandTotal = Math.max(0, productTotal + deliveryCharge - currentDiscount);
-
             document.getElementById('orderDeliveryCharge').value = deliveryCharge;
             document.getElementById('sumProductPrice').innerText = '৳ ' + productTotal;
             document.getElementById('sumDeliveryCharge').innerText = '৳ ' + deliveryCharge;
@@ -492,14 +417,13 @@
             const box = document.getElementById('digitalPaymentBox');
             const text = document.getElementById('paymentInstructionText');
             const trxInput = document.getElementById('trxIdInput');
-
             if (method === 'bKash') {
                 box.style.display = 'block';
-                text.innerHTML = '📲 Send Money to our <strong>bKash Number: ' + bkashNum + '</strong> and enter Transaction ID or last 4 digits below:';
+                text.innerHTML = '📲 Send Money to <strong>bKash: ' + bkashNum + '</strong> & enter TrxID/Last 4 digits:';
                 trxInput.required = true;
             } else if (method === 'Nagad') {
                 box.style.display = 'block';
-                text.innerHTML = '📲 Send Money to our <strong>Nagad Number: ' + nagadNum + '</strong> and enter Transaction ID or last 4 digits below:';
+                text.innerHTML = '📲 Send Money to <strong>Nagad: ' + nagadNum + '</strong> & enter TrxID/Last 4 digits:';
                 trxInput.required = true;
             } else {
                 box.style.display = 'none';
@@ -512,11 +436,8 @@
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.innerText = 'Processing Order...';
-
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-
+            btn.innerText = 'Processing...';
+            const data = Object.fromEntries(new FormData(e.target).entries());
             try {
                 const res = await fetch('/order/place', {
                     method: 'POST',
@@ -525,10 +446,7 @@
                 });
                 const result = await res.json();
                 if (result.success) {
-                    if (typeof fbq === 'function') {
-                        fbq('track', 'Purchase', { value: currentBasePrice, currency: 'BDT' });
-                    }
-                    alert(currentLang === 'bn' ? '🎉 ধন্যবাদ! আপনার অর্ডারটি সফলভাবে গৃহীত হয়েছে। আমরা শীঘ্রই কল করে কনফার্ম করব।' : '🎉 Thank you! Your order has been placed successfully. We will call you soon to confirm.');
+                    alert('🎉 Thank you! Your order has been placed successfully.');
                     closeCheckout();
                     e.target.reset();
                     togglePaymentDetails();
@@ -536,54 +454,42 @@
                     alert('Error: ' + result.message);
                 }
             } catch (err) {
-                alert('Failed to place order. Please try again.');
+                alert('Failed to place order.');
             } finally {
                 btn.disabled = false;
-                btn.innerText = currentLang === 'bn' ? '✅ অর্ডার কনফার্ম করুন' : '✅ Confirm Order';
+                btn.innerText = '✅ Confirm Order';
             }
         }
 
-        function openTrackingModal() {
-            document.getElementById('trackingModal').style.display = 'block';
-        }
-
-        function closeTrackingModal() {
-            document.getElementById('trackingModal').style.display = 'none';
-        }
+        function openTrackingModal() { document.getElementById('trackingModal').style.display = 'block'; }
+        function closeTrackingModal() { document.getElementById('trackingModal').style.display = 'none'; }
 
         async function fetchOrdersByPhone() {
             const phone = document.getElementById('trackPhone').value.trim();
             const container = document.getElementById('trackingResultContainer');
-            if (!phone) {
-                alert('Please enter a phone number.');
-                return;
-            }
-            container.innerHTML = '<p>Searching orders...</p>';
+            if (!phone) return alert('Enter phone number');
+            container.innerHTML = '<p>Searching...</p>';
             try {
                 const res = await fetch('/order/track?phone=' + encodeURIComponent(phone));
                 const data = await res.json();
                 if (data.success && data.orders.length > 0) {
-                    let html = '<table style="width:100%; border-collapse:collapse; font-size:13px;">';
-                    html += '<tr style="background:#f1f3f5;"><th style="padding:6px;border:1px solid #ddd;">Date</th><th style="padding:6px;border:1px solid #ddd;">Product</th><th style="padding:6px;border:1px solid #ddd;">Status</th></tr>';
+                    let html = '<table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="background:#f1f3f5;"><th style="padding:6px;border:1px solid #ddd;">Date</th><th style="padding:6px;border:1px solid #ddd;">Product</th><th style="padding:6px;border:1px solid #ddd;">Status</th></tr>';
                     data.orders.forEach(o => {
-                        const dateStr = o.created_at ? new Date(o.created_at).toLocaleDateString() : '-';
-                        html += `<tr><td style="padding:6px;border:1px solid #ddd;">${dateStr}</td><td style="padding:6px;border:1px solid #ddd;">${o.product_title}<br><strong>৳${o.price}</strong></td><td style="padding:6px;border:1px solid #ddd;"><strong>${o.status || 'Pending'}</strong></td></tr>`;
+                        html += `<tr><td style="padding:6px;border:1px solid #ddd;">${o.created_at ? new Date(o.created_at).toLocaleDateString() : '-'}</td><td style="padding:6px;border:1px solid #ddd;">${o.product_title}<br><strong>৳${o.price}</strong></td><td style="padding:6px;border:1px solid #ddd;"><strong>${o.status || 'Pending'}</strong></td></tr>`;
                     });
                     html += '</table>';
                     container.innerHTML = html;
                 } else {
-                    container.innerHTML = '<p style="color:#d63031;">No orders found for this phone number.</p>';
+                    container.innerHTML = '<p style="color:#d63031;">No orders found.</p>';
                 }
             } catch (err) {
-                container.innerHTML = '<p style="color:#d63031;">Error fetching order status.</p>';
+                container.innerHTML = '<p style="color:#d63031;">Error fetching orders.</p>';
             }
         }
 
-        window.onclick = function(event) {
-            const modal = document.getElementById('checkoutModal');
-            const trackingModal = document.getElementById('trackingModal');
-            if (event.target === modal) closeCheckout();
-            if (event.target === trackingModal) closeTrackingModal();
+        window.onclick = function(e) {
+            if (e.target === document.getElementById('checkoutModal')) closeCheckout();
+            if (e.target === document.getElementById('trackingModal')) closeTrackingModal();
         }
     </script>
 </body>
