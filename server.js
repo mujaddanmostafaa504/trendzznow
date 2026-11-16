@@ -1,10 +1,14 @@
 const express = require('express');
 const session = require('express-session');
+const compression = require('compression');
 const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
+
+// Enable compression middleware
+app.use(compression());
 
 // Initialize Supabase Client
 const supabaseUrl = process.env.SUPABASE_URL || '';
@@ -167,7 +171,6 @@ app.post('/admin/settings/update', async (req, res) => {
   const settingsData = req.body;
   try {
     for (const [key, value] of Object.entries(settingsData)) {
-      // Upsert into settings table
       await supabase.from('settings').upsert({ key, value }, { onConflict: 'key' });
     }
     res.redirect('/admin/dashboard');

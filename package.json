@@ -1,6 +1,6 @@
 {
   "name": "trendzznow",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "TrendzzNow E-commerce Platform with Full Supabase Persistence",
   "main": "server.js",
   "scripts": {
@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.8",
+    "compression": "^1.7.4",
     "ejs": "^3.1.9",
     "express": "^4.19.2",
     "express-session": "^1.18.0"
