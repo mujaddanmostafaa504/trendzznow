@@ -11,6 +11,7 @@
     <meta property="og:url" content="https://trendzznow.com/product/<%= product.id %>">
     <meta property="og:type" content="product">
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/upgrade.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -53,13 +54,13 @@
             </div>
 
             <div class="product-detail-info">
-                <h1 class="detail-title"><%= product.title %></h1>
+                <div class="detail-heading-row"><h1 class="detail-title"><%= product.title %></h1><button type="button" class="share-product-btn" onclick="shareCurrentProduct()" aria-label="Share this product">↗ Share</button></div>
                 <div class="detail-price-box">
                     <% if (product.regular_price && product.regular_price > product.price) { %>
                         <span class="detail-reg-price">৳ <%= product.regular_price %></span>
                     <% } %>
                     <span class="detail-price">৳ <%= product.price %></span>
-                    <span class="stock-badge">✓ In Stock</span>
+                    <% if (product.stock_known) { %><span class="stock-badge <%= Number(product.stock_quantity) > 0 ? 'is-available' : 'is-unavailable' %>"><%= Number(product.stock_quantity) > 0 ? '✓ In Stock' : 'Out of Stock' %></span><% } %>
                 </div>
 
                 <div class="detail-desc-box">
@@ -127,7 +128,7 @@
                             <div class="summary-line total-line"><span>Total Payable:</span> <span id="detailSumTotal">৳ <%= (parseFloat(product.price) || 0) + (parseFloat(settings.delivery_inside_dhaka) || 70) %></span></div>
                         </div>
 
-                        <button type="submit" id="detailSubmitBtn" class="submit-order-btn shimmer-btn">✅ Confirm Order (Cash on Delivery)</button>
+                        <button type="submit" id="detailSubmitBtn" class="submit-order-btn shimmer-btn" <%= product.stock_known && Number(product.stock_quantity) <= 0 ? 'disabled' : '' %>>✅ Confirm Order (Cash on Delivery)</button>
                     </form>
                 </div>
             </div>
@@ -136,13 +137,28 @@
 
     <footer class="footer">
         <div class="container footer-grid">
-            <div><h3><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></h3><p>🌐 www.trendzznow.com</p></div>
-            <div><h4>Support</h4><p>📞 WhatsApp: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p></div>
+            <div><h3><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></h3><p>🌐 www.trendzznow.com</p>
+              <div class="footer-social-links" aria-label="Social media">
+                <% if (/^https?:\/\//i.test(settings.facebook_url || '')) { %><a href="<%= settings.facebook_url %>" target="_blank" rel="noopener noreferrer" aria-label="Facebook">f</a><% } %>
+                <% if (/^https?:\/\//i.test(settings.instagram_url || '')) { %><a href="<%= settings.instagram_url %>" target="_blank" rel="noopener noreferrer" aria-label="Instagram">◎</a><% } %>
+                <% if (/^https?:\/\//i.test(settings.tiktok_url || '')) { %><a href="<%= settings.tiktok_url %>" target="_blank" rel="noopener noreferrer" aria-label="TikTok">♪</a><% } %>
+                <% if (/^https?:\/\//i.test(settings.youtube_url || '')) { %><a href="<%= settings.youtube_url %>" target="_blank" rel="noopener noreferrer" aria-label="YouTube">▶</a><% } %>
+              </div>
+            </div>
+            <div><h4>Support & Delivery</h4><p>📞 WhatsApp: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p><p>🚚 Inside Dhaka ৳<%= settings.delivery_inside_dhaka || 70 %> · Outside Dhaka ৳<%= settings.delivery_outside_dhaka || 130 %></p><p>SteadFast · Pathao · REDX</p><p>Cash on Delivery · bKash · Nagad</p></div>
         </div>
     </footer>
 
     <script>
         const unitPrice = parseFloat('<%= product.price %>') || 0;
+        async function shareCurrentProduct() {
+            const shareData = { title: document.title, text: 'Check out this product on TrendzzNow', url: window.location.href };
+            try {
+                if (navigator.share) await navigator.share(shareData);
+                else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(window.location.href); alert('Product link copied.'); }
+                else window.prompt('Copy product link:', window.location.href);
+            } catch (error) { if (error && error.name !== 'AbortError') alert('Unable to share this product right now.'); }
+        }
         function updateDetailTotal() {
             const qty = parseInt(document.getElementById('detailQty').value) || 1;
             const areaSelect = document.getElementById('detailDeliveryArea');
@@ -181,5 +197,6 @@
             }
         }
     </script>
+    <script src="/upgrade.js" defer></script>
 </body>
 </html>

@@ -11,6 +11,7 @@
     <meta property="og:url" content="https://trendzznow.com">
     <meta property="og:type" content="website">
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/upgrade.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
     <% if (settings.facebook_pixel) { %>
     <script>
@@ -120,8 +121,8 @@
 
                 <div class="hero-glass-stats">
                     <div class="g-stat"><strong>100%</strong><span>Open-Box COD</span></div>
-                    <div class="g-stat"><strong>24–48h</strong><span>Express Delivery</span></div>
-                    <div class="g-stat"><strong>4.9 ★</strong><span>Verified Buyers</span></div>
+                    <div class="g-stat"><strong>WhatsApp</strong><span>Direct Support</span></div>
+                    <div class="g-stat"><strong>Nationwide</strong><span>Delivery Coverage</span></div>
                 </div>
             </div>
 
@@ -217,20 +218,30 @@
         <% if (categories.length > 1) { %>
             <div class="category-tabs-bar">
                 <% categories.forEach((cat, idx) => { %>
-                    <button class="cat-tab-btn <%= idx === 0 ? 'active' : '' %>" onclick="filterByCategory('<%= cat %>', this)"><%= cat %></button>
+                    <button type="button" class="cat-tab-btn <%= idx === 0 ? 'active' : '' %>" data-category-filter="<%= cat %>"><%= cat %></button>
                 <% }) %>
             </div>
         <% } %>
 
+        <div class="product-toolbar" aria-label="Product tools">
+            <div class="product-results-count" id="productResultsCount"><%= products.length %> products</div>
+            <label class="product-sort-control">Sort by
+                <select id="productSort" aria-label="Sort products">
+                    <option value="featured">Featured</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="name">Name: A to Z</option>
+                </select>
+            </label>
+        </div>
         <div class="product-grid" id="productGrid">
             <% if (products.length > 0) { %>
                 <% products.forEach((p, idx) => { 
                     const hasDiscount = p.regular_price && p.regular_price > p.price;
                     const discountPct = hasDiscount ? Math.round(((p.regular_price - p.price) / p.regular_price) * 100) : 0;
-                    const liveViewers = 12 + ((idx * 7) % 19);
                     const prodCat = p.category || 'All';
                 %>
-                    <div class="product-card tilt-card" data-tilt-max="10" data-category="<%= prodCat %>" data-title="<%= (p.title || '').toLowerCase() %>">
+                    <div class="product-card tilt-card" data-tilt-max="0" data-category="<%= prodCat %>" data-title="<%= (p.title || '').toLowerCase() %>" data-price="<%= Number(p.price) || 0 %>" data-product-id="<%= p.id %>">
                         <div class="tilt-glare"></div>
                         <a href="/product/<%= p.id %>" class="product-img-wrap" style="display:block; text-decoration:none;">
                             <% if (p.image) { %>
@@ -242,17 +253,13 @@
                             <% if (discountPct > 0) { %>
                                 <span class="discount-badge">🔥 -<%= discountPct %>%</span>
                             <% } %>
-                            <span class="live-view-pill">👁️ <%= liveViewers %> viewing</span>
+                            <% if (p.stock_known) { %><span class="availability-badge <%= Number(p.stock_quantity) > 0 ? 'is-available' : 'is-unavailable' %>"><%= Number(p.stock_quantity) > 0 ? 'In Stock' : 'Out of Stock' %></span><% } %>
                         </a>
                         <div class="product-info">
-                            <div class="rating-row">
-                                <span class="stars">★★★★★</span>
-                                <small>(4.9)</small>
-                            </div>
                             <a href="/product/<%= p.id %>" style="text-decoration:none;">
                                 <h3 class="product-title"><%= p.title %></h3>
                             </a>
-                            <p class="product-desc"><%= p.description ? p.description.substring(0, 72) + (p.description.length > 72 ? '...' : '') : 'Trending viral product with verified quality.' %></p>
+                            <p class="product-desc"><%= p.description ? p.description.substring(0, 72) + (p.description.length > 72 ? '...' : '') : 'View product details, available variants and ordering information.' %></p>
                             <% if (p.variant_options) { %>
                                 <div class="variant-display"><small>🎨 <%= p.variant_options %></small></div>
                             <% } %>
@@ -267,7 +274,8 @@
                                     <a href="/product/<%= p.id %>" class="details-btn">
                                         <span class="en-text">View</span><span class="bn-text" style="display:none;">দেখুন</span>
                                     </a>
-                                    <button type="button" class="buy-btn shimmer-btn" onclick="openCheckoutById('<%= p.id %>')">
+                                    <button type="button" class="share-product-btn" data-product-title="<%= p.title %>" onclick="shareProduct('<%= p.id %>', this.dataset.productTitle)" aria-label="Share <%= p.title %>">↗</button>
+                                    <button type="button" class="buy-btn shimmer-btn" onclick="openCheckoutById('<%= p.id %>')" <%= p.stock_known && Number(p.stock_quantity) <= 0 ? 'disabled' : '' %>>
                                         🛒 <span class="en-text">Order Now</span><span class="bn-text" style="display:none;">অর্ডার</span>
                                     </button>
                                 </div>
@@ -282,11 +290,12 @@
                 <div class="empty-state">
                     <h3 class="en-text">No trending products added yet</h3>
                     <h3 class="bn-text" style="display:none;">এখনো কোনো ট্রেন্ডিং প্রোডাক্ট যোগ করা হয়নি</h3>
-                    <p class="en-text">Log in to Admin Panel to add your trending products.</p>
-                    <p class="bn-text" style="display:none;">অ্যাডমিন প্যানেল থেকে নতুন প্রোডাক্ট যোগ করুন।</p>
+                    <p class="en-text">New products are being prepared. Please check back soon.</p>
+                    <p class="bn-text" style="display:none;">নতুন পণ্য যুক্ত করার কাজ চলছে। অনুগ্রহ করে পরে আবার দেখুন।</p>
                 </div>
             <% } %>
         </div>
+        <div class="product-no-results" id="productNoResults" hidden>No products match your search. Try another keyword or category.</div>
     </main>
 
     <!-- FAQ Section (Placed right above footer as requested) -->
@@ -342,6 +351,12 @@
                 <h3><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></h3>
                 <p><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></p>
                 <p>🌐 www.trendzznow.com</p>
+                <div class="footer-social-links" aria-label="Social media">
+                    <% if (/^https?:\/\//i.test(settings.facebook_url || '')) { %><a href="<%= settings.facebook_url %>" target="_blank" rel="noopener noreferrer" aria-label="Facebook">f</a><% } %>
+                    <% if (/^https?:\/\//i.test(settings.instagram_url || '')) { %><a href="<%= settings.instagram_url %>" target="_blank" rel="noopener noreferrer" aria-label="Instagram">◎</a><% } %>
+                    <% if (/^https?:\/\//i.test(settings.tiktok_url || '')) { %><a href="<%= settings.tiktok_url %>" target="_blank" rel="noopener noreferrer" aria-label="TikTok">♪</a><% } %>
+                    <% if (/^https?:\/\//i.test(settings.youtube_url || '')) { %><a href="<%= settings.youtube_url %>" target="_blank" rel="noopener noreferrer" aria-label="YouTube">▶</a><% } %>
+                </div>
             </div>
             <div>
                 <h4>Policies & Quick Links</h4>
@@ -537,20 +552,32 @@
             document.getElementById('menuDrawerOverlay').classList.toggle('open');
         }
 
-        // Category Filtering
-        function filterByCategory(cat, btn) {
-            document.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            const cards = document.querySelectorAll('.product-card');
+        // Category + search filters are applied together so one control never resets the other.
+        let activeProductCategory = 'All';
+        function applyProductFilters() {
+            const query = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+            const cards = Array.from(document.querySelectorAll('.product-card'));
+            let visible = 0;
             cards.forEach(card => {
-                const cCat = card.getAttribute('data-category');
-                if (cat === 'All' || cCat === cat) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
+                const matchesCategory = activeProductCategory === 'All' || card.dataset.category === activeProductCategory;
+                const matchesQuery = (card.dataset.title || '').includes(query);
+                const show = matchesCategory && matchesQuery;
+                card.style.display = show ? 'flex' : 'none';
+                if (show) visible += 1;
             });
+            const count = document.getElementById('productResultsCount');
+            if (count) count.textContent = `${visible} ${visible === 1 ? 'product' : 'products'}`;
+            const empty = document.getElementById('productNoResults');
+            if (empty) empty.hidden = visible !== 0;
+        }
+        document.querySelectorAll('.cat-tab-btn').forEach(button => {
+            button.addEventListener('click', () => filterByCategory(button.dataset.categoryFilter, button));
+        });
+        function filterByCategory(cat, btn) {
+            activeProductCategory = cat;
+            document.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            applyProductFilters();
         }
 
         // 3D Tilt Engine
@@ -625,12 +652,54 @@
         function toggleLanguage() { applyLanguage(currentLang === 'en' ? 'bn' : 'en'); }
         applyLanguage(currentLang);
 
-        function filterProducts() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            document.querySelectorAll('.product-card').forEach(card => {
-                card.style.display = card.getAttribute('data-title').includes(query) ? 'flex' : 'none';
+        function filterProducts() { applyProductFilters(); }
+
+        function sortProducts() {
+            const grid = document.getElementById('productGrid');
+            const sortBy = document.getElementById('productSort')?.value || 'featured';
+            if (!grid) return;
+            const cards = Array.from(grid.querySelectorAll('.product-card'));
+            cards.sort((a, b) => {
+                if (sortBy === 'price-low') return Number(a.dataset.price) - Number(b.dataset.price);
+                if (sortBy === 'price-high') return Number(b.dataset.price) - Number(a.dataset.price);
+                if (sortBy === 'name') return (a.dataset.title || '').localeCompare(b.dataset.title || '');
+                return Number(b.dataset.productId) - Number(a.dataset.productId);
             });
+            cards.forEach(card => grid.appendChild(card));
+            applyProductFilters();
         }
+
+        async function shareProduct(id, title) {
+            const url = `${window.location.origin}/product/${encodeURIComponent(id)}`;
+            try {
+                if (navigator.share) {
+                    await navigator.share({ title: title || 'TrendzzNow product', text: `Check out ${title || 'this product'} on TrendzzNow`, url });
+                } else if (navigator.clipboard?.writeText) {
+                    await navigator.clipboard.writeText(url);
+                    showStoreToast('Product link copied');
+                } else {
+                    window.prompt('Copy this product link:', url);
+                }
+            } catch (error) {
+                if (error && error.name !== 'AbortError') showStoreToast('Could not share this link. Please try again.');
+            }
+        }
+        function showStoreToast(message) {
+            let toast = document.getElementById('storeToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'storeToast';
+                toast.className = 'store-toast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.classList.add('show');
+            window.clearTimeout(window.__trendzzToastTimer);
+            window.__trendzzToastTimer = window.setTimeout(() => toast.classList.remove('show'), 2200);
+        }
+
+        document.getElementById('productSort')?.addEventListener('change', sortProducts);
+        applyProductFilters();
 
         function openCheckoutById(id) {
             const prod = storeProductsMap[id];
@@ -801,5 +870,6 @@
             if (e.target === document.getElementById('policyModal')) closePolicyModal();
         }
     </script>
+    <script src="/upgrade.js" defer></script>
 </body>
 </html>

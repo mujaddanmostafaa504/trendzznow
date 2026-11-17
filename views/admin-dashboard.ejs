@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enterprise Admin Dashboard - TrendzzNow</title>
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/upgrade.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         .action-btn-group { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
@@ -20,11 +21,27 @@
         .tab-btn.active { background: #1F1B5C; color: #fff; }
     </style>
 </head>
-<body class="admin-body">
+<body class="admin-body admin-upgraded">
+    <div class="admin-app-shell">
+      <aside class="admin-sidebar" id="adminSidebar">
+        <a class="admin-sidebar-brand" href="/secret-admin-panel-2026/dashboard" aria-label="TrendzzNow dashboard">
+          <span class="admin-brand-mark">T</span><span><strong><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></strong><small>STORE MANAGEMENT</small></span>
+        </a>
+        <div class="admin-sidebar-label">WORKSPACE</div>
+        <nav class="admin-side-nav" aria-label="Admin navigation">
+          <button type="button" class="admin-nav-item active" data-admin-view="overview"><span>▦</span>Overview</button>
+          <button type="button" class="admin-nav-item" data-admin-view="orders"><span>▤</span>Orders <em><%= orders.length %></em></button>
+          <button type="button" class="admin-nav-item" data-admin-view="products"><span>▣</span>Products & Stock <em><%= products.length %></em></button>
+          <button type="button" class="admin-nav-item" data-admin-view="settings"><span>⚙</span>Storefront & Policies</button>
+          <button type="button" class="admin-nav-item" data-admin-view="security"><span>♙</span>Security</button>
+        </nav>
+        <div class="admin-sidebar-bottom"><span class="admin-online-dot"></span> Store control panel <small>Private administrator area</small></div>
+      </aside>
+      <div class="admin-main-area">
     <header class="admin-header">
         <div class="admin-brand">
-            <h2>⚡ <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %> Enterprise Dashboard v21</h2>
-            <span class="live-badge">● Pro Secure</span>
+            <button type="button" class="admin-mobile-menu" id="adminMobileMenu" aria-label="Open admin navigation">☰</button>
+            <div><h2 id="adminHeaderTitle">Overview</h2><span class="admin-header-subtitle">Manage your store operations</span></div>
         </div>
         <div class="admin-header-actions">
             <a href="/" target="_blank" class="view-site-btn">🌐 View Website</a>
@@ -32,7 +49,11 @@
         </div>
     </header>
 
-    <div class="admin-container">
+    <main class="admin-container">
+        <div class="admin-page-intro">
+          <div><span class="admin-eyebrow">TRENDZZNOW CONTROL CENTER</span><h1 id="adminPageTitle">Store overview</h1><p id="adminPageDescription">A live view of your orders, sales and product inventory.</p></div>
+          <div class="admin-intro-actions"><a href="/#products" target="_blank" rel="noopener" class="admin-secondary-action">View storefront ↗</a><button type="button" class="admin-primary-action" data-admin-jump="products">＋ Add product</button></div>
+        </div>
         <% if (msg) { %>
             <div class="success-banner" style="<%= msg.startsWith('Error') || msg.startsWith('Update Error') ? 'background:#fde8ec;color:#b71540;' : '' %>">
                 <span><%= msg.startsWith('Error') || msg.startsWith('Update Error') ? '⚠️' : '✅' %> <%= msg %></span>
@@ -41,7 +62,7 @@
         <% } %>
 
         <!-- Advanced Analytics Cards -->
-        <div class="stats-grid">
+        <div class="stats-grid admin-panel-view" id="adminOverviewPanel" data-admin-panel="overview">
             <div class="stat-card">
                 <span class="stat-title">Total Gross Sales</span>
                 <span class="stat-num" style="color:#00b894;">৳ <%= analytics.totalRevenue %></span>
@@ -64,16 +85,37 @@
             </div>
         </div>
 
+        <div class="admin-overview-lower admin-panel-view" data-admin-panel="overview">
+          <section class="admin-section overview-summary-card">
+            <div class="admin-section-heading"><div><span class="admin-eyebrow">LATEST ACTIVITY</span><h3>Recent orders</h3><p>The newest orders recorded in your store.</p></div><button type="button" class="admin-text-action" data-admin-jump="orders">View all orders →</button></div>
+            <% if (orders.length) { %>
+              <div class="overview-order-list">
+                <% orders.slice(0, 5).forEach(o => { %>
+                  <div class="overview-order-row"><span class="overview-order-id">#<%= o.id %></span><span class="overview-order-customer"><strong><%= o.customer_name %></strong><small><%= o.product_title %></small></span><span class="overview-order-amount">৳ <%= o.price %></span><span class="overview-status"><%= o.status %></span></div>
+                <% }) %>
+              </div>
+            <% } else { %><div class="admin-empty-state">No customer orders have been recorded yet.</div><% } %>
+          </section>
+          <section class="admin-section overview-summary-card">
+            <div class="admin-section-heading"><div><span class="admin-eyebrow">STOCK MONITOR</span><h3>Low-stock products</h3><p>Items with five or fewer units recorded.</p></div><button type="button" class="admin-text-action" data-admin-jump="products">Manage inventory →</button></div>
+            <% const lowStockProducts = products.filter(p => p.stock_known && Number(p.stock_quantity) <= 5); %>
+            <% if (lowStockProducts.length) { %>
+              <div class="overview-stock-list"><% lowStockProducts.slice(0, 6).forEach(p => { %><div class="overview-stock-row"><span><strong><%= p.title %></strong><small><%= p.category %></small></span><b><%= p.stock_quantity %> left</b></div><% }) %></div>
+            <% } else { %><div class="admin-empty-state">No low-stock alerts based on recorded stock values.</div><% } %>
+          </section>
+        </div>
+
         <!-- Order Filter & Bulk Actions Bar -->
-        <section class="admin-section">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:15px;">
-                <h3 style="margin:0; border:none;">📦 Customer Orders & Bulk Management</h3>
+        <section class="admin-section admin-panel-view" id="adminOrdersPanel" data-admin-panel="orders">
+            <div class="admin-section-heading">
+                <div><span class="admin-eyebrow">FULFILMENT</span><h3>Customer orders</h3><p>Review, update and fulfil customer purchases.</p></div>
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
                     <button onclick="exportOrdersCSV()" class="export-btn">📥 Export CSV (Excel)</button>
                     <button onclick="window.print()" class="print-btn" style="padding: 8px 14px; font-size: 13px;">🖨️ Print Order List</button>
                 </div>
             </div>
 
+            <div class="admin-table-tools"><input type="search" id="orderSearch" placeholder="Search order ID, customer, phone or product…" aria-label="Search orders"><span class="admin-muted"><%= orders.length %> total orders</span></div>
             <!-- Tab Filters -->
             <div class="tab-bar">
                 <button class="tab-btn active" onclick="filterOrderTab('all', this)">All Orders (<%= orders.length %>)</button>
@@ -168,19 +210,19 @@
         </section>
 
         <!-- Product Management with Category, Stock & Cost Price -->
-        <div class="two-col-grid">
+        <div class="two-col-grid admin-panel-view" id="adminProductsPanel" data-admin-panel="products">
             <section class="admin-section">
                 <h3>➕ Add Product (Category, Stock & Cost)</h3>
                 <form action="/secret-admin-panel-2026/products/add" method="POST" enctype="multipart/form-data">
                     <div class="form-group"><label>Product Title *</label><input type="text" name="title" required placeholder="e.g. Dynamic Leaf Table Lamp"></div>
-                    <div class="form-group"><label>Category Name *</label><input type="text" name="category" required placeholder="e.g. Lamps, Gadgets, Home Decor"></div>
+                    <div class="form-group"><label>Category Name *</label><input type="text" name="category" required list="trendzzCategoryOptions" placeholder="e.g. Electronics, Home & Kitchen, Beauty"><datalist id="trendzzCategoryOptions"><% [...new Set(products.map(p => p.category).filter(Boolean))].sort().forEach(cat => { %><option value="<%= cat %>"></option><% }) %></datalist></div>
                     <div class="form-row">
-                        <div class="form-group"><label>Selling Price (BDT) *</label><input type="number" name="price" required placeholder="950"></div>
-                        <div class="form-group"><label>Regular Price</label><input type="number" name="regular_price" placeholder="1250"></div>
+                        <div class="form-group"><label>Selling Price (BDT) *</label><input type="number" name="price" required min="0.01" step="0.01" placeholder="950"></div>
+                        <div class="form-group"><label>Regular Price</label><input type="number" name="regular_price" min="0" step="0.01" placeholder="1250"></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group"><label>Buying / Cost Price (৳)</label><input type="number" name="cost_price" placeholder="600"></div>
-                        <div class="form-group"><label>Stock Quantity</label><input type="number" name="stock_quantity" value="50"></div>
+                        <div class="form-group"><label>Buying / Cost Price (৳)</label><input type="number" name="cost_price" min="0" step="0.01" placeholder="600"></div>
+                        <div class="form-group"><label>Stock Quantity</label><input type="number" name="stock_quantity" value="50" min="0" step="1"></div>
                     </div>
                     <div class="upload-box">
                         <label>📸 Upload Product Image Directly (JPG/PNG/WebP)</label>
@@ -195,22 +237,24 @@
             </section>
 
             <section class="admin-section">
-                <h3>🛍️ Inventory Stock List (<%= products.length %>)</h3>
+                <h3>🛍️ Product inventory <span class="admin-count-pill"><%= products.length %></span></h3>
+                <div class="admin-table-tools"><input type="search" id="inventorySearch" placeholder="Search products or category…" aria-label="Search inventory"><span class="admin-muted">Low-stock threshold: 5</span></div>
                 <div class="table-responsive" style="max-height: 460px; overflow-y: auto;">
                     <table class="data-table">
                         <thead><tr><th>Image</th><th>Name, Category, Price & Stock</th><th>Action</th></tr></thead>
                         <tbody>
                             <% products.forEach(p => { 
-                                const stock = p.stock_quantity !== undefined ? p.stock_quantity : 50;
-                                const isLowStock = stock <= 5;
+                                const stockKnown = !!p.stock_known;
+                                const stock = stockKnown ? p.stock_quantity : null;
+                                const isLowStock = stockKnown && Number(stock) <= 5;
                             %>
-                                <tr>
+                                <tr class="inventory-row" data-inventory-search="<%= ((p.title || '') + ' ' + (p.category || '')).toLowerCase() %>">
                                     <td><% if (p.image) { %><img src="<%= p.image %>" width="45" height="45" style="object-fit:cover;border-radius:4px;"><% } %></td>
                                     <td>
                                         <strong><%= p.title %></strong> <small style="background:#f1f3f5; padding:2px 6px; border-radius:4px;"><%= p.category || 'General' %></small><br>
                                         <span class="price-pill">৳ <%= p.price %></span> 
                                         <span style="font-size:12px; font-weight:700; color:<%= isLowStock ? '#d63031' : '#00b894' %>;">
-                                            📦 Stock: <%= stock %>
+                                            📦 Stock: <%= stockKnown ? stock : 'Not set' %>
                                             <% if (isLowStock) { %><span class="badge-low-stock">Low Stock!</span><% } %>
                                         </span>
                                     </td>
@@ -229,7 +273,7 @@
         </div>
 
         <!-- Edit Product Section -->
-        <section class="admin-section" id="editSection" style="display:none; background:#fff8e5; border:2px solid #ffd166;">
+        <section class="admin-section admin-panel-view" data-admin-panel="products" id="editSection" style="display:none; background:#fff8e5; border:2px solid #ffd166;">
             <h3>✏️ Edit Product (<span id="editProductIdTitle"></span>)</h3>
             <form id="editProductForm" method="POST" enctype="multipart/form-data">
                 <div class="form-group"><label>Product Title *</label><input type="text" id="editTitle" name="title" required></div>
@@ -258,11 +302,11 @@
         </section>
         <!-- Sub-admin access is intentionally disabled until role-based permissions are implemented. -->
         <!-- Master Hero Spotlight, Brand Logo, FAQ & Policies Settings -->
-        <section class="admin-section">
-            <h3>🎨 Hero Product Spotlight, Brand Logo, FAQ & Legal Policies</h3>
+        <section class="admin-section admin-panel-view" id="adminSettingsPanel" data-admin-panel="settings">
+            <div class="admin-section-heading"><div><span class="admin-eyebrow">CONTENT MANAGEMENT</span><h3>Storefront & policies</h3><p>Update the existing homepage, branding, delivery details and the same four FAQ entries.</p></div></div>
             <form action="/secret-admin-panel-2026/settings/update" method="POST" enctype="multipart/form-data">
                 
-                <h4 style="color:#9c1448; margin-bottom:10px;">1. Hero Banner Text & 3D Floating Spotlight Product Card</h4>
+                <details class="admin-settings-group" open><summary>01 · Hero banner & spotlight card</summary>
                 <div class="form-row">
                     <div class="form-group"><label>Hero Main Headline (EN)</label><input type="text" name="hero_title_en" value="<%= settings.hero_title_en %>"></div>
                     <div class="form-group"><label>Hero Subtitle (EN)</label><input type="text" name="hero_subtitle_en" value="<%= settings.hero_subtitle_en %>"></div>
@@ -280,7 +324,7 @@
                     <input type="text" name="hero_image" value="<%= settings.hero_image || '' %>" placeholder="https://..." style="margin-top:4px;">
                 </div>
 
-                <h4 style="color:#9c1448; margin:20px 0 10px 0;">2. Website Name & Brand Logo</h4>
+                </details><details class="admin-settings-group"><summary>02 · Website name & brand logo</summary>
                 <div class="form-row">
                     <div class="form-group"><label>Brand Name (Part 1)</label><input type="text" name="brand_name_first" value="<%= settings.brand_name_first || 'Trendzz' %>"></div>
                     <div class="form-group"><label>Brand Name (Part 2 Accent)</label><input type="text" name="brand_name_second" value="<%= settings.brand_name_second || 'Now' %>"></div>
@@ -294,7 +338,18 @@
                     <input type="text" name="logo_light" value="<%= settings.logo_light || '' %>" placeholder="https://..." style="margin-top:4px;">
                 </div>
 
-                <h4 style="color:#9c1448; margin:20px 0 10px 0;">3. Payment, Delivery & Promo Settings</h4>
+                </details><details class="admin-settings-group"><summary>03 · Social media links</summary>
+                <p class="admin-muted">Paste full public profile URLs. Blank fields stay hidden on the storefront.</p>
+                <div class="form-row">
+                    <div class="form-group"><label>Facebook URL</label><input type="url" name="facebook_url" value="<%= settings.facebook_url || '' %>" placeholder="https://facebook.com/yourpage"></div>
+                    <div class="form-group"><label>Instagram URL</label><input type="url" name="instagram_url" value="<%= settings.instagram_url || '' %>" placeholder="https://instagram.com/yourprofile"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>TikTok URL</label><input type="url" name="tiktok_url" value="<%= settings.tiktok_url || '' %>" placeholder="https://tiktok.com/@yourprofile"></div>
+                    <div class="form-group"><label>YouTube URL</label><input type="url" name="youtube_url" value="<%= settings.youtube_url || '' %>" placeholder="https://youtube.com/@yourchannel"></div>
+                </div>
+
+                </details><details class="admin-settings-group"><summary>04 · Payment, delivery & promotions</summary>
                 <div class="form-row">
                     <div class="form-group"><label>📞 WhatsApp Number</label><input type="text" name="whatsapp_number" value="<%= settings.whatsapp_number || '01731763504' %>"></div>
                     <div class="form-group"><label>📲 bKash Number</label><input type="text" name="bkash_number" value="<%= settings.bkash_number || '01731763504' %>"></div>
@@ -307,7 +362,7 @@
                     <div class="form-group"><label>💰 Promo Discount (৳)</label><input type="number" name="promo_discount" value="<%= settings.promo_discount || '50' %>"></div>
                 </div>
 
-                <h4 style="color:#9c1448; margin:20px 0 10px 0;">4. Interactive FAQ Questions & Answers</h4>
+                </details><details class="admin-settings-group"><summary>05 · Existing FAQ questions & answers</summary>
                 <div class="form-row">
                     <div class="form-group"><label>FAQ 1 Question</label><input type="text" name="faq_1_q" value="<%= settings.faq_1_q %>"></div>
                     <div class="form-group"><label>FAQ 1 Answer</label><input type="text" name="faq_1_a" value="<%= settings.faq_1_a %>"></div>
@@ -325,23 +380,74 @@
                     <div class="form-group"><label>FAQ 4 Answer</label><input type="text" name="faq_4_a" value="<%= settings.faq_4_a %>"></div>
                 </div>
 
-                <h4 style="color:#9c1448; margin:20px 0 10px 0;">5. Store Policies (Privacy, Return & Terms)</h4>
+                </details><details class="admin-settings-group"><summary>06 · Store policies</summary>
                 <div class="form-group"><label>🔒 Privacy Policy</label><textarea name="privacy_policy" rows="2"><%= settings.privacy_policy %></textarea></div>
                 <div class="form-group"><label>🔄 Return & Replacement Policy</label><textarea name="return_policy" rows="2"><%= settings.return_policy %></textarea></div>
                 <div class="form-group"><label>📜 Terms & Conditions</label><textarea name="terms_conditions" rows="2"><%= settings.terms_conditions %></textarea></div>
 
-                <button type="submit" class="save-settings-btn">💾 Save All Hero, Logo, FAQ & Store Settings</button>
+                </details>
+                <button type="submit" class="save-settings-btn">💾 Save all store settings</button>
             </form>
         </section>
-        <section class="admin-section password-box">
+        <section class="admin-section password-box admin-panel-view" id="adminSecurityPanel" data-admin-panel="security">
             <h3>🔐 Admin Password</h3>
             <p>For security, set or rotate <code>ADMIN_PASSWORD</code> in your Render environment variables, then redeploy. Do not store administrator passwords in the database.</p>
         </section>
+    </main>
+      </div>
     </div>
 
     <script>
-        const allProductsMap = <%- JSON.stringify(products.reduce((acc, item) => { acc[item.id] = item; return acc; }, {})) %>;
-        const allOrdersMap = <%- JSON.stringify(orders.reduce((acc, item) => { acc[item.id] = item; return acc; }, {})) %>;
+        const allProductsMap = <%- JSON.stringify(products.reduce((acc, item) => { acc[item.id] = item; return acc; }, {})).replace(/</g, '\\u003c') %>;
+        const allOrdersMap = <%- JSON.stringify(orders.reduce((acc, item) => { acc[item.id] = item; return acc; }, {})).replace(/</g, '\\u003c') %>;
+
+
+        const adminViewMeta = {
+            overview: { title: 'Overview', heading: 'Store overview', description: 'A live view of your orders, sales and product inventory.' },
+            orders: { title: 'Orders', heading: 'Customer orders', description: 'Review customer details, manage fulfilment and update delivery status.' },
+            products: { title: 'Products & Stock', heading: 'Products & inventory', description: 'Add products, update pricing and manage available stock.' },
+            settings: { title: 'Storefront & Policies', heading: 'Storefront settings', description: 'Manage homepage content, brand identity, delivery details and existing FAQ entries.' },
+            security: { title: 'Security', heading: 'Admin security', description: 'Keep administrator access protected through your hosting environment settings.' }
+        };
+        function showAdminView(view) {
+            const selected = adminViewMeta[view] ? view : 'overview';
+            document.querySelectorAll('[data-admin-panel]').forEach(panel => {
+                panel.hidden = panel.dataset.adminPanel !== selected;
+            });
+            document.querySelectorAll('[data-admin-view]').forEach(button => {
+                const active = button.dataset.adminView === selected;
+                button.classList.toggle('active', active);
+                button.setAttribute('aria-current', active ? 'page' : 'false');
+            });
+            const meta = adminViewMeta[selected];
+            document.getElementById('adminHeaderTitle').textContent = meta.title;
+            document.getElementById('adminPageTitle').textContent = meta.heading;
+            document.getElementById('adminPageDescription').textContent = meta.description;
+            document.getElementById('adminSidebar').classList.remove('is-open');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            history.replaceState(null, '', `#${selected}`);
+        }
+        document.querySelectorAll('[data-admin-view]').forEach(button => button.addEventListener('click', () => showAdminView(button.dataset.adminView)));
+        document.querySelectorAll('[data-admin-jump]').forEach(button => button.addEventListener('click', () => showAdminView(button.dataset.adminJump)));
+        document.getElementById('adminMobileMenu')?.addEventListener('click', () => document.getElementById('adminSidebar').classList.toggle('is-open'));
+        const initialAdminView = location.hash.replace('#', '');
+        showAdminView(adminViewMeta[initialAdminView] ? initialAdminView : 'overview');
+
+        document.getElementById('orderSearch')?.addEventListener('input', function () {
+            const query = this.value.trim().toLowerCase();
+            document.querySelectorAll('.order-row').forEach(row => {
+                row.dataset.searchMatch = row.innerText.toLowerCase().includes(query) ? 'yes' : 'no';
+                const activeTab = document.querySelector('.tab-btn.active')?.dataset.filterCategory || 'all';
+                const statusMatch = activeTab === 'all' || row.dataset.status === activeTab;
+                row.style.display = (!query || row.dataset.searchMatch === 'yes') && statusMatch ? '' : 'none';
+            });
+        });
+        document.getElementById('inventorySearch')?.addEventListener('input', function () {
+            const query = this.value.trim().toLowerCase();
+            document.querySelectorAll('.inventory-row').forEach(row => {
+                row.style.display = row.dataset.inventorySearch.includes(query) ? '' : 'none';
+            });
+        });
 
         function toggleSelectAll(master) {
             const checkboxes = document.querySelectorAll('.order-chk');
@@ -356,15 +462,14 @@
         function filterOrderTab(category, btn) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(b => { b.dataset.filterCategory = b === btn ? category : (b.dataset.filterCategory || ''); });
 
             const rows = document.querySelectorAll('.order-row');
             rows.forEach(row => {
                 const status = row.getAttribute('data-status');
-                if (category === 'all' || status === category) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+                const query = (document.getElementById('orderSearch')?.value || '').trim().toLowerCase();
+                const searchMatch = !query || row.innerText.toLowerCase().includes(query);
+                row.style.display = (category === 'all' || status === category) && searchMatch ? '' : 'none';
             });
         }
 
@@ -379,7 +484,7 @@
             document.getElementById('editPrice').value = p.price || '';
             document.getElementById('editRegularPrice').value = p.regular_price || '';
             document.getElementById('editCostPrice').value = p.cost_price || '';
-            document.getElementById('editStockQty').value = p.stock_quantity || 50;
+            document.getElementById('editStockQty').value = p.stock_known ? p.stock_quantity : '';
             document.getElementById('editImage').value = p.image || '';
             document.getElementById('editVariants').value = p.variant_options || '';
             document.getElementById('editDesc').value = p.description || '';
@@ -422,5 +527,6 @@
             link.click();
         }
     </script>
+    <script src="/admin-upgrade.js" defer></script>
 </body>
 </html>

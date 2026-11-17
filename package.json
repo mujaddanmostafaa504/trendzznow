@@ -1,11 +1,11 @@
 {
   "name": "trendzznow",
-  "version": "21.1.0",
-  "description": "TrendzzNow v21 GitHub and Render deployment starter with critical security hardening.",
+  "version": "22.0.0",
+  "description": "TrendzzNow v22 storefront and admin UX upgrade, retaining existing Express/EJS/Supabase application.",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
-    "check": "node --check server/index.js && node --check server/notifications.js && node --check server.js",
+    "check": "node --check server/index.js && node --check server/notifications.js && node --check server.js && node --check public/upgrade.js && node --check public/admin-upgrade.js",
     "test": "npm run check"
   },
   "dependencies": {

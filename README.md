@@ -1,8 +1,8 @@
 # TrendzzNow — GitHub & Render Ready
 
-This repository is the deployable starting point built from the supplied `trendzznow_v21_enterprise.zip`. It keeps the existing storefront and admin dashboard source, adds GitHub/Render configuration, replaces the destructive Supabase setup SQL, and hardens several critical v21 issues.
+This repository is the deployable starting point built from the supplied `trendzznow_v22_enterprise.zip`. It keeps the existing storefront and admin dashboard source, adds GitHub/Render configuration, replaces the destructive Supabase setup SQL, and hardens several critical v22 issues.
 
-> **Important:** This is a deployable v21-based starter, not the fully expanded v22 feature set described in `docs/MASTER_IMPLEMENTATION_PROMPT.md`. AI customer support, live payment-gateway checkout, live courier booking/tracking APIs, multi-role admin permissions, and the full social/product-import automation are not implemented in this source yet. Do not advertise them as live features until they are built and tested.
+> **Important:** This is a deployable v22-based starter, not the fully expanded v22 feature set described in `docs/MASTER_IMPLEMENTATION_PROMPT.md`. AI customer support, live payment-gateway checkout, live courier booking/tracking APIs, multi-role admin permissions, and the full social/product-import automation are not implemented in this source yet. Do not advertise them as live features until they are built and tested.
 
 ## 1. Requirements
 
@@ -144,3 +144,15 @@ Still to implement from the expanded requirements:
 - Full automated integration test suite and production monitoring.
 
 Use `docs/MASTER_IMPLEMENTATION_PROMPT.md`, `docs/PROJECT_AUDIT.md`, and `docs/IMPLEMENTATION_CHECKLIST.md` for the next implementation phase.
+
+
+## v22 storefront and admin UX update
+
+This update refines the existing customer storefront and administrator dashboard without replacing the Express/EJS/Supabase architecture. The storefront now has responsive product cards, combined category/search filtering, product sorting, share/copy links, and removes placeholder rating/viewer counts. The admin dashboard now has a responsive sidebar and focused views for Overview, Orders, Products & Stock, Storefront & Policies, and Security. Existing FAQ content and current server-backed forms/routes are retained.
+
+The v22 UI does not itself activate payment gateway, courier API, or AI customer-support integrations; these still require implementation and provider credentials.
+
+
+## v22 storefront/admin update package
+
+See `V22_CHANGELOG_BN.md` for the implemented UI changes, deployment steps, test results, and features that remain out of scope. The existing Render start/build commands and required environment variables are unchanged.

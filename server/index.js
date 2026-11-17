@@ -106,6 +106,10 @@ const defaultSettings = {
   hero_subtitle_en: 'Stay on trend. Stay in style. Handpicked viral gadgets & modern essentials delivered straight to your doorstep.',
   hero_subtitle_bn: 'ট্রেন্ডে থাকুন, স্টাইলে থাকুন। বাছাইকৃত সেরা ভাইরাল গ্যাজেট ও আধুনিক পণ্য পান ক্যাশ অন ডেলিভারিতে।',
   whatsapp_number: '01731763504',
+  facebook_url: '',
+  instagram_url: '',
+  tiktok_url: '',
+  youtube_url: '',
   bkash_number: '01731763504',
   nagad_number: '01731763504',
   delivery_inside_dhaka: '70',
@@ -138,6 +142,7 @@ function normalizeProduct(p) {
     price: p.price !== undefined && p.price !== null ? p.price : (p.sale_price || 0),
     regular_price: p.regular_price || p.old_price || '',
     cost_price: p.cost_price !== undefined && p.cost_price !== null ? p.cost_price : 0,
+    stock_known: p.stock_quantity !== undefined && p.stock_quantity !== null,
     stock_quantity: p.stock_quantity !== undefined && p.stock_quantity !== null ? p.stock_quantity : 50,
     description: p.description || p.desc || p.details || '',
     variant_options: p.variant_options || p.variants || ''
@@ -558,7 +563,7 @@ app.get('/secret-admin-panel-2026/dashboard', async (req, res) => {
     });
 
     products.forEach(p => {
-      totalCost += (parseFloat(p.cost_price) || 0) * (parseInt(p.stock_quantity) || 0);
+      if (p.stock_known) totalCost += (parseFloat(p.cost_price) || 0) * (parseInt(p.stock_quantity) || 0);
     });
 
     const netProfit = totalRevenue - totalCost;

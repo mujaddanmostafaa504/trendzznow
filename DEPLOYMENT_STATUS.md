@@ -17,3 +17,16 @@
 - [ ] End-to-end staging test completed with the owner's Supabase project and credentials.
 
 This package can be pushed to GitHub. A successful live deployment still requires valid Supabase and Render environment configuration.
+
+
+## v22 changes
+- Storefront UX: responsive product grid, combined filters, sorting, share/copy product links, honest stock state (no hard-coded rating/viewer claims).
+- Admin UX: responsive sidebar navigation and separated views for existing live modules.
+- Existing backend routes, database tables and FAQ entries are preserved.
+- Re-run local checks and deploy through the existing Render service after pushing this update.
+
+
+## v22.0.0 UI implementation status
+Implemented: storefront responsive refinements, combined category/search filtering, sorting, product share, social URL settings/footer links, removal of placeholder ratings/viewer counts, responsive admin navigation/views, order/inventory search, upload preview and UI validation. Existing FAQ entries, route paths and database schema are preserved.
+
+Not implemented by this UI update: AI chatbot, live online payment processing, courier APIs, product URL import automation, customer accounts, multi-item cart, admin roles, admin audit log and end-to-end live provider tests.
