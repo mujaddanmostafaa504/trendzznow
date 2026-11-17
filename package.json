@@ -1,0 +1,18 @@
+{
+  "name": "trendzznow",
+  "version": "18.0.0",
+  "description": "TrendzzNow Complete Production E-commerce Platform v18 with Auto SMS & Email Tracking Notifications, Universal Schema Adapter, Direct Image Upload, Brand Logo, Delivery Badges, FAQ & Legal Policies",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.8",
+    "compression": "^1.7.4",
+    "cookie-session": "^2.1.0",
+    "ejs": "^3.1.9",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.13"
+  }
+}
