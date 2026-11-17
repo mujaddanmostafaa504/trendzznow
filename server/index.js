@@ -107,35 +107,71 @@ async function handleImageUpload(file) {
   return `data:${file.mimetype};base64,${base64}`;
 }
 
-// Automatically strips missing columns if Supabase schema cache lacks them
-async function safeInsert(table, payload) {
-  let currentPayload = { ...payload };
-  for (let attempt = 0; attempt < 8; attempt++) {
-    const { data, error } = await supabase.from(table).insert([currentPayload]).select();
-    if (!error) return { data, error: null };
-    const match = error.message && error.message.match(/Could not find the '([^']+)' column/);
-    if (match && match[1] && Object.prototype.hasOwnProperty.call(currentPayload, match[1])) {
-      delete currentPayload[match[1]];
-      continue;
+// Compute next sequential integer ID if DB auto-increment sequence is broken
+async function getNextSequentialId(table) {
+  try {
+    const { data } = await supabase
+      .from(table)
+      .select('id')
+      .order('id', { ascending: false })
+      .limit(1);
+    if (data && data.length > 0 && !isNaN(Number(data[0].id))) {
+      return Number(data[0].id) + 1;
     }
-    return { data: null, error };
-  }
-  return { data: null, error: { message: 'Insert failed after schema adaptation.' } };
+  } catch (e) {}
+  return Math.floor(Date.now() / 1000);
 }
 
-async function safeUpdate(table, id, payload) {
+// Self-Healing Insert: handles BOTH missing columns in schema cache AND null-id sequence errors!
+async function safeInsert(table, payload) {
   let currentPayload = { ...payload };
-  for (let attempt = 0; attempt < 8; attempt++) {
-    const { data, error } = await supabase.from(table).update(currentPayload).eq('id', id).select();
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const { data, error } = await supabase.from(table).insert([currentPayload]).select();
     if (!error) return { data, error: null };
-    const match = error.message && error.message.match(/Could not find the '([^']+)' column/);
-    if (match && match[1] && Object.prototype.hasOwnProperty.call(currentPayload, match[1])) {
-      delete currentPayload[match[1]];
+
+    const msg = error.message || '';
+
+    // 1. Handle missing column in Supabase schema cache
+    const colMatch = msg.match(/Could not find the '([^']+)' column/);
+    if (colMatch && colMatch[1] && Object.prototype.hasOwnProperty.call(currentPayload, colMatch[1])) {
+      delete currentPayload[colMatch[1]];
       continue;
     }
+
+    // 2. Handle null value in column "id" (missing sequence/identity on table)
+    if (msg.includes('column "id"') && msg.includes('not-null constraint')) {
+      currentPayload.id = await getNextSequentialId(table);
+      continue;
+    }
+
+    // 3. Handle duplicate key if concurrent insert happened
+    if (msg.includes('duplicate key') && currentPayload.id) {
+      currentPayload.id = Number(currentPayload.id) + 1;
+      continue;
+    }
+
     return { data: null, error };
   }
-  return { data: null, error: { message: 'Update failed after schema adaptation.' } };
+  return { data: null, error: { message: 'Insert failed after self-healing retries.' } };
+}
+
+// Self-Healing Update: handles missing columns in schema cache
+async function safeUpdate(table, id, payload) {
+  let currentPayload = { ...payload };
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const { data, error } = await supabase.from(table).update(currentPayload).eq('id', id).select();
+    if (!error) return { data, error: null };
+
+    const msg = error.message || '';
+    const colMatch = msg.match(/Could not find the '([^']+)' column/);
+    if (colMatch && colMatch[1] && Object.prototype.hasOwnProperty.call(currentPayload, colMatch[1])) {
+      delete currentPayload[colMatch[1]];
+      continue;
+    }
+
+    return { data: null, error };
+  }
+  return { data: null, error: { message: 'Update failed after self-healing retries.' } };
 }
 
 app.get('/healthz', (req, res) => res.status(200).send('OK'));
@@ -206,7 +242,7 @@ app.get('/order/track', async (req, res) => {
   }
 });
 
-// Bulletproof Place Order Route
+// Place Order Route (Self-Healing ID + Schema)
 app.post('/order/place', async (req, res) => {
   const { 
     customer_name, phone, address, product_title, price, quantity,
@@ -306,7 +342,7 @@ app.post('/admin/password/change', async (req, res) => {
   }
 });
 
-// Bulletproof Add Product
+// Add Product
 app.post('/admin/products/add', upload.single('image_file'), async (req, res) => {
   if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
   const { title, price, regular_price, description, image, variant_options } = req.body;
@@ -336,7 +372,7 @@ app.post('/admin/products/add', upload.single('image_file'), async (req, res) =>
   }
 });
 
-// Bulletproof Edit Product
+// Edit Product
 app.post('/admin/products/edit/:id', upload.single('image_file'), async (req, res) => {
   if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
   const { id } = req.params;
@@ -413,6 +449,10 @@ app.post('/admin/settings/update', upload.single('logo_file'), async (req, res) 
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`TrendzzNow Bulletproof Server v14 running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`TrendzzNow Verified Server v15 running on port ${PORT}`);
+  });
+}
+
+module.exports = { app, safeInsert, safeUpdate, getNextSequentialId };

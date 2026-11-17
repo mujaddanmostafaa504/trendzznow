@@ -1,7 +1,7 @@
 {
   "name": "trendzznow",
-  "version": "14.0.0",
-  "description": "TrendzzNow Bulletproof E-commerce Platform with Schema-Resilient Orders, Product Edit/Add, Direct Image Upload, Brand Logo, Delivery Badges, FAQ & Policies",
+  "version": "15.0.0",
+  "description": "TrendzzNow Verified Production E-commerce Platform with Self-Healing Auto-ID, Schema Adaptation, Direct Image Upload, Brand Logo, Delivery Badges, FAQ & Legal Policies",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js"
