@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Admin Dashboard - TrendzzNow</title>
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .action-btn-group { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+        .print-btn { background-color: #0984e3; color: #fff; border: none; padding: 5px 9px; border-radius: 4px; cursor: pointer; font-size: 11.5px; font-weight: 600; }
+        .copy-btn { background-color: #00b894; color: #fff; border: none; padding: 5px 9px; border-radius: 4px; cursor: pointer; font-size: 11.5px; font-weight: 600; }
+        .edit-btn { background-color: #fdcb6e; color: #222; border: none; padding: 5px 9px; border-radius: 4px; cursor: pointer; font-size: 11.5px; font-weight: 600; }
+        .export-btn { background-color: #6c5ce7; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+        .upload-box { background: #f8f9fc; border: 2px dashed #b2bec3; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
+        .upload-box label { color: #1F1B5C; font-weight: 700; }
+        .badge-low-stock { background: #ff7675; color: #fff; padding: 2px 7px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-left: 6px; }
+        .tab-bar { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; flex-wrap: wrap; }
+        .tab-btn { background: #e2e8f0; color: #333; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; }
+        .tab-btn.active { background: #1F1B5C; color: #fff; }
+    </style>
+</head>
+<body class="admin-body">
+    <header class="admin-header">
+        <div class="admin-brand">
+            <h2>⚡ <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %> Enterprise Dashboard v21</h2>
+            <span class="live-badge">● Pro Secure</span>
+        </div>
+        <div class="admin-header-actions">
+            <a href="/" target="_blank" class="view-site-btn">🌐 View Website</a>
+            <a href="/secret-admin-panel-2026/logout" class="logout-btn">Logout</a>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <% if (msg) { %>
+            <div class="success-banner" style="<%= msg.startsWith('Error') || msg.startsWith('Update Error') ? 'background:#fde8ec;color:#b71540;' : '' %>">
+                <span><%= msg.startsWith('Error') || msg.startsWith('Update Error') ? '⚠️' : '✅' %> <%= msg %></span>
+                <button onclick="this.parentElement.style.display='none'" style="background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>
+            </div>
+        <% } %>
+
+        <!-- Advanced Analytics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-title">Total Gross Sales</span>
+                <span class="stat-num" style="color:#00b894;">৳ <%= analytics.totalRevenue %></span>
+                <small style="color:#666; font-size:11.5px;">Estimated Net Profit: <strong>৳ <%= analytics.netProfit %></strong></small>
+            </div>
+            <div class="stat-card">
+                <span class="stat-title">Pending Orders</span>
+                <span class="stat-num" style="color:#e17055;"><%= analytics.pendingCount %> <small style="font-size:13px; color:#666;">(Total: <%= orders.length %>)</small></span>
+                <small style="color:#0984e3;">Confirmed/Shipped: <%= analytics.confirmedCount %></small>
+            </div>
+            <div class="stat-card">
+                <span class="stat-title">Successful Deliveries</span>
+                <span class="stat-num" style="color:#00b894;"><%= analytics.deliveredCount %></span>
+                <small style="color:#d63031;">Returns/Cancelled: <%= analytics.returnCount %></small>
+            </div>
+            <div class="stat-card">
+                <span class="stat-title">Active Inventory</span>
+                <span class="stat-num" style="color:#1F1B5C;"><%= products.length %> Items</span>
+                <small style="color:#666;">WhatsApp Hotline: <%= settings.whatsapp_number || '01731763504' %></small>
+            </div>
+        </div>
+
+        <!-- Order Filter & Bulk Actions Bar -->
+        <section class="admin-section">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:15px;">
+                <h3 style="margin:0; border:none;">📦 Customer Orders & Bulk Management</h3>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button onclick="exportOrdersCSV()" class="export-btn">📥 Export CSV (Excel)</button>
+                    <button onclick="window.print()" class="print-btn" style="padding: 8px 14px; font-size: 13px;">🖨️ Print Order List</button>
+                </div>
+            </div>
+
+            <!-- Tab Filters -->
+            <div class="tab-bar">
+                <button class="tab-btn active" onclick="filterOrderTab('all', this)">All Orders (<%= orders.length %>)</button>
+                <button class="tab-btn" onclick="filterOrderTab('Pending', this)">Pending (<%= analytics.pendingCount %>)</button>
+                <button class="tab-btn" onclick="filterOrderTab('Confirmed', this)">Confirmed / Shipped</button>
+                <button class="tab-btn" onclick="filterOrderTab('Delivered', this)">Delivered (<%= analytics.deliveredCount %>)</button>
+                <button class="tab-btn" onclick="filterOrderTab('Return', this)">Returns / Cancelled</button>
+            </div>
+
+            <!-- Bulk Status Update Form -->
+            <form action="/secret-admin-panel-2026/orders/bulk-action" method="POST" id="bulkForm" style="background:#f8f9fc; padding:12px; border-radius:8px; margin-bottom:15px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <span style="font-weight:700; font-size:13px; color:#1F1B5C;">⚡ Bulk Action:</span>
+                <select name="bulk_status" class="status-select" required style="padding:7px; font-size:13px;">
+                    <option value="">-- Select Status to Apply to Checked --</option>
+                    <option value="Confirmed">✅ Mark as Confirmed</option>
+                    <option value="Sent to SteadFast">🚚 Mark as Sent to SteadFast</option>
+                    <option value="Sent to Pathao">🛵 Mark as Sent to Pathao</option>
+                    <option value="Delivered">🎉 Mark as Delivered</option>
+                    <option value="Cancelled">❌ Mark as Cancelled</option>
+                </select>
+                <button type="submit" class="mini-save-btn" style="padding:8px 16px; font-size:13px;">Apply to Selected</button>
+            </form>
+
+            <div class="table-responsive">
+                <table class="data-table" id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
+                            <th>ID & Date</th>
+                            <th>Customer & Phone</th>
+                            <th>Product</th>
+                            <th>Total & Notes</th>
+                            <th>Status & Consignment</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (orders.length > 0) { %>
+                            <% orders.forEach(o => { 
+                                const dateFormatted = o.created_at ? new Date(o.created_at).toLocaleDateString() : '-';
+                                let rowCategory = 'Pending';
+                                if (o.status === 'Delivered') rowCategory = 'Delivered';
+                                else if (o.status === 'Cancelled' || o.status === 'Return') rowCategory = 'Return';
+                                else if (o.status !== 'Pending') rowCategory = 'Confirmed';
+                            %>
+                                <tr class="order-row" data-status="<%= rowCategory %>">
+                                    <td><input type="checkbox" name="selected_orders" value="<%= o.id %>" form="bulkForm" class="order-chk"></td>
+                                    <td><strong>#<%= o.id %></strong><br><small><%= dateFormatted %></small></td>
+                                    <td>
+                                        <strong><%= o.customer_name %></strong><br>
+                                        <a href="tel:<%= o.phone %>" style="color:#9c1448;font-weight:600;"><%= o.phone %></a><br>
+                                        <a href="https://wa.me/88<%= (o.phone || '').replace(/^\+?88/, '') %>" target="_blank" style="font-size:12px;color:#25D366;font-weight:bold;">💬 WhatsApp</a>
+                                    </td>
+                                    <td><strong><%= o.product_title %></strong></td>
+                                    <td>
+                                        <span class="price-pill">৳ <%= o.price %></span>
+                                        <% if (o.admin_notes) { %><br><small style="color:#d63031; font-weight:700;">📝 <%= o.admin_notes %></small><% } %>
+                                    </td>
+                                    <td>
+                                        <form action="/secret-admin-panel-2026/orders/status/<%= o.id %>" method="POST" style="display:flex; flex-direction:column; gap:5px;">
+                                            <select name="status" class="status-select">
+                                                <option value="Pending" <%= o.status === 'Pending' ? 'selected' : '' %>>⏳ Pending</option>
+                                                <option value="Confirmed" <%= o.status === 'Confirmed' ? 'selected' : '' %>>✅ Confirmed</option>
+                                                <option value="Sent to SteadFast" <%= o.status === 'Sent to SteadFast' ? 'selected' : '' %>>🚚 SteadFast</option>
+                                                <option value="Sent to Pathao" <%= o.status === 'Sent to Pathao' ? 'selected' : '' %>>🛵 Pathao</option>
+                                                <option value="Delivered" <%= o.status === 'Delivered' ? 'selected' : '' %>>🎉 Delivered</option>
+                                                <option value="Cancelled" <%= o.status === 'Cancelled' ? 'selected' : '' %>>❌ Cancelled</option>
+                                            </select>
+                                            <input type="text" name="consignment_id" value="<%= o.consignment_id || '' %>" placeholder="Tracking / Consignment ID" style="padding:4px; font-size:11px; border:1px solid #ccc; border-radius:4px;">
+                                            <input type="text" name="admin_notes" value="<%= o.admin_notes || '' %>" placeholder="Admin note..." style="padding:4px; font-size:11px; border:1px solid #ccc; border-radius:4px;">
+                                            <button type="submit" class="mini-save-btn">Save Order</button>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <div class="action-btn-group">
+                                            <button type="button" class="print-btn" onclick="printShippingLabel('<%= o.id %>')">🏷️ Label</button>
+                                            <button type="button" class="print-btn" style="background:#2d3436;" onclick="printInvoiceById('<%= o.id %>')">🖨️ Slip</button>
+                                            <button type="button" class="copy-btn" onclick="copyCustomerById('<%= o.id %>')">📋 Copy</button>
+                                            <form action="/secret-admin-panel-2026/orders/delete/<%= o.id %>" method="POST" onsubmit="return confirm('Delete order?');" style="display:inline;">
+                                                <button type="submit" class="delete-btn">Del</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr><td colspan="7" style="text-align: center; padding: 20px;">No orders yet.</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Product Management with Category, Stock & Cost Price -->
+        <div class="two-col-grid">
+            <section class="admin-section">
+                <h3>➕ Add Product (Category, Stock & Cost)</h3>
+                <form action="/secret-admin-panel-2026/products/add" method="POST" enctype="multipart/form-data">
+                    <div class="form-group"><label>Product Title *</label><input type="text" name="title" required placeholder="e.g. Dynamic Leaf Table Lamp"></div>
+                    <div class="form-group"><label>Category Name *</label><input type="text" name="category" required placeholder="e.g. Lamps, Gadgets, Home Decor"></div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Selling Price (BDT) *</label><input type="number" name="price" required placeholder="950"></div>
+                        <div class="form-group"><label>Regular Price</label><input type="number" name="regular_price" placeholder="1250"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Buying / Cost Price (৳)</label><input type="number" name="cost_price" placeholder="600"></div>
+                        <div class="form-group"><label>Stock Quantity</label><input type="number" name="stock_quantity" value="50"></div>
+                    </div>
+                    <div class="upload-box">
+                        <label>📸 Upload Product Image Directly (JPG/PNG/WebP)</label>
+                        <input type="file" name="image_file" accept="image/*" style="margin-top:6px;">
+                        <small style="display:block; color:#666; margin-top:4px;">OR paste Image URL:</small>
+                        <input type="text" name="image" placeholder="https://..." style="margin-top:6px;">
+                    </div>
+                    <div class="form-group"><label>Variants (comma separated)</label><input type="text" name="variant_options" placeholder="Cream, Black, Wood"></div>
+                    <div class="form-group"><label>Description</label><textarea name="description" rows="3"></textarea></div>
+                    <button type="submit" class="add-product-btn">➕ Add Product to Inventory</button>
+                </form>
+            </section>
+
+            <section class="admin-section">
+                <h3>🛍️ Inventory Stock List (<%= products.length %>)</h3>
+                <div class="table-responsive" style="max-height: 460px; overflow-y: auto;">
+                    <table class="data-table">
+                        <thead><tr><th>Image</th><th>Name, Category, Price & Stock</th><th>Action</th></tr></thead>
+                        <tbody>
+                            <% products.forEach(p => { 
+                                const stock = p.stock_quantity !== undefined ? p.stock_quantity : 50;
+                                const isLowStock = stock <= 5;
+                            %>
+                                <tr>
+                                    <td><% if (p.image) { %><img src="<%= p.image %>" width="45" height="45" style="object-fit:cover;border-radius:4px;"><% } %></td>
+                                    <td>
+                                        <strong><%= p.title %></strong> <small style="background:#f1f3f5; padding:2px 6px; border-radius:4px;"><%= p.category || 'General' %></small><br>
+                                        <span class="price-pill">৳ <%= p.price %></span> 
+                                        <span style="font-size:12px; font-weight:700; color:<%= isLowStock ? '#d63031' : '#00b894' %>;">
+                                            📦 Stock: <%= stock %>
+                                            <% if (isLowStock) { %><span class="badge-low-stock">Low Stock!</span><% } %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div style="display:flex; gap:5px;">
+                                            <button type="button" class="edit-btn" onclick="openEditProductById('<%= p.id %>')">✏️ Edit</button>
+                                            <form action="/secret-admin-panel-2026/products/delete/<%= p.id %>" method="POST" onsubmit="return confirm('Delete product?');"><button type="submit" class="delete-btn">Del</button></form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- Edit Product Section -->
+        <section class="admin-section" id="editSection" style="display:none; background:#fff8e5; border:2px solid #ffd166;">
+            <h3>✏️ Edit Product (<span id="editProductIdTitle"></span>)</h3>
+            <form id="editProductForm" method="POST" enctype="multipart/form-data">
+                <div class="form-group"><label>Product Title *</label><input type="text" id="editTitle" name="title" required></div>
+                <div class="form-group"><label>Category Name *</label><input type="text" id="editCategory" name="category" required></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Selling Price *</label><input type="number" id="editPrice" name="price" required></div>
+                    <div class="form-group"><label>Regular Price</label><input type="number" id="editRegularPrice" name="regular_price"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Buying / Cost Price (৳)</label><input type="number" id="editCostPrice" name="cost_price"></div>
+                    <div class="form-group"><label>Stock Quantity</label><input type="number" id="editStockQty" name="stock_quantity"></div>
+                </div>
+                <div class="upload-box">
+                    <label>📸 Upload New Image File (Optional)</label>
+                    <input type="file" name="image_file" accept="image/*" style="margin-top:6px;">
+                    <small style="display:block; color:#666; margin-top:4px;">Current Image URL / Data:</small>
+                    <input type="text" id="editImage" name="image" style="margin-top:4px;">
+                </div>
+                <div class="form-group"><label>Variants</label><input type="text" id="editVariants" name="variant_options"></div>
+                <div class="form-group"><label>Description</label><textarea id="editDesc" name="description" rows="3"></textarea></div>
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="save-settings-btn" style="flex:1;">💾 Save Product Changes</button>
+                    <button type="button" onclick="document.getElementById('editSection').style.display='none'" style="background:#666;color:#fff;border:none;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:bold;">Cancel</button>
+                </div>
+            </form>
+        </section>
+        <!-- Sub-admin access is intentionally disabled until role-based permissions are implemented. -->
+        <!-- Master Hero Spotlight, Brand Logo, FAQ & Policies Settings -->
+        <section class="admin-section">
+            <h3>🎨 Hero Product Spotlight, Brand Logo, FAQ & Legal Policies</h3>
+            <form action="/secret-admin-panel-2026/settings/update" method="POST" enctype="multipart/form-data">
+                
+                <h4 style="color:#9c1448; margin-bottom:10px;">1. Hero Banner Text & 3D Floating Spotlight Product Card</h4>
+                <div class="form-row">
+                    <div class="form-group"><label>Hero Main Headline (EN)</label><input type="text" name="hero_title_en" value="<%= settings.hero_title_en %>"></div>
+                    <div class="form-group"><label>Hero Subtitle (EN)</label><input type="text" name="hero_subtitle_en" value="<%= settings.hero_subtitle_en %>"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Spotlight Badge Text</label><input type="text" name="hero_badge_text" value="<%= settings.hero_badge_text || '🔥 Trending Spotlight' %>"></div>
+                    <div class="form-group"><label>Spotlight Product Title</label><input type="text" name="hero_featured_title" value="<%= settings.hero_featured_title || '' %>" placeholder="e.g. Dynamic Leaf Table Lamp"></div>
+                    <div class="form-group"><label>Spotlight Price Text</label><input type="text" name="hero_featured_price" value="<%= settings.hero_featured_price || '' %>" placeholder="e.g. ৳ 950"></div>
+                    <div class="form-group"><label>Spotlight Link URL</label><input type="text" name="hero_featured_link" value="<%= settings.hero_featured_link || '#products' %>" placeholder="/product/1 or #products"></div>
+                </div>
+                <div class="upload-box">
+                    <label>🌟 Upload Hero 3D Spotlight Product Image (Direct File Upload)</label>
+                    <input type="file" name="hero_file" accept="image/*" style="margin-top:6px;">
+                    <small style="display:block; color:#666; margin-top:4px;">OR paste Hero Spotlight Image URL (leave blank to auto-show latest product):</small>
+                    <input type="text" name="hero_image" value="<%= settings.hero_image || '' %>" placeholder="https://..." style="margin-top:4px;">
+                </div>
+
+                <h4 style="color:#9c1448; margin:20px 0 10px 0;">2. Website Name & Brand Logo</h4>
+                <div class="form-row">
+                    <div class="form-group"><label>Brand Name (Part 1)</label><input type="text" name="brand_name_first" value="<%= settings.brand_name_first || 'Trendzz' %>"></div>
+                    <div class="form-group"><label>Brand Name (Part 2 Accent)</label><input type="text" name="brand_name_second" value="<%= settings.brand_name_second || 'Now' %>"></div>
+                    <div class="form-group"><label>Slogan / Tagline</label><input type="text" name="tagline_en" value="<%= settings.tagline_en || 'Stay on trend. Stay in style.' %>"></div>
+                </div>
+
+                <div class="upload-box">
+                    <label>🖼️ Upload Website Logo Directly (PNG/SVG/JPG)</label>
+                    <input type="file" name="logo_file" accept="image/*" style="margin-top:6px;">
+                    <small style="display:block; color:#666; margin-top:4px;">OR paste Logo URL:</small>
+                    <input type="text" name="logo_light" value="<%= settings.logo_light || '' %>" placeholder="https://..." style="margin-top:4px;">
+                </div>
+
+                <h4 style="color:#9c1448; margin:20px 0 10px 0;">3. Payment, Delivery & Promo Settings</h4>
+                <div class="form-row">
+                    <div class="form-group"><label>📞 WhatsApp Number</label><input type="text" name="whatsapp_number" value="<%= settings.whatsapp_number || '01731763504' %>"></div>
+                    <div class="form-group"><label>📲 bKash Number</label><input type="text" name="bkash_number" value="<%= settings.bkash_number || '01731763504' %>"></div>
+                    <div class="form-group"><label>📲 Nagad Number</label><input type="text" name="nagad_number" value="<%= settings.nagad_number || '01731763504' %>"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>🚚 Inside Dhaka (৳)</label><input type="number" name="delivery_inside_dhaka" value="<%= settings.delivery_inside_dhaka || '70' %>"></div>
+                    <div class="form-group"><label>🚚 Outside Dhaka (৳)</label><input type="number" name="delivery_outside_dhaka" value="<%= settings.delivery_outside_dhaka || '130' %>"></div>
+                    <div class="form-group"><label>🎟️ Promo Code</label><input type="text" name="promo_code" value="<%= settings.promo_code || 'TREND50' %>"></div>
+                    <div class="form-group"><label>💰 Promo Discount (৳)</label><input type="number" name="promo_discount" value="<%= settings.promo_discount || '50' %>"></div>
+                </div>
+
+                <h4 style="color:#9c1448; margin:20px 0 10px 0;">4. Interactive FAQ Questions & Answers</h4>
+                <div class="form-row">
+                    <div class="form-group"><label>FAQ 1 Question</label><input type="text" name="faq_1_q" value="<%= settings.faq_1_q %>"></div>
+                    <div class="form-group"><label>FAQ 1 Answer</label><input type="text" name="faq_1_a" value="<%= settings.faq_1_a %>"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>FAQ 2 Question</label><input type="text" name="faq_2_q" value="<%= settings.faq_2_q %>"></div>
+                    <div class="form-group"><label>FAQ 2 Answer</label><input type="text" name="faq_2_a" value="<%= settings.faq_2_a %>"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>FAQ 3 Question</label><input type="text" name="faq_3_q" value="<%= settings.faq_3_q %>"></div>
+                    <div class="form-group"><label>FAQ 3 Answer</label><input type="text" name="faq_3_a" value="<%= settings.faq_3_a %>"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>FAQ 4 Question</label><input type="text" name="faq_4_q" value="<%= settings.faq_4_q %>"></div>
+                    <div class="form-group"><label>FAQ 4 Answer</label><input type="text" name="faq_4_a" value="<%= settings.faq_4_a %>"></div>
+                </div>
+
+                <h4 style="color:#9c1448; margin:20px 0 10px 0;">5. Store Policies (Privacy, Return & Terms)</h4>
+                <div class="form-group"><label>🔒 Privacy Policy</label><textarea name="privacy_policy" rows="2"><%= settings.privacy_policy %></textarea></div>
+                <div class="form-group"><label>🔄 Return & Replacement Policy</label><textarea name="return_policy" rows="2"><%= settings.return_policy %></textarea></div>
+                <div class="form-group"><label>📜 Terms & Conditions</label><textarea name="terms_conditions" rows="2"><%= settings.terms_conditions %></textarea></div>
+
+                <button type="submit" class="save-settings-btn">💾 Save All Hero, Logo, FAQ & Store Settings</button>
+            </form>
+        </section>
+        <section class="admin-section password-box">
+            <h3>🔐 Admin Password</h3>
+            <p>For security, set or rotate <code>ADMIN_PASSWORD</code> in your Render environment variables, then redeploy. Do not store administrator passwords in the database.</p>
+        </section>
+    </div>
+
+    <script>
+        const allProductsMap = <%- JSON.stringify(products.reduce((acc, item) => { acc[item.id] = item; return acc; }, {})) %>;
+        const allOrdersMap = <%- JSON.stringify(orders.reduce((acc, item) => { acc[item.id] = item; return acc; }, {})) %>;
+
+        function toggleSelectAll(master) {
+            const checkboxes = document.querySelectorAll('.order-chk');
+            checkboxes.forEach(chk => {
+                const row = chk.closest('tr');
+                if (row.style.display !== 'none') {
+                    chk.checked = master.checked;
+                }
+            });
+        }
+
+        function filterOrderTab(category, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const rows = document.querySelectorAll('.order-row');
+            rows.forEach(row => {
+                const status = row.getAttribute('data-status');
+                if (category === 'all' || status === category) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function openEditProductById(id) {
+            const p = allProductsMap[id];
+            if (!p) return alert('Product data not found!');
+            document.getElementById('editSection').style.display = 'block';
+            document.getElementById('editProductForm').action = '/secret-admin-panel-2026/products/edit/' + p.id;
+            document.getElementById('editProductIdTitle').innerText = '#' + p.id + ' - ' + (p.title || '');
+            document.getElementById('editTitle').value = p.title || '';
+            document.getElementById('editCategory').value = p.category || 'Trending';
+            document.getElementById('editPrice').value = p.price || '';
+            document.getElementById('editRegularPrice').value = p.regular_price || '';
+            document.getElementById('editCostPrice').value = p.cost_price || '';
+            document.getElementById('editStockQty').value = p.stock_quantity || 50;
+            document.getElementById('editImage').value = p.image || '';
+            document.getElementById('editVariants').value = p.variant_options || '';
+            document.getElementById('editDesc').value = p.description || '';
+            document.getElementById('editSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function printShippingLabel(id) {
+            const d = allOrdersMap[id];
+            if (!d) return;
+            const win = window.open('', '_blank', 'width=500,height=600');
+            win.document.write(`<html><body style="font-family:Arial;padding:25px;border:3px solid #000;"><h2 style="text-align:center;margin-top:0;">SHIPPING LABEL</h2><hr><p><strong>Order ID:</strong> #${d.id}</p><p><strong>Customer Name:</strong> ${d.customer_name}</p><p><strong>Phone:</strong> ${d.phone}</p><p><strong>Delivery Address:</strong> ${d.address}</p><hr><p><strong>Product:</strong> ${d.product_title}</p><h3>COD Amount: ৳${d.price}</h3><p style="text-align:center;font-size:12px;margin-top:30px;">TrendzzNow Courier Dispatch Label</p></div><script>window.print();<\/script></body></html>`);
+            win.document.close();
+        }
+
+        function printInvoiceById(id) {
+            const d = allOrdersMap[id];
+            if (!d) return;
+            const win = window.open('', '_blank', 'width=650,height=600');
+            win.document.write(`<html><body style="font-family:Arial;padding:20px;"><div style="border:2px dashed #222;padding:20px;"><h2>TrendzzNow Invoice #${d.id}</h2><p><strong>Name:</strong> ${d.customer_name}</p><p><strong>Phone:</strong> ${d.phone}</p><p><strong>Address:</strong> ${d.address}</p><p><strong>Product:</strong> ${d.product_title}</p><h3>Total COD: ৳${d.price}</h3></div><script>window.print();<\/script></body></html>`);
+            win.document.close();
+        }
+
+        function copyCustomerById(id) {
+            const d = allOrdersMap[id];
+            if (!d) return;
+            navigator.clipboard.writeText(`Name: ${d.customer_name}\nPhone: ${d.phone}\nAddress: ${d.address}\nProduct: ${d.product_title}\nTotal: ৳${d.price}`).then(() => alert('Copied!'));
+        }
+
+        function exportOrdersCSV() {
+            const table = document.getElementById('ordersTable');
+            let csv = [];
+            for (let i = 0; i < table.rows.length; i++) {
+                let row = [], cols = table.rows[i].querySelectorAll('td, th');
+                for (let j = 0; j < cols.length - 1; j++) row.push('"' + cols[j].innerText.replace(/(\r\n|\n|\r)/gm, " ") + '"');
+                csv.push(row.join(','));
+            }
+            let link = document.createElement('a');
+            link.download = 'trendzznow_enterprise_orders.csv';
+            link.href = window.URL.createObjectURL(new Blob(["\uFEFF" + csv.join("\n")], { type: 'text/csv;charset=utf-8;' }));
+            link.click();
+        }
+    </script>
+</body>
+</html>

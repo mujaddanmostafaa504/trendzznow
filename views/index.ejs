@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= settings.site_title || 'TrendzzNow - Stay on trend. Stay in style.' %></title>
+    <link rel="canonical" href="https://trendzznow.com/">
+    <meta property="og:title" content="<%= settings.site_title || 'TrendzzNow - Stay on trend. Stay in style.' %>">
+    <meta property="og:description" content="<%= settings.hero_subtitle_en || 'Stay on trend. Stay in style. Just trending products delivered to your door.' %>">
+    <meta property="og:image" content="<%= settings.hero_image || settings.logo_light || 'https://trendzznow.com/images/banner.jpg' %>">
+    <meta property="og:url" content="https://trendzznow.com">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <% if (settings.facebook_pixel) { %>
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(t);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(t)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '<%= settings.facebook_pixel %>');
+      fbq('track', 'PageView');
+    </script>
+    <% } %>
+</head>
+<body>
+    <div class="banner-notice">
+        <span class="en-text"><%= settings.banner_text || '⚡ Only Viral & Trending Products | 100% Cash on Delivery Across Bangladesh' %></span>
+        <span class="bn-text" style="display:none;"><%= settings.banner_text_bn || '⚡ শুধুমাত্র সেরা ট্রেন্ডিং প্রোডাক্ট | সারা বাংলাদেশে ক্যাশ অন ডেলিভারি!' %></span>
+    </div>
+
+    <!-- Frosted Glass Sticky Navbar with Top-Left Menu Drawer Button -->
+    <header class="navbar glass-nav">
+        <div class="nav-container">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <!-- Top-Left Menu Drawer Hamburger Button -->
+                <button type="button" class="menu-drawer-btn" onclick="toggleMenuDrawer()" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
+
+                <a href="/" class="logo-area">
+                    <% if (settings.logo_light) { %>
+                        <img src="<%= settings.logo_light %>" alt="<%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %>" class="brand-logo">
+                        <div class="brand-badge" style="margin-left:10px;">
+                            <span class="brand-name" style="font-size:21px;"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
+                            <small class="brand-sub"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></small>
+                        </div>
+                    <% } else { %>
+                        <div class="brand-logo-icon">⚡</div>
+                        <div class="brand-badge" style="margin-left:8px;">
+                            <span class="brand-name"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
+                            <small class="brand-sub">
+                                <span class="en-text"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></span>
+                                <span class="bn-text" style="display:none;"><%= settings.tagline_bn || 'ট্রেন্ডে থাকুন, স্টাইলে থাকুন' %></span>
+                            </small>
+                        </div>
+                    <% } %>
+                </a>
+            </div>
+
+            <div class="search-bar-wrap">
+                <input type="text" id="searchInput" placeholder="Search trending items..." onkeyup="filterProducts()">
+                <span class="search-icon">🔍</span>
+            </div>
+
+            <nav class="nav-links">
+                <a href="/" class="en-text">Home</a><a href="/" class="bn-text" style="display:none;">হোম</a>
+                <a href="#products" class="en-text">Trending</a><a href="#products" class="bn-text" style="display:none;">ট্রেন্ডিং</a>
+                <a href="#" onclick="openTrackingModal(); return false;" class="en-text">📦 Track</a><a href="#" onclick="openTrackingModal(); return false;" class="bn-text" style="display:none;">📦 ট্র্যাক</a>
+                <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="wa-nav-btn">💬 WhatsApp</a>
+                <button class="lang-toggle-btn" onclick="toggleLanguage()"><span id="langLabel">বাংলা</span></button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Slide-out Professional Menu Drawer (Top-Left) -->
+    <div id="menuDrawerOverlay" class="drawer-overlay" onclick="toggleMenuDrawer()"></div>
+    <div id="menuDrawer" class="menu-drawer">
+        <div class="drawer-header">
+            <span class="brand-name" style="font-size:22px;"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
+            <button type="button" class="drawer-close" onclick="toggleMenuDrawer()">&times;</button>
+        </div>
+        <div class="drawer-body">
+            <div class="drawer-section-title">Navigation</div>
+            <a href="/" onclick="toggleMenuDrawer()">🏠 Home / হোম</a>
+            <a href="#products" onclick="toggleMenuDrawer()">🔥 Trending Products / ট্রেন্ডিং পণ্য</a>
+            <a href="#" onclick="openTrackingModal(); toggleMenuDrawer(); return false;">📦 Track Order / অর্ডার ট্র্যাক</a>
+            <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" onclick="toggleMenuDrawer()">💬 WhatsApp Support / সাপোর্ট</a>
+
+            <div class="drawer-section-title" style="margin-top:20px;">Customer Policies</div>
+            <a href="#" onclick="openPolicyModal('privacy'); toggleMenuDrawer(); return false;">🔒 Privacy Policy</a>
+            <a href="#" onclick="openPolicyModal('return'); toggleMenuDrawer(); return false;">🔄 Return & Replacement Policy</a>
+            <a href="#" onclick="openPolicyModal('terms'); toggleMenuDrawer(); return false;">📜 Terms & Conditions</a>
+            <a href="#faq" onclick="toggleMenuDrawer()">❓ FAQ / সাধারণ জিজ্ঞাসা</a>
+        </div>
+    </div>
+
+    <!-- Aurora Mesh Glassmorphism Split Hero Section -->
+    <section class="hero-aurora">
+        <div class="aurora-orb orb-1"></div>
+        <div class="aurora-orb orb-2"></div>
+        <div class="hero-split-container">
+            <div class="hero-left">
+                <div class="glass-pill">✨ <%= settings.tagline_en || 'Stay on trend. Stay in style.' %></div>
+                <h1 class="en-text"><%= settings.hero_title_en || 'Just Trending Products — Curated for You' %></h1>
+                <h1 class="bn-text" style="display:none;"><%= settings.hero_title_bn || 'শুধুমাত্র সেরা ট্রেন্ডিং প্রোডাক্ট কালেকশন' %></h1>
+                <p class="en-text"><%= settings.hero_subtitle_en || 'Stay on trend. Stay in style. Handpicked viral gadgets & modern essentials delivered straight to your doorstep.' %></p>
+                <p class="bn-text" style="display:none;"><%= settings.hero_subtitle_bn || 'ট্রেন্ডে থাকুন, স্টাইলে থাকুন। বাছাইকৃত সেরা ভাইরাল গ্যাজেট ও আধুনিক পণ্য পান ক্যাশ অন ডেলিভারিতে।' %></p>
+                
+                <div class="hero-cta-row">
+                    <a href="#products" class="glow-cta-btn en-text">🔥 Explore Trending &darr;</a>
+                    <a href="#products" class="glow-cta-btn bn-text" style="display:none;">🔥 ট্রেন্ডিং কালেকশন &darr;</a>
+                    <a href="#" onclick="openTrackingModal(); return false;" class="glass-sec-btn en-text">📦 Track Order</a>
+                    <a href="#" onclick="openTrackingModal(); return false;" class="glass-sec-btn bn-text" style="display:none;">📦 অর্ডার ট্র্যাক</a>
+                </div>
+
+                <div class="hero-glass-stats">
+                    <div class="g-stat"><strong>100%</strong><span>Open-Box COD</span></div>
+                    <div class="g-stat"><strong>24–48h</strong><span>Express Delivery</span></div>
+                    <div class="g-stat"><strong>4.9 ★</strong><span>Verified Buyers</span></div>
+                </div>
+            </div>
+
+            <!-- Interactive 3D Floating Hero Showcase Card -->
+            <div class="hero-right">
+                <% 
+                    const spotlightImg = settings.hero_image || (products.length > 0 && products[0].image ? products[0].image : '');
+                    const spotlightTitle = settings.hero_featured_title || (products.length > 0 ? products[0].title : 'Trending Spotlight');
+                    const spotlightPrice = settings.hero_featured_price || (products.length > 0 ? '৳ ' + products[0].price : 'Hot Deal');
+                    const spotlightUrl = settings.hero_featured_link || (products.length > 0 ? '/product/' + products[0].id : '#products');
+                %>
+                <div class="hero-3d-showcase tilt-card" data-tilt-max="14">
+                    <div class="tilt-glare"></div>
+                    <span class="spotlight-tag"><%= settings.hero_badge_text || '🔥 Trending Spotlight' %></span>
+                    <a href="<%= spotlightUrl %>" class="spotlight-img-box">
+                        <% if (spotlightImg) { %>
+                            <img src="<%= spotlightImg %>" alt="<%= spotlightTitle %>" class="spotlight-img">
+                        <% } else { %>
+                            <div class="spotlight-placeholder">
+                                <span style="font-size:48px;">⚡</span>
+                                <p>TrendzzNow Exclusive</p>
+                            </div>
+                        <% } %>
+                    </a>
+                    <div class="spotlight-footer">
+                        <div>
+                            <h4><%= spotlightTitle %></h4>
+                            <span class="spotlight-price"><%= spotlightPrice %></span>
+                        </div>
+                        <a href="<%= spotlightUrl %>" class="spotlight-buy-pill">View &rarr;</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bento Trust Strip -->
+    <section class="bento-trust-strip">
+        <div class="container bento-grid">
+            <div class="bento-box glass-card">
+                <span class="bento-icon">🛡️</span>
+                <div>
+                    <strong class="en-text">Check Before Paying</strong>
+                    <strong class="bn-text" style="display:none;">দেখে পেমেন্ট করুন</strong>
+                    <small>100% Cash on Delivery</small>
+                </div>
+            </div>
+            <div class="bento-box glass-card">
+                <span class="bento-icon">🚀</span>
+                <div>
+                    <strong class="en-text">Superfast Dispatch</strong>
+                    <strong class="bn-text" style="display:none;">দ্রুত ডেলিভারি</strong>
+                    <small>SteadFast, Pathao & REDX</small>
+                </div>
+            </div>
+            <div class="bento-box glass-card">
+                <span class="bento-icon">📲</span>
+                <div>
+                    <strong class="en-text">Instant SMS Tracking</strong>
+                    <strong class="bn-text" style="display:none;">অটো SMS ট্র্যাকিং</strong>
+                    <small>Live Updates on Phone</small>
+                </div>
+            </div>
+            <div class="bento-box glass-card">
+                <span class="bento-icon">💬</span>
+                <div>
+                    <strong class="en-text">24/7 Direct Support</strong>
+                    <strong class="bn-text" style="display:none;">সরাসরি সাপোর্ট</strong>
+                    <small><%= settings.whatsapp_number || '01731763504' %></small>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Professional Product Category Filtering Tabs -->
+    <main class="container" id="products">
+        <div class="section-header">
+            <span class="sub-pill">🔥 HOT RIGHT NOW</span>
+            <h2 class="en-text">Trending Products</h2>
+            <h2 class="bn-text" style="display:none;">সেরা ট্রেন্ডিং পণ্যসমূহ</h2>
+            <p class="en-text">Hover to inspect in 3D • Select category below to filter instantly</p>
+            <p class="bn-text" style="display:none;">কার্সর রেখে 3D ভিউ দেখুন এবং ক্যাটাগরি অনুযায়ী ফিল্টার করুন</p>
+        </div>
+
+        <% 
+            let categories = ['All'];
+            products.forEach(p => {
+                if (p.category && !categories.includes(p.category)) {
+                    categories.push(p.category);
+                }
+            });
+        %>
+        <% if (categories.length > 1) { %>
+            <div class="category-tabs-bar">
+                <% categories.forEach((cat, idx) => { %>
+                    <button class="cat-tab-btn <%= idx === 0 ? 'active' : '' %>" onclick="filterByCategory('<%= cat %>', this)"><%= cat %></button>
+                <% }) %>
+            </div>
+        <% } %>
+
+        <div class="product-grid" id="productGrid">
+            <% if (products.length > 0) { %>
+                <% products.forEach((p, idx) => { 
+                    const hasDiscount = p.regular_price && p.regular_price > p.price;
+                    const discountPct = hasDiscount ? Math.round(((p.regular_price - p.price) / p.regular_price) * 100) : 0;
+                    const liveViewers = 12 + ((idx * 7) % 19);
+                    const prodCat = p.category || 'All';
+                %>
+                    <div class="product-card tilt-card" data-tilt-max="10" data-category="<%= prodCat %>" data-title="<%= (p.title || '').toLowerCase() %>">
+                        <div class="tilt-glare"></div>
+                        <a href="/product/<%= p.id %>" class="product-img-wrap" style="display:block; text-decoration:none;">
+                            <% if (p.image) { %>
+                                <img src="<%= p.image %>" alt="<%= p.title %>" class="product-img" loading="lazy">
+                            <% } else { %>
+                                <div class="no-img">No Image</div>
+                            <% } %>
+                            <span class="cod-tag glass-badge">🛡️ COD</span>
+                            <% if (discountPct > 0) { %>
+                                <span class="discount-badge">🔥 -<%= discountPct %>%</span>
+                            <% } %>
+                            <span class="live-view-pill">👁️ <%= liveViewers %> viewing</span>
+                        </a>
+                        <div class="product-info">
+                            <div class="rating-row">
+                                <span class="stars">★★★★★</span>
+                                <small>(4.9)</small>
+                            </div>
+                            <a href="/product/<%= p.id %>" style="text-decoration:none;">
+                                <h3 class="product-title"><%= p.title %></h3>
+                            </a>
+                            <p class="product-desc"><%= p.description ? p.description.substring(0, 72) + (p.description.length > 72 ? '...' : '') : 'Trending viral product with verified quality.' %></p>
+                            <% if (p.variant_options) { %>
+                                <div class="variant-display"><small>🎨 <%= p.variant_options %></small></div>
+                            <% } %>
+                            <div class="price-action">
+                                <div>
+                                    <% if (hasDiscount) { %>
+                                        <span class="reg-price">৳ <%= p.regular_price %></span>
+                                    <% } %>
+                                    <span class="price">৳ <%= p.price %></span>
+                                </div>
+                                <div style="display:flex; gap:6px;">
+                                    <a href="/product/<%= p.id %>" class="details-btn">
+                                        <span class="en-text">View</span><span class="bn-text" style="display:none;">দেখুন</span>
+                                    </a>
+                                    <button type="button" class="buy-btn shimmer-btn" onclick="openCheckoutById('<%= p.id %>')">
+                                        🛒 <span class="en-text">Order Now</span><span class="bn-text" style="display:none;">অর্ডার</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>?text=<%= encodeURIComponent('Hello TrendzzNow, I want to order: ' + p.title + ' (Price: ৳' + p.price + ')') %>" target="_blank" class="wa-card-btn">
+                                📱 <span class="en-text">Order via WhatsApp</span><span class="bn-text" style="display:none;">WhatsApp অর্ডার</span>
+                            </a>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="empty-state">
+                    <h3 class="en-text">No trending products added yet</h3>
+                    <h3 class="bn-text" style="display:none;">এখনো কোনো ট্রেন্ডিং প্রোডাক্ট যোগ করা হয়নি</h3>
+                    <p class="en-text">Log in to Admin Panel to add your trending products.</p>
+                    <p class="bn-text" style="display:none;">অ্যাডমিন প্যানেল থেকে নতুন প্রোডাক্ট যোগ করুন।</p>
+                </div>
+            <% } %>
+        </div>
+    </main>
+
+    <!-- FAQ Section (Placed right above footer as requested) -->
+    <section class="faq-section" id="faq">
+        <div class="container" style="max-width: 860px;">
+            <div class="section-header">
+                <h2 class="en-text">Frequently Asked Questions (FAQ)</h2>
+                <h2 class="bn-text" style="display:none;">সাধারণ জিজ্ঞাসা (FAQ)</h2>
+                <p class="en-text">Everything you need to know about ordering, delivery & returns</p>
+                <p class="bn-text" style="display:none;">অর্ডার, ডেলিভারি এবং রিটার্ন পলিসি সম্পর্কে বিস্তারিত জানুন</p>
+            </div>
+
+            <div class="faq-list">
+                <div class="faq-item active">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        <span>1. <%= settings.faq_1_q %></span>
+                        <span class="faq-arrow">▼</span>
+                    </button>
+                    <div class="faq-answer"><p><%= settings.faq_1_a %></p></div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        <span>2. <%= settings.faq_2_q %></span>
+                        <span class="faq-arrow">▼</span>
+                    </button>
+                    <div class="faq-answer"><p><%= settings.faq_2_a %></p></div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        <span>3. <%= settings.faq_3_q %></span>
+                        <span class="faq-arrow">▼</span>
+                    </button>
+                    <div class="faq-answer"><p><%= settings.faq_3_a %></p></div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">
+                        <span>4. <%= settings.faq_4_q %></span>
+                        <span class="faq-arrow">▼</span>
+                    </button>
+                    <div class="faq-answer"><p><%= settings.faq_4_a %></p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer with Delivery Partners & Payment Logos Placement at the Very Bottom -->
+    <footer class="footer">
+        <div class="container footer-grid">
+            <div>
+                <h3><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></h3>
+                <p><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></p>
+                <p>🌐 www.trendzznow.com</p>
+            </div>
+            <div>
+                <h4>Policies & Quick Links</h4>
+                <ul class="footer-policy-links">
+                    <li><a href="#" onclick="openPolicyModal('privacy'); return false;">🔒 Privacy Policy</a></li>
+                    <li><a href="#" onclick="openPolicyModal('return'); return false;">🔄 Return & Replacement Policy</a></li>
+                    <li><a href="#" onclick="openPolicyModal('terms'); return false;">📜 Terms & Conditions</a></li>
+                    <li><a href="#faq">❓ Frequently Asked Questions (FAQ)</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Support & Payment</h4>
+                <p>📞 WhatsApp / Call: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p>
+                <p>💳 bKash / Nagad: <%= settings.bkash_number || '01731763504' %></p>
+                <p>🚚 Delivery: Inside Dhaka ৳<%= settings.delivery_inside_dhaka || 70 %> | Outside ৳<%= settings.delivery_outside_dhaka || 130 %></p>
+            </div>
+        </div>
+
+        <!-- Footer Delivery & Courier Partner Logo Showcase Strip -->
+        <div class="container" style="border-top: 1px solid rgba(255,255,255,0.12); margin-top: 30px; padding-top: 25px;">
+            <div class="partners-wrapper" style="justify-content: center;">
+                <div class="partner-group">
+                    <span class="partner-label en-text" style="color:#aaa;">🚚 Official Delivery Partners:</span>
+                    <div class="partner-badges">
+                        <div class="courier-logo-card sf-card"><span class="c-icon">🚚</span><div><strong>SteadFast</strong><small>Courier</small></div></div>
+                        <div class="courier-logo-card pathao-card"><span class="c-icon">🛵</span><div><strong>Pathao</strong><small>Parcel</small></div></div>
+                        <div class="courier-logo-card redx-card"><span class="c-icon">📦</span><div><strong>REDX</strong><small>Logistics</small></div></div>
+                    </div>
+                </div>
+                <div class="partner-group">
+                    <span class="partner-label en-text" style="color:#aaa;">💳 Accepted Payment Methods:</span>
+                    <div class="partner-badges">
+                        <div class="pay-logo-card cod-card">💵 Cash on Delivery</div>
+                        <div class="pay-logo-card bkash-card">📱 bKash</div>
+                        <div class="pay-logo-card nagad-card">📲 Nagad</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %> (trendzznow.com). All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Glassmorphism Checkout Modal -->
+    <div id="checkoutModal" class="modal glass-modal-backdrop">
+        <div class="modal-content glass-modal">
+            <span class="close" onclick="closeCheckout()">&times;</span>
+            <div class="modal-header">
+                <h2 class="en-text">Confirm Your Order</h2>
+                <h2 class="bn-text" style="display:none;">অর্ডার কনফার্ম করুন</h2>
+                <p id="modalProductTitle" class="selected-product-banner"></p>
+            </div>
+            <form id="orderForm" onsubmit="submitOrder(event)">
+                <input type="hidden" id="orderProductId" name="product_id">
+                <input type="hidden" id="orderProductTitle" name="product_title">
+                <input type="hidden" id="orderProductPrice" name="price">
+                <input type="hidden" id="orderDeliveryCharge" name="delivery_charge" value="<%= settings.delivery_inside_dhaka || 70 %>">
+                <input type="hidden" id="orderDiscountApplied" name="discount_applied" value="0">
+
+                <div id="variantGroup" class="form-group" style="display:none;">
+                    <label>Select Variant / Color *</label>
+                    <select id="orderVariant" name="variant"></select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Your Name *</label>
+                        <input type="text" name="customer_name" required placeholder="Full Name">
+                    </div>
+                    <div class="form-group">
+                        <label>Mobile Number (for SMS Tracking) *</label>
+                        <input type="tel" id="phoneInput" name="phone" required placeholder="017xxxxxxxx" minlength="11" maxlength="15">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Email Address (Optional - for Invoice & Live Tracking)</label>
+                    <input type="email" name="customer_email" placeholder="example@gmail.com">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" id="orderQty" name="quantity" value="1" min="1" max="50" onchange="updateTotal()">
+                    </div>
+                    <div class="form-group">
+                        <label>Delivery Area *</label>
+                        <select id="deliveryArea" name="delivery_area" onchange="updateTotal()">
+                            <option value="Inside Dhaka" data-charge="<%= settings.delivery_inside_dhaka || 70 %>">Inside Dhaka (৳ <%= settings.delivery_inside_dhaka || 70 %>)</option>
+                            <option value="Outside Dhaka" data-charge="<%= settings.delivery_outside_dhaka || 130 %>">Outside Dhaka (৳ <%= settings.delivery_outside_dhaka || 130 %>)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Preferred Courier</label>
+                        <select name="courier_choice">
+                            <option value="SteadFast Courier">SteadFast Courier</option>
+                            <option value="Pathao Courier">Pathao Courier</option>
+                            <option value="RedX Courier">RedX Courier</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Method *</label>
+                        <select id="paymentMethod" name="payment_method" onchange="togglePaymentDetails()">
+                            <option value="Cash on Delivery (COD)">Cash on Delivery (COD)</option>
+                            <option value="bKash">bKash (Send Money)</option>
+                            <option value="Nagad">Nagad (Send Money)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="digitalPaymentBox" class="payment-info-box" style="display: none;">
+                    <p id="paymentInstructionText" style="margin: 0 0 8px 0; font-size: 13px;"></p>
+                    <input type="text" id="trxIdInput" name="trx_id" placeholder="Transaction ID or last 4 digits">
+                </div>
+
+                <div class="form-group">
+                    <label>Promo Code (Optional)</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" id="promoInput" name="promo_code" placeholder="e.g. TREND50" style="flex:1;">
+                        <button type="button" onclick="applyPromoCode()" style="background:#1F1B5C; color:#fff; border:none; padding:0 16px; border-radius:7px; cursor:pointer; font-weight:600;">Apply</button>
+                    </div>
+                    <small id="promoMessage" style="display:none; margin-top:4px; font-weight:600;"></small>
+                </div>
+
+                <div class="form-group">
+                    <label>Complete Delivery Address *</label>
+                    <textarea name="address" rows="2" required placeholder="House, Road, Area, Thana & District"></textarea>
+                </div>
+
+                <div class="order-summary-box">
+                    <div class="summary-line"><span>Product Total:</span> <span id="sumProductPrice">৳ 0</span></div>
+                    <div class="summary-line"><span>Delivery Charge:</span> <span id="sumDeliveryCharge">৳ <%= settings.delivery_inside_dhaka || 70 %></span></div>
+                    <div class="summary-line" id="discountRow" style="display:none; color:#00b894; font-weight:600;"><span>Discount:</span> <span id="sumDiscount">-৳ 0</span></div>
+                    <div class="summary-line total-line"><span>Total Payable:</span> <span id="sumTotalBill">৳ 0</span></div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="submit-order-btn shimmer-btn">✅ Confirm Order</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order Tracking Modal -->
+    <div id="trackingModal" class="modal glass-modal-backdrop">
+        <div class="modal-content glass-modal">
+            <span class="close" onclick="closeTrackingModal()">&times;</span>
+            <h2>📦 Track Your Order</h2>
+            <div class="form-group">
+                <input type="text" id="trackOrderId" inputmode="numeric" placeholder="Order ID (e.g. 1234)" style="margin-bottom: 10px;">
+                <input type="tel" id="trackPhone" placeholder="Phone number used at checkout" style="margin-bottom: 10px;">
+                <button type="button" class="submit-order-btn" onclick="fetchOrderStatus()">🔍 Track Order</button>
+            </div>
+            <div id="trackingResultContainer" style="margin-top: 15px; max-height: 250px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- Policy Modal -->
+    <div id="policyModal" class="modal glass-modal-backdrop">
+        <div class="modal-content glass-modal" style="max-width: 600px;">
+            <span class="close" onclick="closePolicyModal()">&times;</span>
+            <h2 id="policyModalTitle" style="color:#1F1B5C; margin-top:0;">Policy</h2>
+            <div id="policyModalBody" style="line-height: 1.7; font-size: 14.5px; color: #333; white-space: pre-line; background:#f8f9fc; padding:18px; border-radius:8px; border:1px solid #e2e8f0;"></div>
+        </div>
+    </div>
+
+    <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="floating-wa">
+        <span>💬 WhatsApp Chat</span>
+    </a>
+
+    <div class="mobile-bottom-bar glass-nav">
+        <a href="#products" class="m-bar-btn m-shop">🔥 Trending</a>
+        <a href="#" onclick="openTrackingModal(); return false;" class="m-bar-btn m-track">📦 Track</a>
+        <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="m-bar-btn m-wa">💬 WhatsApp</a>
+    </div>
+
+    <script>
+        const storeProductsMap = <%- JSON.stringify(products.reduce((acc, item) => { acc[item.id] = { id: item.id, title: item.title, price: item.price, category: item.category || 'All', variant_options: item.variant_options || '' }; return acc; }, {})) %>;
+        let currentBasePrice = 0;
+        let currentDiscount = 0;
+        let currentLang = localStorage.getItem('trendzz_lang') || 'en';
+        const bkashNum = "<%= settings.bkash_number || '01731763504' %>";
+        const nagadNum = "<%= settings.nagad_number || '01731763504' %>";
+        const validPromoCode = ("<%= settings.promo_code || 'TREND50' %>").trim().toUpperCase();
+        const validPromoDiscount = parseFloat("<%= settings.promo_discount || '50' %>") || 0;
+
+        // Slide-out Menu Drawer Toggle
+        function toggleMenuDrawer() {
+            document.getElementById('menuDrawer').classList.toggle('open');
+            document.getElementById('menuDrawerOverlay').classList.toggle('open');
+        }
+
+        // Category Filtering
+        function filterByCategory(cat, btn) {
+            document.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const cards = document.querySelectorAll('.product-card');
+            cards.forEach(card => {
+                const cCat = card.getAttribute('data-category');
+                if (cat === 'All' || cCat === cat) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // 3D Tilt Engine
+        function init3DTilt() {
+            const cards = document.querySelectorAll('.tilt-card');
+            cards.forEach(card => {
+                const maxTilt = parseFloat(card.getAttribute('data-tilt-max')) || 10;
+                const glare = card.querySelector('.tilt-glare');
+
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+
+                    const rotateX = ((y - centerY) / centerY) * -maxTilt;
+                    const rotateY = ((x - centerX) / centerX) * maxTilt;
+
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.03, 1.03, 1.03)`;
+
+                    if (glare) {
+                        const glareX = (x / rect.width) * 100;
+                        const glareY = (y / rect.height) * 100;
+                        glare.style.opacity = '1';
+                        glare.style.background = `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.32), transparent 65%)`;
+                    }
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+                    if (glare) {
+                        glare.style.opacity = '0';
+                    }
+                });
+            });
+        }
+        init3DTilt();
+
+        const policiesData = {
+            privacy: { title: "🔒 Privacy Policy", body: <%- JSON.stringify(settings.privacy_policy || '') %> },
+            return: { title: "🔄 Return & Replacement Policy", body: <%- JSON.stringify(settings.return_policy || '') %> },
+            terms: { title: "📜 Terms & Conditions", body: <%- JSON.stringify(settings.terms_conditions || '') %> }
+        };
+
+        function openPolicyModal(type) {
+            const p = policiesData[type];
+            if (!p) return;
+            document.getElementById('policyModalTitle').innerText = p.title;
+            document.getElementById('policyModalBody').innerText = p.body;
+            document.getElementById('policyModal').style.display = 'block';
+        }
+        function closePolicyModal() { document.getElementById('policyModal').style.display = 'none'; }
+
+        function toggleFaq(btn) { btn.parentElement.classList.toggle('active'); }
+
+        function applyLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('trendzz_lang', lang);
+            document.getElementById('htmlRoot').setAttribute('lang', lang);
+            document.getElementById('langLabel').innerText = lang === 'en' ? 'বাংলা' : 'English';
+            const enEls = document.querySelectorAll('.en-text');
+            const bnEls = document.querySelectorAll('.bn-text');
+            if (lang === 'bn') {
+                enEls.forEach(el => el.style.display = 'none');
+                bnEls.forEach(el => el.style.display = 'inline-block');
+            } else {
+                enEls.forEach(el => el.style.display = 'inline-block');
+                bnEls.forEach(el => el.style.display = 'none');
+            }
+        }
+        function toggleLanguage() { applyLanguage(currentLang === 'en' ? 'bn' : 'en'); }
+        applyLanguage(currentLang);
+
+        function filterProducts() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.product-card').forEach(card => {
+                card.style.display = card.getAttribute('data-title').includes(query) ? 'flex' : 'none';
+            });
+        }
+
+        function openCheckoutById(id) {
+            const prod = storeProductsMap[id];
+            if (!prod) return;
+            openCheckout(prod.title, prod.price, prod.variant_options, prod.id);
+        }
+
+        function openCheckout(title, price, variants, productId) {
+            currentBasePrice = parseFloat(price) || 0;
+            currentDiscount = 0;
+            document.getElementById('orderDiscountApplied').value = 0;
+            document.getElementById('promoInput').value = '';
+            document.getElementById('promoMessage').style.display = 'none';
+            document.getElementById('discountRow').style.display = 'none';
+            document.getElementById('modalProductTitle').innerText = 'Product: ' + title + ' (৳ ' + currentBasePrice + ')';
+            document.getElementById('orderProductId').value = productId;
+            document.getElementById('orderProductTitle').value = title;
+            document.getElementById('orderProductPrice').value = currentBasePrice;
+            document.getElementById('orderQty').value = 1;
+
+            const variantGroup = document.getElementById('variantGroup');
+            const variantSelect = document.getElementById('orderVariant');
+            variantSelect.innerHTML = '';
+            if (variants && variants.trim() !== '') {
+                variants.split(',').forEach(v => {
+                    if (v.trim()) {
+                        const opt = document.createElement('option');
+                        opt.value = v.trim();
+                        opt.innerText = v.trim();
+                        variantSelect.appendChild(opt);
+                    }
+                });
+                variantGroup.style.display = 'block';
+            } else {
+                variantGroup.style.display = 'none';
+            }
+            updateTotal();
+            document.getElementById('checkoutModal').style.display = 'block';
+        }
+
+        function closeCheckout() { document.getElementById('checkoutModal').style.display = 'none'; }
+
+        function applyPromoCode() {
+            const input = document.getElementById('promoInput').value.trim().toUpperCase();
+            const msgEl = document.getElementById('promoMessage');
+            if (input && input === validPromoCode) {
+                currentDiscount = validPromoDiscount;
+                document.getElementById('orderDiscountApplied').value = currentDiscount;
+                document.getElementById('discountRow').style.display = 'flex';
+                document.getElementById('sumDiscount').innerText = '-৳ ' + currentDiscount;
+                msgEl.style.display = 'block';
+                msgEl.style.color = '#00b894';
+                msgEl.innerText = '🎉 Promo applied! ৳' + currentDiscount + ' discount added.';
+                updateTotal();
+            } else {
+                currentDiscount = 0;
+                document.getElementById('orderDiscountApplied').value = 0;
+                document.getElementById('discountRow').style.display = 'none';
+                msgEl.style.display = 'block';
+                msgEl.style.color = '#d63031';
+                msgEl.innerText = '❌ Invalid promo code.';
+                updateTotal();
+            }
+        }
+
+        function updateTotal() {
+            const qty = parseInt(document.getElementById('orderQty').value) || 1;
+            const areaSelect = document.getElementById('deliveryArea');
+            const deliveryCharge = parseFloat(areaSelect.options[areaSelect.selectedIndex].getAttribute('data-charge')) || 0;
+            const productTotal = currentBasePrice * qty;
+            const grandTotal = Math.max(0, productTotal + deliveryCharge - currentDiscount);
+            document.getElementById('orderDeliveryCharge').value = deliveryCharge;
+            document.getElementById('sumProductPrice').innerText = '৳ ' + productTotal;
+            document.getElementById('sumDeliveryCharge').innerText = '৳ ' + deliveryCharge;
+            document.getElementById('sumTotalBill').innerText = '৳ ' + grandTotal;
+        }
+
+        function togglePaymentDetails() {
+            const method = document.getElementById('paymentMethod').value;
+            const box = document.getElementById('digitalPaymentBox');
+            const text = document.getElementById('paymentInstructionText');
+            const trxInput = document.getElementById('trxIdInput');
+            if (method === 'bKash') {
+                box.style.display = 'block';
+                text.innerHTML = '📲 Send Money to <strong>bKash: ' + bkashNum + '</strong> & enter TrxID/Last 4 digits:';
+                trxInput.required = true;
+            } else if (method === 'Nagad') {
+                box.style.display = 'block';
+                text.innerHTML = '📲 Send Money to <strong>Nagad: ' + nagadNum + '</strong> & enter TrxID/Last 4 digits:';
+                trxInput.required = true;
+            } else {
+                box.style.display = 'none';
+                trxInput.required = false;
+                trxInput.value = '';
+            }
+        }
+
+        async function submitOrder(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerText = 'Processing...';
+            const data = Object.fromEntries(new FormData(e.target).entries());
+            try {
+                const res = await fetch('/order/place', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    alert('🎉 Thank you! Order #' + result.orderId + ' placed successfully! You will receive tracking updates via SMS/Email.');
+                    closeCheckout();
+                    e.target.reset();
+                    togglePaymentDetails();
+                } else {
+                    alert('Order Error: ' + result.message);
+                }
+            } catch (err) {
+                alert('Network error while placing order. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '✅ Confirm Order';
+            }
+        }
+
+        function openTrackingModal() { document.getElementById('trackingModal').style.display = 'block'; }
+        function closeTrackingModal() { document.getElementById('trackingModal').style.display = 'none'; }
+
+        async function fetchOrderStatus() {
+            const phone = document.getElementById('trackPhone').value.trim();
+            const orderId = document.getElementById('trackOrderId').value.trim();
+            const container = document.getElementById('trackingResultContainer');
+            if (!phone || !orderId) return alert('Enter both your order ID and phone number.');
+            container.innerHTML = '<p>Searching...</p>';
+            try {
+                const res = await fetch('/order/track?phone=' + encodeURIComponent(phone) + '&order_id=' + encodeURIComponent(orderId));
+                const data = await res.json();
+                if (data.success && data.orders.length > 0) {
+                    const escapeHtml = (value) => String(value ?? '').replace(/[&<>\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]));
+                    let html = '<table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="background:#f1f3f5;"><th style="padding:6px;border:1px solid #ddd;">ID & Date</th><th style="padding:6px;border:1px solid #ddd;">Product</th><th style="padding:6px;border:1px solid #ddd;">Status</th></tr>';
+                    data.orders.forEach(o => {
+                        html += `<tr><td style="padding:6px;border:1px solid #ddd;"><strong>#${o.id}</strong><br>${o.created_at ? new Date(o.created_at).toLocaleDateString() : '-'}</td><td style="padding:6px;border:1px solid #ddd;">${escapeHtml(o.product_title)}<br><strong>৳${escapeHtml(o.price)}</strong></td><td style="padding:6px;border:1px solid #ddd;"><strong>${escapeHtml(o.status || 'Pending')}</strong></td></tr>`;
+                    });
+                    html += '</table>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<p style="color:#d63031;">No orders found.</p>';
+                }
+            } catch (err) {
+                container.innerHTML = '<p style="color:#d63031;">Error fetching orders.</p>';
+            }
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoTrackPhone = urlParams.get('track');
+        const autoTrackOrderId = urlParams.get('order');
+        if (autoTrackPhone && autoTrackOrderId) {
+            document.getElementById('trackPhone').value = autoTrackPhone;
+            document.getElementById('trackOrderId').value = autoTrackOrderId;
+            openTrackingModal();
+            fetchOrderStatus();
+        }
+
+        window.onclick = function(e) {
+            if (e.target === document.getElementById('checkoutModal')) closeCheckout();
+            if (e.target === document.getElementById('trackingModal')) closeTrackingModal();
+            if (e.target === document.getElementById('policyModal')) closePolicyModal();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "name": "trendzznow",
+  "version": "21.1.0",
+  "description": "TrendzzNow v21 GitHub and Render deployment starter with critical security hardening.",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "check": "node --check server/index.js && node --check server/notifications.js && node --check server.js",
+    "test": "npm run check"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.8",
+    "compression": "^1.7.4",
+    "cookie-session": "^2.1.0",
+    "ejs": "^3.1.9",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.13",
+    "dotenv": "^16.4.7",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^7.2.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

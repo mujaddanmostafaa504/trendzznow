@@ -1,0 +1,27 @@
+TRENDZZNOW — GITHUB PUSH GUIDE (WINDOWS)
+
+1) ZIP extract করুন। Extract করা folder খুললে package.json, server, views, public, database, render.yaml দেখতে হবে।
+2) GitHub Desktop খুলুন।
+3) File > Add Local Repository নির্বাচন করুন।
+4) Extract করা TRENDZZNOW_GITHUB_READY folder নির্বাচন করুন।
+5) যদি repository না থাকে, "create a repository" / "publish repository" option ব্যবহার করুন।
+6) Repository public করার আগে নিশ্চিত হন যে .env বা কোনো secret file নেই। .gitignore .env file বাদ দেয়।
+7) Commit message দিন: Prepare TrendzzNow for Render deployment
+8) Commit to main এবং Publish repository / Push origin চাপুন।
+
+COMMAND LINE OPTION:
+
+  git init
+  git add .
+  git commit -m "Prepare TrendzzNow for Render deployment"
+  git branch -M main
+  git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
+  git push -u origin main
+
+IMPORTANT:
+- .env.example GitHub-এ যাবে; .env কখনো যাবে না।
+- Render Environment-এ SUPABASE_URL, SUPABASE_KEY, ADMIN_PASSWORD, SESSION_SECRET, APP_BASE_URL configure করতে হবে।
+- SUPABASE_KEY হিসেবে service_role key শুধু server-side Render Environment-এ দিন।
+- Supabase SQL Editor-এ database/supabase-setup.sql review করে run করুন।
+- Render build: npm install | start: npm start | health: /healthz
+- AI chat, live payment gateway এবং live courier API এখনো এই starter source-এ implemented নয়।
