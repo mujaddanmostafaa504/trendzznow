@@ -1,7 +1,7 @@
 {
   "name": "trendzznow",
-  "version": "18.0.0",
-  "description": "TrendzzNow Complete Production E-commerce Platform v18 with Auto SMS & Email Tracking Notifications, Universal Schema Adapter, Direct Image Upload, Brand Logo, Delivery Badges, FAQ & Legal Policies",
+  "version": "19.0.0",
+  "description": "TrendzzNow Next-Gen 3D Glassmorphism E-commerce Platform v19",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js"

@@ -18,7 +18,7 @@ async function sendOrderSMS({ phone, customerName, orderId, totalAmount, status,
   const supportPhone = hotLine || '01731763504';
 
   if (!apiKey || !senderId || !formattedPhone) {
-    console.log('SMS notification skipped: SMS_API_KEY or SMS_SENDER_ID not set in Render Environment.');
+    console.log('SMS notification skipped: SMS_API_KEY or SMS_SENDER_ID not set.');
     return { success: false, reason: 'Missing SMS credentials' };
   }
 

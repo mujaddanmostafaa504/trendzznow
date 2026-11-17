@@ -42,14 +42,19 @@ const defaultSettings = {
   brand_name_second: 'Now',
   logo_light: '',
   logo_dark: '',
+  hero_image: '',
+  hero_badge_text: '🔥 Trending Spotlight',
+  hero_featured_title: 'Dynamic Leaf Table Lamp',
+  hero_featured_price: '৳ 950',
+  hero_featured_link: '#products',
   tagline_en: 'Stay on trend. Stay in style.',
   tagline_bn: 'ট্রেন্ডে থাকুন, স্টাইলে থাকুন',
-  banner_text: '🚚 Free Home Delivery on Featured Items | Cash on Delivery Available across Bangladesh',
-  banner_text_bn: '🚚 সারা বাংলাদেশে ক্যাশ অন ডেলিভারি ও দ্রুত হোম ডেলিভারি!',
-  hero_title_en: 'Premium Lifestyle & Home Decor Collection',
-  hero_title_bn: 'প্রিমিয়াম হোম ডেকোর ও লাইফস্টাইল কালেকশন ২০২৬',
-  hero_subtitle_en: 'Discover trending gadgets, lamps, and everyday essentials with cash on delivery.',
-  hero_subtitle_bn: 'আধুনিক গ্যাজেট, ল্যাম্প এবং লাইফস্টাইল পণ্য — ক্যাশ অন ডেলিভারিতে অর্ডার করুন।',
+  banner_text: '⚡ Only Viral & Trending Products | 100% Cash on Delivery Across Bangladesh',
+  banner_text_bn: '⚡ শুধুমাত্র সেরা ট্রেন্ডিং প্রোডাক্ট | সারা বাংলাদেশে ক্যাশ অন ডেলিভারি!',
+  hero_title_en: 'Just Trending Products — Curated for You',
+  hero_title_bn: 'শুধুমাত্র সেরা ট্রেন্ডিং প্রোডাক্ট কালেকশন',
+  hero_subtitle_en: 'Stay on trend. Stay in style. Handpicked viral gadgets & modern essentials delivered straight to your doorstep.',
+  hero_subtitle_bn: 'ট্রেন্ডে থাকুন, স্টাইলে থাকুন। বাছাইকৃত সেরা ভাইরাল গ্যাজেট ও আধুনিক পণ্য পান ক্যাশ অন ডেলিভারিতে।',
   whatsapp_number: '01731763504',
   bkash_number: '01731763504',
   nagad_number: '01731763504',
@@ -307,7 +312,7 @@ app.get('/order/track', async (req, res) => {
   }
 });
 
-// Universal Place Order Route + Auto SMS & Auto Email Notification
+// Universal Place Order Route + Auto SMS & Email
 app.post('/order/place', async (req, res) => {
   const { 
     customer_name, phone, customer_email, address, product_title, price, quantity,
@@ -378,7 +383,6 @@ app.post('/order/place', async (req, res) => {
     const savedOrder = (insertedRows && insertedRows[0]) ? insertedRows[0] : { id: Math.floor(Date.now() / 1000) };
     const settings = await getSettings();
 
-    // Non-blocking Auto SMS & Email notifications
     sendOrderSMS({
       phone: phone.trim(),
       customerName: customer_name.trim(),
@@ -572,7 +576,6 @@ app.post('/admin/products/delete/:id', async (req, res) => {
   }
 });
 
-// Order Status Update + Auto SMS & Email Notification
 app.post('/admin/orders/status/:id', async (req, res) => {
   if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
   const orderId = req.params.id;
@@ -625,23 +628,31 @@ app.post('/admin/orders/delete/:id', async (req, res) => {
   }
 });
 
-app.post('/admin/settings/update', upload.single('logo_file'), async (req, res) => {
+// Update Settings (Supports BOTH Logo File Upload AND Hero Showcase Product Image Upload!)
+app.post('/admin/settings/update', upload.fields([{ name: 'logo_file', maxCount: 1 }, { name: 'hero_file', maxCount: 1 }]), async (req, res) => {
   if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
   const settingsData = { ...req.body };
-  if (req.file) {
-    const uploadedLogoUrl = await handleImageUpload(req.file);
+
+  if (req.files && req.files['logo_file'] && req.files['logo_file'][0]) {
+    const uploadedLogoUrl = await handleImageUpload(req.files['logo_file'][0]);
     if (uploadedLogoUrl) settingsData.logo_light = uploadedLogoUrl;
   }
+
+  if (req.files && req.files['hero_file'] && req.files['hero_file'][0]) {
+    const uploadedHeroUrl = await handleImageUpload(req.files['hero_file'][0]);
+    if (uploadedHeroUrl) settingsData.hero_image = uploadedHeroUrl;
+  }
+
   try {
     for (const [key, value] of Object.entries(settingsData)) {
       await supabase.from('settings').upsert({ key, value }, { onConflict: 'key' });
     }
-    res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Brand, Logo, FAQ, Policies & Store Settings updated!'));
+    res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Hero Showcase, Brand Logo, FAQ & Store Settings updated!'));
   } catch (err) {
     res.redirect('/admin/dashboard');
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`TrendzzNow Universal Server v18 running on port ${PORT}`);
+  console.log(`TrendzzNow Modern 3D Glassmorphism Server v19 running on port ${PORT}`);
 });

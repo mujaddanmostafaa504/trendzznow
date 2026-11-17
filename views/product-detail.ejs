@@ -6,19 +6,19 @@
     <title><%= product.title %> | <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></title>
     <link rel="canonical" href="https://trendzznow.com/product/<%= product.id %>">
     <meta property="og:title" content="<%= product.title %> - ৳<%= product.price %> | TrendzzNow">
-    <meta property="og:description" content="<%= product.description || 'Order premium lifestyle product with cash on delivery across Bangladesh.' %>">
+    <meta property="og:description" content="<%= product.description || 'Stay on trend. Stay in style.' %>">
     <meta property="og:image" content="<%= product.image || settings.logo_light || 'https://trendzznow.com/images/banner.jpg' %>">
     <meta property="og:url" content="https://trendzznow.com/product/<%= product.id %>">
     <meta property="og:type" content="product">
     <link rel="stylesheet" href="/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="banner-notice">
-        <span>🚚 Cash on Delivery Available across Bangladesh | Hotline: <%= settings.whatsapp_number || '01731763504' %></span>
+        <span>⚡ Only Viral & Trending Products | Hotline: <%= settings.whatsapp_number || '01731763504' %></span>
     </div>
 
-    <header class="navbar">
+    <header class="navbar glass-nav">
         <div class="nav-container">
             <a href="/" class="logo-area">
                 <% if (settings.logo_light) { %>
@@ -28,12 +28,12 @@
                 <% } %>
                 <div class="brand-badge" style="margin-left:8px;">
                     <span class="brand-name"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
-                    <small class="brand-sub"><%= settings.tagline_en || 'Official Store' %></small>
+                    <small class="brand-sub"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></small>
                 </div>
             </a>
             <nav class="nav-links">
                 <a href="/">Home</a>
-                <a href="/#products">All Products</a>
+                <a href="/#products">Trending</a>
                 <a href="/#faq">FAQ</a>
                 <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="wa-nav-btn">💬 WhatsApp</a>
             </nav>
@@ -42,7 +42,8 @@
 
     <main class="container product-detail-container">
         <div class="product-detail-grid">
-            <div class="product-detail-img-wrap">
+            <div class="product-detail-img-wrap tilt-card" data-tilt-max="8">
+                <div class="tilt-glare"></div>
                 <% if (product.image) { %>
                     <img src="<%= product.image %>" alt="<%= product.title %>" class="detail-main-img">
                 <% } else { %>
@@ -62,8 +63,8 @@
                 </div>
 
                 <div class="detail-desc-box">
-                    <h3>Product Description:</h3>
-                    <p style="white-space: pre-line;"><%= product.description || 'Premium quality lifestyle product sourced directly for TrendzzNow customers.' %></p>
+                    <h3>Product Highlights:</h3>
+                    <p style="white-space: pre-line;"><%= product.description || 'Trending viral lifestyle product sourced for TrendzzNow.' %></p>
                 </div>
 
                 <div class="quick-order-box">
@@ -125,7 +126,7 @@
                             <div class="summary-line total-line"><span>Total Payable:</span> <span id="detailSumTotal">৳ <%= (parseFloat(product.price) || 0) + (parseFloat(settings.delivery_inside_dhaka) || 70) %></span></div>
                         </div>
 
-                        <button type="submit" id="detailSubmitBtn" class="submit-order-btn">✅ Confirm Order (Cash on Delivery)</button>
+                        <button type="submit" id="detailSubmitBtn" class="submit-order-btn shimmer-btn">✅ Confirm Order (Cash on Delivery)</button>
                     </form>
                 </div>
             </div>

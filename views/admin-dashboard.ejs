@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - TrendzzNow</title>
     <link rel="stylesheet" href="/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         .action-btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
         .print-btn { background-color: #0984e3; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; }
@@ -20,7 +20,7 @@
     <header class="admin-header">
         <div class="admin-brand">
             <h2>⚡ <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %> Master Dashboard</h2>
-            <span class="live-badge">● Live Connected</span>
+            <span class="live-badge">● Live v19</span>
         </div>
         <div class="admin-header-actions">
             <a href="/" target="_blank" class="view-site-btn">🌐 View Website</a>
@@ -55,7 +55,7 @@
                 <span class="stat-num" style="color:#00b894;">৳ <%= totalRevenue %></span>
             </div>
             <div class="stat-card">
-                <span class="stat-title">Total Products</span>
+                <span class="stat-title">Trending Products</span>
                 <span class="stat-num"><%= products.length %></span>
             </div>
             <div class="stat-card">
@@ -82,7 +82,7 @@
                             <th>Product</th>
                             <th>Total</th>
                             <th>Address & Payment</th>
-                            <th>Status (Auto SMS)</th>
+                            <th>Status (Auto SMS/Email)</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -136,7 +136,7 @@
         <!-- Product Management -->
         <div class="two-col-grid">
             <section class="admin-section">
-                <h3>➕ Add New Product (Direct Image Upload)</h3>
+                <h3>➕ Add Trending Product (Direct Image Upload)</h3>
                 <form action="/admin/products/add" method="POST" enctype="multipart/form-data">
                     <div class="form-group"><label>Product Title *</label><input type="text" name="title" required placeholder="e.g. Dynamic Leaf Table Lamp"></div>
                     <div class="form-row">
@@ -203,15 +203,34 @@
             </form>
         </section>
 
-        <!-- Master Brand, Logo, FAQ, Policies & Store Settings -->
+        <!-- Master Hero Spotlight, Brand Logo, FAQ & Policies Settings -->
         <section class="admin-section">
-            <h3>🎨 Brand Identity, Logo Upload, FAQ & Legal Policies</h3>
+            <h3>🎨 Hero Product Spotlight, Brand Logo, FAQ & Legal Policies</h3>
             <form action="/admin/settings/update" method="POST" enctype="multipart/form-data">
-                <h4 style="color:#9c1448; margin-bottom:10px;">1. Website Name & Brand Logo</h4>
+                
+                <h4 style="color:#9c1448; margin-bottom:10px;">1. Hero Banner Text & 3D Floating Spotlight Product Card</h4>
+                <div class="form-row">
+                    <div class="form-group"><label>Hero Main Headline (EN)</label><input type="text" name="hero_title_en" value="<%= settings.hero_title_en %>"></div>
+                    <div class="form-group"><label>Hero Subtitle (EN)</label><input type="text" name="hero_subtitle_en" value="<%= settings.hero_subtitle_en %>"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>Spotlight Badge Text</label><input type="text" name="hero_badge_text" value="<%= settings.hero_badge_text || '🔥 Trending Spotlight' %>"></div>
+                    <div class="form-group"><label>Spotlight Product Title</label><input type="text" name="hero_featured_title" value="<%= settings.hero_featured_title || '' %>" placeholder="e.g. Dynamic Leaf Table Lamp"></div>
+                    <div class="form-group"><label>Spotlight Price Text</label><input type="text" name="hero_featured_price" value="<%= settings.hero_featured_price || '' %>" placeholder="e.g. ৳ 950"></div>
+                    <div class="form-group"><label>Spotlight Link URL</label><input type="text" name="hero_featured_link" value="<%= settings.hero_featured_link || '#products' %>" placeholder="/product/1 or #products"></div>
+                </div>
+                <div class="upload-box">
+                    <label>🌟 Upload Hero 3D Spotlight Product Image (Direct File Upload)</label>
+                    <input type="file" name="hero_file" accept="image/*" style="margin-top:6px;">
+                    <small style="display:block; color:#666; margin-top:4px;">OR paste Hero Spotlight Image URL (leave blank to auto-show latest product):</small>
+                    <input type="text" name="hero_image" value="<%= settings.hero_image || '' %>" placeholder="https://..." style="margin-top:4px;">
+                </div>
+
+                <h4 style="color:#9c1448; margin:20px 0 10px 0;">2. Website Name & Brand Logo</h4>
                 <div class="form-row">
                     <div class="form-group"><label>Brand Name (Part 1)</label><input type="text" name="brand_name_first" value="<%= settings.brand_name_first || 'Trendzz' %>"></div>
                     <div class="form-group"><label>Brand Name (Part 2 Accent)</label><input type="text" name="brand_name_second" value="<%= settings.brand_name_second || 'Now' %>"></div>
-                    <div class="form-group"><label>Website Tagline</label><input type="text" name="tagline_en" value="<%= settings.tagline_en || 'Stay on trend. Stay in style.' %>"></div>
+                    <div class="form-group"><label>Slogan / Tagline</label><input type="text" name="tagline_en" value="<%= settings.tagline_en || 'Stay on trend. Stay in style.' %>"></div>
                 </div>
 
                 <div class="upload-box">
@@ -221,7 +240,7 @@
                     <input type="text" name="logo_light" value="<%= settings.logo_light || '' %>" placeholder="https://..." style="margin-top:4px;">
                 </div>
 
-                <h4 style="color:#9c1448; margin:20px 0 10px 0;">2. Payment, Delivery & Promo Settings</h4>
+                <h4 style="color:#9c1448; margin:20px 0 10px 0;">3. Payment, Delivery & Promo Settings</h4>
                 <div class="form-row">
                     <div class="form-group"><label>📞 WhatsApp Number</label><input type="text" name="whatsapp_number" value="<%= settings.whatsapp_number || '01731763504' %>"></div>
                     <div class="form-group"><label>📲 bKash Number</label><input type="text" name="bkash_number" value="<%= settings.bkash_number || '01731763504' %>"></div>
@@ -234,7 +253,7 @@
                     <div class="form-group"><label>💰 Promo Discount (৳)</label><input type="number" name="promo_discount" value="<%= settings.promo_discount || '50' %>"></div>
                 </div>
 
-                <h4 style="color:#9c1448; margin:20px 0 10px 0;">3. Interactive FAQ Questions & Answers</h4>
+                <h4 style="color:#9c1448; margin:20px 0 10px 0;">4. Interactive FAQ Questions & Answers</h4>
                 <div class="form-row">
                     <div class="form-group"><label>FAQ 1 Question</label><input type="text" name="faq_1_q" value="<%= settings.faq_1_q %>"></div>
                     <div class="form-group"><label>FAQ 1 Answer</label><input type="text" name="faq_1_a" value="<%= settings.faq_1_a %>"></div>
@@ -252,12 +271,12 @@
                     <div class="form-group"><label>FAQ 4 Answer</label><input type="text" name="faq_4_a" value="<%= settings.faq_4_a %>"></div>
                 </div>
 
-                <h4 style="color:#9c1448; margin:20px 0 10px 0;">4. Store Policies (Privacy, Return & Terms)</h4>
+                <h4 style="color:#9c1448; margin:20px 0 10px 0;">5. Store Policies (Privacy, Return & Terms)</h4>
                 <div class="form-group"><label>🔒 Privacy Policy</label><textarea name="privacy_policy" rows="2"><%= settings.privacy_policy %></textarea></div>
                 <div class="form-group"><label>🔄 Return & Replacement Policy</label><textarea name="return_policy" rows="2"><%= settings.return_policy %></textarea></div>
                 <div class="form-group"><label>📜 Terms & Conditions</label><textarea name="terms_conditions" rows="2"><%= settings.terms_conditions %></textarea></div>
 
-                <button type="submit" class="save-settings-btn">💾 Save All Brand, Logo, FAQ & Policy Settings</button>
+                <button type="submit" class="save-settings-btn">💾 Save All Hero, Logo, FAQ & Store Settings</button>
             </form>
         </section>
 

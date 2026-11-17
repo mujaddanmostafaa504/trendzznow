@@ -6,12 +6,12 @@
     <title><%= settings.site_title || 'TrendzzNow - Stay on trend. Stay in style.' %></title>
     <link rel="canonical" href="https://trendzznow.com/">
     <meta property="og:title" content="<%= settings.site_title || 'TrendzzNow - Stay on trend. Stay in style.' %>">
-    <meta property="og:description" content="<%= settings.hero_subtitle_en || 'Discover trending gadgets, lamps, and everyday essentials with cash on delivery.' %>">
-    <meta property="og:image" content="<%= settings.logo_light || 'https://trendzznow.com/images/banner.jpg' %>">
+    <meta property="og:description" content="<%= settings.hero_subtitle_en || 'Stay on trend. Stay in style. Just trending products delivered to your door.' %>">
+    <meta property="og:image" content="<%= settings.hero_image || settings.logo_light || 'https://trendzznow.com/images/banner.jpg' %>">
     <meta property="og:url" content="https://trendzznow.com">
     <meta property="og:type" content="website">
     <link rel="stylesheet" href="/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
     <% if (settings.facebook_pixel) { %>
     <script>
       !function(f,b,e,v,n,t,s)
@@ -29,11 +29,12 @@
 </head>
 <body>
     <div class="banner-notice">
-        <span class="en-text"><%= settings.banner_text || '🚚 Free Home Delivery on Featured Items | Cash on Delivery Available across Bangladesh' %></span>
-        <span class="bn-text" style="display:none;"><%= settings.banner_text_bn || '🚚 সারা বাংলাদেশে ক্যাশ অন ডেলিভারি ও দ্রুত হোম ডেলিভারি!' %></span>
+        <span class="en-text"><%= settings.banner_text || '⚡ Only Viral & Trending Products | 100% Cash on Delivery Across Bangladesh' %></span>
+        <span class="bn-text" style="display:none;"><%= settings.banner_text_bn || '⚡ শুধুমাত্র সেরা ট্রেন্ডিং প্রোডাক্ট | সারা বাংলাদেশে ক্যাশ অন ডেলিভারি!' %></span>
     </div>
 
-    <header class="navbar">
+    <!-- Frosted Glass Sticky Navbar -->
+    <header class="navbar glass-nav">
         <div class="nav-container">
             <a href="/" class="logo-area">
                 <% if (settings.logo_light) { %>
@@ -55,15 +56,15 @@
             </a>
 
             <div class="search-bar-wrap">
-                <input type="text" id="searchInput" placeholder="Search products..." onkeyup="filterProducts()">
+                <input type="text" id="searchInput" placeholder="Search trending items..." onkeyup="filterProducts()">
                 <span class="search-icon">🔍</span>
             </div>
 
             <nav class="nav-links">
                 <a href="/" class="en-text">Home</a><a href="/" class="bn-text" style="display:none;">হোম</a>
-                <a href="#products" class="en-text">Products</a><a href="#products" class="bn-text" style="display:none;">প্রোডাক্টস</a>
+                <a href="#products" class="en-text">Trending</a><a href="#products" class="bn-text" style="display:none;">ট্রেন্ডিং</a>
                 <a href="#faq" class="en-text">FAQ</a><a href="#faq" class="bn-text" style="display:none;">প্রশ্নোত্তর</a>
-                <a href="#" onclick="openTrackingModal(); return false;" class="en-text">📦 Track Order</a><a href="#" onclick="openTrackingModal(); return false;" class="bn-text" style="display:none;">📦 অর্ডার ট্র্যাক</a>
+                <a href="#" onclick="openTrackingModal(); return false;" class="en-text">📦 Track</a><a href="#" onclick="openTrackingModal(); return false;" class="bn-text" style="display:none;">📦 ট্র্যাক</a>
                 <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="wa-nav-btn">💬 WhatsApp</a>
                 <button class="lang-toggle-btn" onclick="toggleLanguage()"><span id="langLabel">বাংলা</span></button>
                 <a href="/admin" class="admin-link">Admin</a>
@@ -71,56 +72,145 @@
         </div>
     </header>
 
-    <section class="hero-section">
-        <div class="hero-inner">
-            <span class="hero-pill">✨ Official Store — trendzznow.com</span>
-            <h1 class="en-text"><%= settings.hero_title_en || 'Premium Lifestyle & Home Decor Collection' %></h1>
-            <h1 class="bn-text" style="display:none;"><%= settings.hero_title_bn || 'প্রিমিয়াম হোম ডেকোর ও লাইফস্টাইল কালেকশন ২০২৬' %></h1>
-            <p class="en-text"><%= settings.hero_subtitle_en || 'Discover trending gadgets, lamps, and everyday essentials with cash on delivery.' %></p>
-            <p class="bn-text" style="display:none;"><%= settings.hero_subtitle_bn || 'আধুনিক গ্যাজেট, ল্যাম্প এবং লাইফস্টাইল পণ্য — ক্যাশ অন ডেলিভারিতে অর্ডার করুন।' %></p>
-            <div class="hero-badges">
-                <div class="h-badge">🚚 Fast Courier Delivery</div>
-                <div class="h-badge">💳 COD / bKash / Nagad</div>
-                <div class="h-badge">📞 Hotline: <%= settings.whatsapp_number || '01731763504' %></div>
+    <!-- Aurora Mesh Glassmorphism Split Hero Section -->
+    <section class="hero-aurora">
+        <div class="aurora-orb orb-1"></div>
+        <div class="aurora-orb orb-2"></div>
+        <div class="hero-split-container">
+            <div class="hero-left">
+                <div class="glass-pill">✨ <%= settings.tagline_en || 'Stay on trend. Stay in style.' %></div>
+                <h1 class="en-text"><%= settings.hero_title_en || 'Just Trending Products — Curated for You' %></h1>
+                <h1 class="bn-text" style="display:none;"><%= settings.hero_title_bn || 'শুধুমাত্র সেরা ট্রেন্ডিং প্রোডাক্ট কালেকশন' %></h1>
+                <p class="en-text"><%= settings.hero_subtitle_en || 'Stay on trend. Stay in style. Handpicked viral gadgets & modern essentials delivered straight to your doorstep.' %></p>
+                <p class="bn-text" style="display:none;"><%= settings.hero_subtitle_bn || 'ট্রেন্ডে থাকুন, স্টাইলে থাকুন। বাছাইকৃত সেরা ভাইরাল গ্যাজেট ও আধুনিক পণ্য পান ক্যাশ অন ডেলিভারিতে।' %></p>
+                
+                <div class="hero-cta-row">
+                    <a href="#products" class="glow-cta-btn en-text">🔥 Explore Trending &darr;</a>
+                    <a href="#products" class="glow-cta-btn bn-text" style="display:none;">🔥 ট্রেন্ডিং কালেকশন &darr;</a>
+                    <a href="#" onclick="openTrackingModal(); return false;" class="glass-sec-btn en-text">📦 Track Order</a>
+                    <a href="#" onclick="openTrackingModal(); return false;" class="glass-sec-btn bn-text" style="display:none;">📦 অর্ডার ট্র্যাক</a>
+                </div>
+
+                <div class="hero-glass-stats">
+                    <div class="g-stat"><strong>100%</strong><span>Open-Box COD</span></div>
+                    <div class="g-stat"><strong>24–48h</strong><span>Express Delivery</span></div>
+                    <div class="g-stat"><strong>4.9 ★</strong><span>Verified Buyers</span></div>
+                </div>
             </div>
-            <a href="#products" class="cta-btn en-text">Shop Collection &darr;</a>
-            <a href="#products" class="cta-btn bn-text" style="display:none;">কালেকশন দেখুন &darr;</a>
+
+            <!-- Interactive 3D Floating Hero Showcase Card (Admin Customizable!) -->
+            <div class="hero-right">
+                <% 
+                    const spotlightImg = settings.hero_image || (products.length > 0 && products[0].image ? products[0].image : '');
+                    const spotlightTitle = settings.hero_featured_title || (products.length > 0 ? products[0].title : 'Trending Spotlight');
+                    const spotlightPrice = settings.hero_featured_price || (products.length > 0 ? '৳ ' + products[0].price : 'Hot Deal');
+                    const spotlightUrl = settings.hero_featured_link || (products.length > 0 ? '/product/' + products[0].id : '#products');
+                %>
+                <div class="hero-3d-showcase tilt-card" data-tilt-max="14">
+                    <div class="tilt-glare"></div>
+                    <span class="spotlight-tag"><%= settings.hero_badge_text || '🔥 Trending Spotlight' %></span>
+                    <a href="<%= spotlightUrl %>" class="spotlight-img-box">
+                        <% if (spotlightImg) { %>
+                            <img src="<%= spotlightImg %>" alt="<%= spotlightTitle %>" class="spotlight-img">
+                        <% } else { %>
+                            <div class="spotlight-placeholder">
+                                <span style="font-size:48px;">⚡</span>
+                                <p>TrendzzNow Exclusive</p>
+                            </div>
+                        <% } %>
+                    </a>
+                    <div class="spotlight-footer">
+                        <div>
+                            <h4><%= spotlightTitle %></h4>
+                            <span class="spotlight-price"><%= spotlightPrice %></span>
+                        </div>
+                        <a href="<%= spotlightUrl %>" class="spotlight-buy-pill">View &rarr;</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
+    <!-- Bento Trust Strip -->
+    <section class="bento-trust-strip">
+        <div class="container bento-grid">
+            <div class="bento-box glass-card">
+                <span class="bento-icon">🛡️</span>
+                <div>
+                    <strong class="en-text">Check Before Paying</strong>
+                    <strong class="bn-text" style="display:none;">দেখে পেমেন্ট করুন</strong>
+                    <small>100% Cash on Delivery</small>
+                </div>
+            </div>
+            <div class="bento-box glass-card">
+                <span class="bento-icon">🚀</span>
+                <div>
+                    <strong class="en-text">Superfast Dispatch</strong>
+                    <strong class="bn-text" style="display:none;">দ্রুত ডেলিভারি</strong>
+                    <small>SteadFast, Pathao & REDX</small>
+                </div>
+            </div>
+            <div class="bento-box glass-card">
+                <span class="bento-icon">📲</span>
+                <div>
+                    <strong class="en-text">Instant SMS Tracking</strong>
+                    <strong class="bn-text" style="display:none;">অটো SMS ট্র্যাকিং</strong>
+                    <small>Live Updates on Phone</small>
+                </div>
+            </div>
+            <div class="bento-box glass-card">
+                <span class="bento-icon">💬</span>
+                <div>
+                    <strong class="en-text">24/7 Direct Support</strong>
+                    <strong class="bn-text" style="display:none;">সরাসরি সাপোর্ট</strong>
+                    <small><%= settings.whatsapp_number || '01731763504' %></small>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3D Perspective Tilt Product Showcase -->
     <main class="container" id="products">
         <div class="section-header">
-            <h2 class="en-text">Featured Products</h2>
-            <h2 class="bn-text" style="display:none;">আমাদের জনপ্রিয় পণ্যসমূহ</h2>
-            <p class="en-text">Click "Order Now" for instant checkout or "Details" for full specifications</p>
-            <p class="bn-text" style="display:none;">সরাসরি অর্ডার করতে "অর্ডার করুন" অথবা বিস্তারিত দেখতে ছবির ওপর ক্লিক করুন</p>
+            <span class="sub-pill">🔥 HOT RIGHT NOW</span>
+            <h2 class="en-text">Trending Products</h2>
+            <h2 class="bn-text" style="display:none;">সেরা ট্রেন্ডিং পণ্যসমূহ</h2>
+            <p class="en-text">Hover over any product to inspect in 3D • Click "Order Now" for instant COD checkout</p>
+            <p class="bn-text" style="display:none;">যেকোনো পণ্যের ওপর কার্সর রেখে 3D ভিউ দেখুন এবং সরাসরি অর্ডার করুন</p>
         </div>
 
         <div class="product-grid" id="productGrid">
             <% if (products.length > 0) { %>
-                <% products.forEach(p => { 
+                <% products.forEach((p, idx) => { 
                     const hasDiscount = p.regular_price && p.regular_price > p.price;
                     const discountPct = hasDiscount ? Math.round(((p.regular_price - p.price) / p.regular_price) * 100) : 0;
+                    const liveViewers = 12 + ((idx * 7) % 19);
                 %>
-                    <div class="product-card" data-title="<%= (p.title || '').toLowerCase() %>">
+                    <div class="product-card tilt-card" data-tilt-max="10" data-title="<%= (p.title || '').toLowerCase() %>">
+                        <div class="tilt-glare"></div>
                         <a href="/product/<%= p.id %>" class="product-img-wrap" style="display:block; text-decoration:none;">
                             <% if (p.image) { %>
                                 <img src="<%= p.image %>" alt="<%= p.title %>" class="product-img" loading="lazy">
                             <% } else { %>
                                 <div class="no-img">No Image</div>
                             <% } %>
-                            <span class="cod-tag">Cash on Delivery</span>
+                            <span class="cod-tag glass-badge">🛡️ COD</span>
                             <% if (discountPct > 0) { %>
                                 <span class="discount-badge">🔥 -<%= discountPct %>%</span>
                             <% } %>
+                            <span class="live-view-pill">👁️ <%= liveViewers %> viewing</span>
                         </a>
                         <div class="product-info">
+                            <div class="rating-row">
+                                <span class="stars">★★★★★</span>
+                                <small>(4.9)</small>
+                            </div>
                             <a href="/product/<%= p.id %>" style="text-decoration:none;">
                                 <h3 class="product-title"><%= p.title %></h3>
                             </a>
-                            <p class="product-desc"><%= p.description ? p.description.substring(0, 75) + (p.description.length > 75 ? '...' : '') : 'Premium quality lifestyle product.' %></p>
+                            <p class="product-desc"><%= p.description ? p.description.substring(0, 72) + (p.description.length > 72 ? '...' : '') : 'Trending viral product with verified quality.' %></p>
                             <% if (p.variant_options) { %>
-                                <div class="variant-display"><small>🎨 Variants: <%= p.variant_options %></small></div>
+                                <div class="variant-display"><small>🎨 <%= p.variant_options %></small></div>
                             <% } %>
                             <div class="price-action">
                                 <div>
@@ -131,24 +221,24 @@
                                 </div>
                                 <div style="display:flex; gap:6px;">
                                     <a href="/product/<%= p.id %>" class="details-btn">
-                                        <span class="en-text">Details</span><span class="bn-text" style="display:none;">বিস্তারিত</span>
+                                        <span class="en-text">View</span><span class="bn-text" style="display:none;">দেখুন</span>
                                     </a>
-                                    <button type="button" class="buy-btn" onclick="openCheckoutById('<%= p.id %>')">
-                                        🛒 <span class="en-text">Order Now</span><span class="bn-text" style="display:none;">অর্ডার করুন</span>
+                                    <button type="button" class="buy-btn shimmer-btn" onclick="openCheckoutById('<%= p.id %>')">
+                                        🛒 <span class="en-text">Order Now</span><span class="bn-text" style="display:none;">অর্ডার</span>
                                     </button>
                                 </div>
                             </div>
                             <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>?text=<%= encodeURIComponent('Hello TrendzzNow, I want to order: ' + p.title + ' (Price: ৳' + p.price + ')') %>" target="_blank" class="wa-card-btn">
-                                📱 <span class="en-text">Order via WhatsApp</span><span class="bn-text" style="display:none;">WhatsApp-এ অর্ডার করুন</span>
+                                📱 <span class="en-text">Order via WhatsApp</span><span class="bn-text" style="display:none;">WhatsApp অর্ডার</span>
                             </a>
                         </div>
                     </div>
                 <% }) %>
             <% } else { %>
                 <div class="empty-state">
-                    <h3 class="en-text">No products available right now</h3>
-                    <h3 class="bn-text" style="display:none;">বর্তমানে কোনো প্রোডাক্ট তালিকাভুক্ত নেই</h3>
-                    <p class="en-text">Log in to Admin Panel to add your products.</p>
+                    <h3 class="en-text">No trending products added yet</h3>
+                    <h3 class="bn-text" style="display:none;">এখনো কোনো ট্রেন্ডিং প্রোডাক্ট যোগ করা হয়নি</h3>
+                    <p class="en-text">Log in to Admin Panel to add your trending products.</p>
                     <p class="bn-text" style="display:none;">অ্যাডমিন প্যানেল থেকে নতুন প্রোডাক্ট যোগ করুন।</p>
                 </div>
             <% } %>
@@ -237,9 +327,9 @@
         </div>
     </section>
 
-    <!-- Checkout Modal -->
-    <div id="checkoutModal" class="modal">
-        <div class="modal-content">
+    <!-- Glassmorphism Checkout Modal -->
+    <div id="checkoutModal" class="modal glass-modal-backdrop">
+        <div class="modal-content glass-modal">
             <span class="close" onclick="closeCheckout()">&times;</span>
             <div class="modal-header">
                 <h2 class="en-text">Confirm Your Order</h2>
@@ -332,14 +422,14 @@
                     <div class="summary-line total-line"><span>Total Payable:</span> <span id="sumTotalBill">৳ 0</span></div>
                 </div>
 
-                <button type="submit" id="submitBtn" class="submit-order-btn">✅ Confirm Order</button>
+                <button type="submit" id="submitBtn" class="submit-order-btn shimmer-btn">✅ Confirm Order</button>
             </form>
         </div>
     </div>
 
     <!-- Order Tracking Modal -->
-    <div id="trackingModal" class="modal">
-        <div class="modal-content">
+    <div id="trackingModal" class="modal glass-modal-backdrop">
+        <div class="modal-content glass-modal">
             <span class="close" onclick="closeTrackingModal()">&times;</span>
             <h2>📦 Track Your Order</h2>
             <div class="form-group">
@@ -351,8 +441,8 @@
     </div>
 
     <!-- Policy Modal -->
-    <div id="policyModal" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
+    <div id="policyModal" class="modal glass-modal-backdrop">
+        <div class="modal-content glass-modal" style="max-width: 600px;">
             <span class="close" onclick="closePolicyModal()">&times;</span>
             <h2 id="policyModalTitle" style="color:#1F1B5C; margin-top:0;">Policy</h2>
             <div id="policyModalBody" style="line-height: 1.7; font-size: 14.5px; color: #333; white-space: pre-line; background:#f8f9fc; padding:18px; border-radius:8px; border:1px solid #e2e8f0;"></div>
@@ -363,8 +453,8 @@
         <span>💬 WhatsApp Chat</span>
     </a>
 
-    <div class="mobile-bottom-bar">
-        <a href="#products" class="m-bar-btn m-shop">🛍️ Products</a>
+    <div class="mobile-bottom-bar glass-nav">
+        <a href="#products" class="m-bar-btn m-shop">🔥 Trending</a>
         <a href="#" onclick="openTrackingModal(); return false;" class="m-bar-btn m-track">📦 Track</a>
         <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="m-bar-btn m-wa">💬 WhatsApp</a>
     </div>
@@ -406,6 +496,43 @@
         const nagadNum = "<%= settings.nagad_number || '01731763504' %>";
         const validPromoCode = ("<%= settings.promo_code || 'TREND50' %>").trim().toUpperCase();
         const validPromoDiscount = parseFloat("<%= settings.promo_discount || '50' %>") || 0;
+
+        // Interactive 3D Cursor Tilt + Magnetic Zoom + Glare Engine
+        function init3DTilt() {
+            const cards = document.querySelectorAll('.tilt-card');
+            cards.forEach(card => {
+                const maxTilt = parseFloat(card.getAttribute('data-tilt-max')) || 10;
+                const glare = card.querySelector('.tilt-glare');
+
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+
+                    const rotateX = ((y - centerY) / centerY) * -maxTilt;
+                    const rotateY = ((x - centerX) / centerX) * maxTilt;
+
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.03, 1.03, 1.03)`;
+
+                    if (glare) {
+                        const glareX = (x / rect.width) * 100;
+                        const glareY = (y / rect.height) * 100;
+                        glare.style.opacity = '1';
+                        glare.style.background = `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.32), transparent 65%)`;
+                    }
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+                    if (glare) {
+                        glare.style.opacity = '0';
+                    }
+                });
+            });
+        }
+        init3DTilt();
 
         const policiesData = {
             privacy: { title: "🔒 Privacy Policy", body: <%- JSON.stringify(settings.privacy_policy || '') %> },
@@ -599,7 +726,6 @@
             }
         }
 
-        // Auto-open tracking modal if customer clicks SMS/Email link (?track=PHONE)
         const urlParams = new URLSearchParams(window.location.search);
         const autoTrackPhone = urlParams.get('track');
         if (autoTrackPhone) {
