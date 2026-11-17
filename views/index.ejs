@@ -33,27 +33,34 @@
         <span class="bn-text" style="display:none;"><%= settings.banner_text_bn || '⚡ শুধুমাত্র সেরা ট্রেন্ডিং প্রোডাক্ট | সারা বাংলাদেশে ক্যাশ অন ডেলিভারি!' %></span>
     </div>
 
-    <!-- Frosted Glass Sticky Navbar -->
+    <!-- Frosted Glass Sticky Navbar with Top-Left Menu Drawer Button -->
     <header class="navbar glass-nav">
         <div class="nav-container">
-            <a href="/" class="logo-area">
-                <% if (settings.logo_light) { %>
-                    <img src="<%= settings.logo_light %>" alt="<%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %>" class="brand-logo">
-                    <div class="brand-badge" style="margin-left:10px;">
-                        <span class="brand-name" style="font-size:21px;"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
-                        <small class="brand-sub"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></small>
-                    </div>
-                <% } else { %>
-                    <div class="brand-logo-icon">⚡</div>
-                    <div class="brand-badge" style="margin-left:8px;">
-                        <span class="brand-name"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
-                        <small class="brand-sub">
-                            <span class="en-text"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></span>
-                            <span class="bn-text" style="display:none;"><%= settings.tagline_bn || 'ট্রেন্ডে থাকুন, স্টাইলে থাকুন' %></span>
-                        </small>
-                    </div>
-                <% } %>
-            </a>
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <!-- Top-Left Menu Drawer Hamburger Button -->
+                <button type="button" class="menu-drawer-btn" onclick="toggleMenuDrawer()" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
+
+                <a href="/" class="logo-area">
+                    <% if (settings.logo_light) { %>
+                        <img src="<%= settings.logo_light %>" alt="<%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %>" class="brand-logo">
+                        <div class="brand-badge" style="margin-left:10px;">
+                            <span class="brand-name" style="font-size:21px;"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
+                            <small class="brand-sub"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></small>
+                        </div>
+                    <% } else { %>
+                        <div class="brand-logo-icon">⚡</div>
+                        <div class="brand-badge" style="margin-left:8px;">
+                            <span class="brand-name"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
+                            <small class="brand-sub">
+                                <span class="en-text"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></span>
+                                <span class="bn-text" style="display:none;"><%= settings.tagline_bn || 'ট্রেন্ডে থাকুন, স্টাইলে থাকুন' %></span>
+                            </small>
+                        </div>
+                    <% } %>
+                </a>
+            </div>
 
             <div class="search-bar-wrap">
                 <input type="text" id="searchInput" placeholder="Search trending items..." onkeyup="filterProducts()">
@@ -63,14 +70,34 @@
             <nav class="nav-links">
                 <a href="/" class="en-text">Home</a><a href="/" class="bn-text" style="display:none;">হোম</a>
                 <a href="#products" class="en-text">Trending</a><a href="#products" class="bn-text" style="display:none;">ট্রেন্ডিং</a>
-                <a href="#faq" class="en-text">FAQ</a><a href="#faq" class="bn-text" style="display:none;">প্রশ্নোত্তর</a>
                 <a href="#" onclick="openTrackingModal(); return false;" class="en-text">📦 Track</a><a href="#" onclick="openTrackingModal(); return false;" class="bn-text" style="display:none;">📦 ট্র্যাক</a>
                 <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="wa-nav-btn">💬 WhatsApp</a>
                 <button class="lang-toggle-btn" onclick="toggleLanguage()"><span id="langLabel">বাংলা</span></button>
-                <a href="/admin" class="admin-link">Admin</a>
             </nav>
         </div>
     </header>
+
+    <!-- Slide-out Professional Menu Drawer (Top-Left) -->
+    <div id="menuDrawerOverlay" class="drawer-overlay" onclick="toggleMenuDrawer()"></div>
+    <div id="menuDrawer" class="menu-drawer">
+        <div class="drawer-header">
+            <span class="brand-name" style="font-size:22px;"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
+            <button type="button" class="drawer-close" onclick="toggleMenuDrawer()">&times;</button>
+        </div>
+        <div class="drawer-body">
+            <div class="drawer-section-title">Navigation</div>
+            <a href="/" onclick="toggleMenuDrawer()">🏠 Home / হোম</a>
+            <a href="#products" onclick="toggleMenuDrawer()">🔥 Trending Products / ট্রেন্ডিং পণ্য</a>
+            <a href="#" onclick="openTrackingModal(); toggleMenuDrawer(); return false;">📦 Track Order / অর্ডার ট্র্যাক</a>
+            <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" onclick="toggleMenuDrawer()">💬 WhatsApp Support / সাপোর্ট</a>
+
+            <div class="drawer-section-title" style="margin-top:20px;">Customer Policies</div>
+            <a href="#" onclick="openPolicyModal('privacy'); toggleMenuDrawer(); return false;">🔒 Privacy Policy</a>
+            <a href="#" onclick="openPolicyModal('return'); toggleMenuDrawer(); return false;">🔄 Return & Replacement Policy</a>
+            <a href="#" onclick="openPolicyModal('terms'); toggleMenuDrawer(); return false;">📜 Terms & Conditions</a>
+            <a href="#faq" onclick="toggleMenuDrawer()">❓ FAQ / সাধারণ জিজ্ঞাসা</a>
+        </div>
+    </div>
 
     <!-- Aurora Mesh Glassmorphism Split Hero Section -->
     <section class="hero-aurora">
@@ -98,7 +125,7 @@
                 </div>
             </div>
 
-            <!-- Interactive 3D Floating Hero Showcase Card (Admin Customizable!) -->
+            <!-- Interactive 3D Floating Hero Showcase Card -->
             <div class="hero-right">
                 <% 
                     const spotlightImg = settings.hero_image || (products.length > 0 && products[0].image ? products[0].image : '');
@@ -169,15 +196,31 @@
         </div>
     </section>
 
-    <!-- 3D Perspective Tilt Product Showcase -->
+    <!-- Professional Product Category Filtering Tabs -->
     <main class="container" id="products">
         <div class="section-header">
             <span class="sub-pill">🔥 HOT RIGHT NOW</span>
             <h2 class="en-text">Trending Products</h2>
             <h2 class="bn-text" style="display:none;">সেরা ট্রেন্ডিং পণ্যসমূহ</h2>
-            <p class="en-text">Hover over any product to inspect in 3D • Click "Order Now" for instant COD checkout</p>
-            <p class="bn-text" style="display:none;">যেকোনো পণ্যের ওপর কার্সর রেখে 3D ভিউ দেখুন এবং সরাসরি অর্ডার করুন</p>
+            <p class="en-text">Hover to inspect in 3D • Select category below to filter instantly</p>
+            <p class="bn-text" style="display:none;">কার্সর রেখে 3D ভিউ দেখুন এবং ক্যাটাগরি অনুযায়ী ফিল্টার করুন</p>
         </div>
+
+        <% 
+            let categories = ['All'];
+            products.forEach(p => {
+                if (p.category && !categories.includes(p.category)) {
+                    categories.push(p.category);
+                }
+            });
+        %>
+        <% if (categories.length > 1) { %>
+            <div class="category-tabs-bar">
+                <% categories.forEach((cat, idx) => { %>
+                    <button class="cat-tab-btn <%= idx === 0 ? 'active' : '' %>" onclick="filterByCategory('<%= cat %>', this)"><%= cat %></button>
+                <% }) %>
+            </div>
+        <% } %>
 
         <div class="product-grid" id="productGrid">
             <% if (products.length > 0) { %>
@@ -185,8 +228,9 @@
                     const hasDiscount = p.regular_price && p.regular_price > p.price;
                     const discountPct = hasDiscount ? Math.round(((p.regular_price - p.price) / p.regular_price) * 100) : 0;
                     const liveViewers = 12 + ((idx * 7) % 19);
+                    const prodCat = p.category || 'All';
                 %>
-                    <div class="product-card tilt-card" data-tilt-max="10" data-title="<%= (p.title || '').toLowerCase() %>">
+                    <div class="product-card tilt-card" data-tilt-max="10" data-category="<%= prodCat %>" data-title="<%= (p.title || '').toLowerCase() %>">
                         <div class="tilt-glare"></div>
                         <a href="/product/<%= p.id %>" class="product-img-wrap" style="display:block; text-decoration:none;">
                             <% if (p.image) { %>
@@ -245,43 +289,7 @@
         </div>
     </main>
 
-    <!-- Delivery Partners & Payment Logo Showcase Strip -->
-    <section class="partners-section">
-        <div class="container">
-            <div class="partners-wrapper">
-                <div class="partner-group">
-                    <span class="partner-label en-text">🚚 Official Delivery Partners:</span>
-                    <span class="partner-label bn-text" style="display:none;">🚚 আমাদের ডেলিভারি পার্টনার:</span>
-                    <div class="partner-badges">
-                        <div class="courier-logo-card sf-card">
-                            <span class="c-icon">🚚</span>
-                            <div><strong>SteadFast</strong><small>Courier</small></div>
-                        </div>
-                        <div class="courier-logo-card pathao-card">
-                            <span class="c-icon">🛵</span>
-                            <div><strong>Pathao</strong><small>Parcel</small></div>
-                        </div>
-                        <div class="courier-logo-card redx-card">
-                            <span class="c-icon">📦</span>
-                            <div><strong>REDX</strong><small>Logistics</small></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="partner-group">
-                    <span class="partner-label en-text">💳 Accepted Payment Methods:</span>
-                    <span class="partner-label bn-text" style="display:none;">💳 পেমেন্ট মাধ্যমসমূহ:</span>
-                    <div class="partner-badges">
-                        <div class="pay-logo-card cod-card">💵 Cash on Delivery</div>
-                        <div class="pay-logo-card bkash-card">📱 bKash</div>
-                        <div class="pay-logo-card nagad-card">📲 Nagad</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Interactive FAQ Section -->
+    <!-- FAQ Section (Placed right above footer as requested) -->
     <section class="faq-section" id="faq">
         <div class="container" style="max-width: 860px;">
             <div class="section-header">
@@ -326,6 +334,58 @@
             </div>
         </div>
     </section>
+
+    <!-- Footer with Delivery Partners & Payment Logos Placement at the Very Bottom -->
+    <footer class="footer">
+        <div class="container footer-grid">
+            <div>
+                <h3><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></h3>
+                <p><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></p>
+                <p>🌐 www.trendzznow.com</p>
+            </div>
+            <div>
+                <h4>Policies & Quick Links</h4>
+                <ul class="footer-policy-links">
+                    <li><a href="#" onclick="openPolicyModal('privacy'); return false;">🔒 Privacy Policy</a></li>
+                    <li><a href="#" onclick="openPolicyModal('return'); return false;">🔄 Return & Replacement Policy</a></li>
+                    <li><a href="#" onclick="openPolicyModal('terms'); return false;">📜 Terms & Conditions</a></li>
+                    <li><a href="#faq">❓ Frequently Asked Questions (FAQ)</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Support & Payment</h4>
+                <p>📞 WhatsApp / Call: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p>
+                <p>💳 bKash / Nagad: <%= settings.bkash_number || '01731763504' %></p>
+                <p>🚚 Delivery: Inside Dhaka ৳<%= settings.delivery_inside_dhaka || 70 %> | Outside ৳<%= settings.delivery_outside_dhaka || 130 %></p>
+            </div>
+        </div>
+
+        <!-- Footer Delivery & Courier Partner Logo Showcase Strip -->
+        <div class="container" style="border-top: 1px solid rgba(255,255,255,0.12); margin-top: 30px; padding-top: 25px;">
+            <div class="partners-wrapper" style="justify-content: center;">
+                <div class="partner-group">
+                    <span class="partner-label en-text" style="color:#aaa;">🚚 Official Delivery Partners:</span>
+                    <div class="partner-badges">
+                        <div class="courier-logo-card sf-card"><span class="c-icon">🚚</span><div><strong>SteadFast</strong><small>Courier</small></div></div>
+                        <div class="courier-logo-card pathao-card"><span class="c-icon">🛵</span><div><strong>Pathao</strong><small>Parcel</small></div></div>
+                        <div class="courier-logo-card redx-card"><span class="c-icon">📦</span><div><strong>REDX</strong><small>Logistics</small></div></div>
+                    </div>
+                </div>
+                <div class="partner-group">
+                    <span class="partner-label en-text" style="color:#aaa;">💳 Accepted Payment Methods:</span>
+                    <div class="partner-badges">
+                        <div class="pay-logo-card cod-card">💵 Cash on Delivery</div>
+                        <div class="pay-logo-card bkash-card">📱 bKash</div>
+                        <div class="pay-logo-card nagad-card">📲 Nagad</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %> (trendzznow.com). All rights reserved.</p>
+        </div>
+    </footer>
 
     <!-- Glassmorphism Checkout Modal -->
     <div id="checkoutModal" class="modal glass-modal-backdrop">
@@ -459,36 +519,8 @@
         <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="m-bar-btn m-wa">💬 WhatsApp</a>
     </div>
 
-    <footer class="footer">
-        <div class="container footer-grid">
-            <div>
-                <h3><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></h3>
-                <p><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></p>
-                <p>🌐 www.trendzznow.com</p>
-            </div>
-            <div>
-                <h4>Policies & Quick Links</h4>
-                <ul class="footer-policy-links">
-                    <li><a href="#" onclick="openPolicyModal('privacy'); return false;">🔒 Privacy Policy</a></li>
-                    <li><a href="#" onclick="openPolicyModal('return'); return false;">🔄 Return & Replacement Policy</a></li>
-                    <li><a href="#" onclick="openPolicyModal('terms'); return false;">📜 Terms & Conditions</a></li>
-                    <li><a href="#faq">❓ Frequently Asked Questions (FAQ)</a></li>
-                </ul>
-            </div>
-            <div>
-                <h4>Support & Payment</h4>
-                <p>📞 WhatsApp / Call: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p>
-                <p>💳 bKash / Nagad: <%= settings.bkash_number || '01731763504' %></p>
-                <p>🚚 Delivery: Inside Dhaka ৳<%= settings.delivery_inside_dhaka || 70 %> | Outside ৳<%= settings.delivery_outside_dhaka || 130 %></p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %> (trendzznow.com). All rights reserved.</p>
-        </div>
-    </footer>
-
     <script>
-        const storeProductsMap = <%- JSON.stringify(products.reduce((acc, item) => { acc[item.id] = { id: item.id, title: item.title, price: item.price, variant_options: item.variant_options || '' }; return acc; }, {})) %>;
+        const storeProductsMap = <%- JSON.stringify(products.reduce((acc, item) => { acc[item.id] = { id: item.id, title: item.title, price: item.price, category: item.category || 'All', variant_options: item.variant_options || '' }; return acc; }, {})) %>;
         let currentBasePrice = 0;
         let currentDiscount = 0;
         let currentLang = localStorage.getItem('trendzz_lang') || 'en';
@@ -497,7 +529,29 @@
         const validPromoCode = ("<%= settings.promo_code || 'TREND50' %>").trim().toUpperCase();
         const validPromoDiscount = parseFloat("<%= settings.promo_discount || '50' %>") || 0;
 
-        // Interactive 3D Cursor Tilt + Magnetic Zoom + Glare Engine
+        // Slide-out Menu Drawer Toggle
+        function toggleMenuDrawer() {
+            document.getElementById('menuDrawer').classList.toggle('open');
+            document.getElementById('menuDrawerOverlay').classList.toggle('open');
+        }
+
+        // Category Filtering
+        function filterByCategory(cat, btn) {
+            document.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const cards = document.querySelectorAll('.product-card');
+            cards.forEach(card => {
+                const cCat = card.getAttribute('data-category');
+                if (cat === 'All' || cCat === cat) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // 3D Tilt Engine
         function init3DTilt() {
             const cards = document.querySelectorAll('.tilt-card');
             cards.forEach(card => {

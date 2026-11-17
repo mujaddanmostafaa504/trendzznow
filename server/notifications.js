@@ -18,7 +18,6 @@ async function sendOrderSMS({ phone, customerName, orderId, totalAmount, status,
   const supportPhone = hotLine || '01731763504';
 
   if (!apiKey || !senderId || !formattedPhone) {
-    console.log('SMS notification skipped: SMS_API_KEY or SMS_SENDER_ID not set.');
     return { success: false, reason: 'Missing SMS credentials' };
   }
 
@@ -35,10 +34,8 @@ async function sendOrderSMS({ phone, customerName, orderId, totalAmount, status,
     const url = `http://bulksmsbd.net/api/smsapi?api_key=${encodeURIComponent(apiKey)}&type=text&number=${encodeURIComponent(formattedPhone)}&senderid=${encodeURIComponent(senderId)}&message=${encodeURIComponent(message)}`;
     const response = await fetch(url);
     const result = await response.text();
-    console.log('SMS API Response:', result);
     return { success: true, result };
   } catch (err) {
-    console.error('SMS Sending Error:', err.message);
     return { success: false, error: err.message };
   }
 }
@@ -97,7 +94,6 @@ async function sendOrderEmail({ email, customerName, phone, orderId, productTitl
 
     return { success: true };
   } catch (err) {
-    console.error('Email Sending Error:', err.message);
     return { success: false, error: err.message };
   }
 }

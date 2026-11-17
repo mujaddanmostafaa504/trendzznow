@@ -83,9 +83,12 @@ function normalizeProduct(p) {
     ...p,
     title: p.title || p.name || 'Product',
     name: p.name || p.title || 'Product',
+    category: p.category || p.cat || 'All Categories',
     image: p.image || p.image_url || p.img || '',
     price: p.price !== undefined && p.price !== null ? p.price : (p.sale_price || 0),
     regular_price: p.regular_price || p.old_price || '',
+    cost_price: p.cost_price !== undefined && p.cost_price !== null ? p.cost_price : 0,
+    stock_quantity: p.stock_quantity !== undefined && p.stock_quantity !== null ? p.stock_quantity : 50,
     description: p.description || p.desc || p.details || '',
     variant_options: p.variant_options || p.variants || ''
   };
@@ -100,7 +103,9 @@ function normalizeOrder(o) {
     address: o.address || o.delivery_address || '',
     product_title: o.product_title || o.product_name || o.product || 'Order Item',
     price: o.price !== undefined && o.price !== null ? o.price : (o.total || o.total_amount || o.amount || 0),
-    status: o.status || 'Pending'
+    status: o.status || 'Pending',
+    consignment_id: o.consignment_id || '',
+    admin_notes: o.admin_notes || ''
   };
 }
 
@@ -154,7 +159,6 @@ async function getNextSequentialId(table) {
   return Math.floor(Date.now() / 1000);
 }
 
-// Universal Self-Healing Insert
 async function universalInsert(table, payload, fallbackValues = {}) {
   let currentPayload = { ...payload };
   for (let attempt = 0; attempt < 25; attempt++) {
@@ -162,7 +166,6 @@ async function universalInsert(table, payload, fallbackValues = {}) {
     if (!error) return { data, error: null };
 
     const msg = error.message || '';
-
     const colMatch = msg.match(/Could not find the '([^']+)' column/);
     if (colMatch && colMatch[1] && Object.prototype.hasOwnProperty.call(currentPayload, colMatch[1])) {
       delete currentPayload[colMatch[1]];
@@ -176,7 +179,7 @@ async function universalInsert(table, payload, fallbackValues = {}) {
         currentPayload.id = await getNextSequentialId(table);
       } else if (fallbackValues[col] !== undefined) {
         currentPayload[col] = fallbackValues[col];
-      } else if (/(id|qty|quantity|count|price|total|amount|charge|discount|num|number)/i.test(col)) {
+      } else if (/(id|qty|quantity|count|price|total|amount|charge|discount|cost|stock|num|number)/i.test(col)) {
         currentPayload[col] = 0;
       } else {
         currentPayload[col] = '';
@@ -201,7 +204,6 @@ async function universalInsert(table, payload, fallbackValues = {}) {
   return { data: null, error: { message: 'Insert failed after universal schema adaptation.' } };
 }
 
-// Universal Self-Healing Update
 async function universalUpdate(table, id, payload, fallbackValues = {}) {
   let currentPayload = { ...payload };
   for (let attempt = 0; attempt < 25; attempt++) {
@@ -209,7 +211,6 @@ async function universalUpdate(table, id, payload, fallbackValues = {}) {
     if (!error) return { data, error: null };
 
     const msg = error.message || '';
-
     const colMatch = msg.match(/Could not find the '([^']+)' column/);
     if (colMatch && colMatch[1] && Object.prototype.hasOwnProperty.call(currentPayload, colMatch[1])) {
       delete currentPayload[colMatch[1]];
@@ -221,7 +222,7 @@ async function universalUpdate(table, id, payload, fallbackValues = {}) {
       const col = nullMatch[1];
       if (fallbackValues[col] !== undefined) {
         currentPayload[col] = fallbackValues[col];
-      } else if (/(id|qty|quantity|count|price|total|amount|charge|discount|num|number)/i.test(col)) {
+      } else if (/(id|qty|quantity|count|price|total|amount|charge|discount|cost|stock|num|number)/i.test(col)) {
         currentPayload[col] = 0;
       } else {
         currentPayload[col] = '';
@@ -245,7 +246,7 @@ app.get('/healthz', (req, res) => res.status(200).send('OK'));
 
 app.get('/robots.txt', (req, res) => {
   res.type('text/plain');
-  res.send("User-agent: *\nAllow: /\nDisallow: /admin\nSitemap: https://trendzznow.com/sitemap.xml");
+  res.send("User-agent: *\nAllow: /\nDisallow: /secret-admin-panel-2026\nSitemap: https://trendzznow.com/sitemap.xml");
 });
 
 app.get('/sitemap.xml', async (req, res) => {
@@ -312,7 +313,7 @@ app.get('/order/track', async (req, res) => {
   }
 });
 
-// Universal Place Order Route + Auto SMS & Email
+// Universal Place Order Route + Stock Decrement
 app.post('/order/place', async (req, res) => {
   const { 
     customer_name, phone, customer_email, address, product_title, price, quantity,
@@ -353,6 +354,8 @@ app.post('/order/place', async (req, res) => {
     amount: totalAmount,
     quantity: qty,
     status: 'Pending',
+    consignment_id: '',
+    admin_notes: '',
     created_at: new Date().toISOString()
   };
 
@@ -362,14 +365,8 @@ app.post('/order/place', async (req, res) => {
     phone: phone.trim(),
     mobile: phone.trim(),
     address: detailedAddress,
-    delivery_address: detailedAddress,
     product_title: fullProdTitle,
-    product_name: fullProdTitle,
-    product: fullProdTitle,
     price: totalAmount,
-    total: totalAmount,
-    total_amount: totalAmount,
-    amount: totalAmount,
     quantity: qty,
     status: 'Pending'
   };
@@ -412,72 +409,127 @@ app.post('/order/place', async (req, res) => {
   }
 });
 
-// ================= ADMIN AUTH =================
+// ================= SECURE HIDDEN ADMIN ROUTES =================
 app.get('/admin', (req, res) => {
-  if (req.session && req.session.isAdmin) return res.redirect('/admin/dashboard');
+  res.redirect('/');
+});
+
+app.get('/secret-admin-panel-2026', (req, res) => {
+  if (req.session && req.session.isAdmin) return res.redirect('/secret-admin-panel-2026/dashboard');
   res.render('admin-login', { error: null });
 });
 
-app.post('/admin/login', async (req, res) => {
+app.post('/secret-admin-panel-2026/login', async (req, res) => {
   const entered = (req.body.password || '').trim();
   const envPass = process.env.ADMIN_PASSWORD ? process.env.ADMIN_PASSWORD.trim() : '';
   let dbPass = '';
+  let subAdmins = [];
   try {
     const settings = await getSettings();
     if (settings && settings.admin_password) dbPass = settings.admin_password.trim();
+    if (settings && settings.sub_admins) subAdmins = JSON.parse(settings.sub_admins);
   } catch (e) {}
 
-  if (entered === 'admin123' || (envPass && entered === envPass) || (dbPass && entered === dbPass)) {
+  const isSubAdmin = subAdmins.some(sub => sub.password === entered);
+
+  if (entered === 'admin123' || (envPass && entered === envPass) || (dbPass && entered === dbPass) || isSubAdmin) {
     req.session.isAdmin = true;
-    return res.redirect('/admin/dashboard');
+    return res.redirect('/secret-admin-panel-2026/dashboard');
   } else {
     return res.render('admin-login', { error: 'Wrong password! Please enter admin123' });
   }
 });
 
-app.get('/admin/logout', (req, res) => {
+app.get('/secret-admin-panel-2026/logout', (req, res) => {
   req.session = null;
-  res.redirect('/admin');
+  res.redirect('/secret-admin-panel-2026');
 });
 
-app.get('/admin/dashboard', async (req, res) => {
-  if (!req.session || !req.session.isAdmin) return res.redirect('/admin');
+app.get('/secret-admin-panel-2026/dashboard', async (req, res) => {
+  if (!req.session || !req.session.isAdmin) return res.redirect('/secret-admin-panel-2026');
   try {
-    const { data: products } = await supabase.from('products').select('*').order('id', { ascending: false });
-    const { data: orders } = await supabase.from('orders').select('*').order('id', { ascending: false });
+    const { data: rawProducts } = await supabase.from('products').select('*').order('id', { ascending: false });
+    const { data: rawOrders } = await supabase.from('orders').select('*').order('id', { ascending: false });
+    const products = (rawProducts || []).map(normalizeProduct);
+    const orders = (rawOrders || []).map(normalizeOrder);
     const settings = await getSettings();
+
+    let totalRevenue = 0;
+    let pendingCount = 0;
+    let confirmedCount = 0;
+    let deliveredCount = 0;
+    let returnCount = 0;
+    let totalCost = 0;
+
+    orders.forEach(o => {
+      const p = parseFloat(o.price) || 0;
+      if (o.status === 'Cancelled' || o.status === 'Return') {
+        if (o.status === 'Return') returnCount++;
+      } else {
+        totalRevenue += p;
+        if (o.status === 'Pending') pendingCount++;
+        if (o.status === 'Confirmed' || o.status.includes('SteadFast') || o.status.includes('Pathao')) confirmedCount++;
+        if (o.status === 'Delivered') deliveredCount++;
+      }
+    });
+
+    products.forEach(p => {
+      totalCost += (parseFloat(p.cost_price) || 0) * (parseInt(p.stock_quantity) || 0);
+    });
+
+    const netProfit = totalRevenue - totalCost;
+
     res.render('admin-dashboard', { 
-      products: (products || []).map(normalizeProduct), 
-      orders: (orders || []).map(normalizeOrder), 
+      products, 
+      orders, 
       settings, 
+      analytics: { totalRevenue, pendingCount, confirmedCount, deliveredCount, returnCount, netProfit },
       msg: req.query.msg || null 
     });
   } catch (err) {
-    res.render('admin-dashboard', { products: [], orders: [], settings: defaultSettings, msg: null });
+    res.render('admin-dashboard', { products: [], orders: [], settings: defaultSettings, analytics: {}, msg: null });
   }
 });
 
-app.post('/admin/password/change', async (req, res) => {
-  if (!req.session || !req.session.isAdmin) return res.redirect('/admin');
+app.post('/secret-admin-panel-2026/password/change', async (req, res) => {
+  if (!req.session || !req.session.isAdmin) return res.redirect('/secret-admin-panel-2026');
   const { new_password, confirm_password } = req.body;
   if (!new_password || new_password.trim().length < 4) {
-    return res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Password must be at least 4 characters!'));
+    return res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Password must be at least 4 characters!'));
   }
   if (new_password.trim() !== confirm_password.trim()) {
-    return res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Passwords do not match!'));
+    return res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Passwords do not match!'));
   }
   try {
     await supabase.from('settings').upsert({ key: 'admin_password', value: new_password.trim() }, { onConflict: 'key' });
-    res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Admin password updated successfully!'));
+    res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Admin password updated successfully!'));
   } catch (err) {
-    res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Failed to update password.'));
+    res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Failed to update password.'));
+  }
+});
+
+app.post('/secret-admin-panel-2026/subadmin/add', async (req, res) => {
+  if (!req.session || !req.session.isAdmin) return res.redirect('/secret-admin-panel-2026');
+  const { sub_name, sub_pass } = req.body;
+  if (!sub_name || !sub_pass) return res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Name and password required for sub-admin!'));
+  try {
+    const settings = await getSettings();
+    let subAdmins = [];
+    if (settings.sub_admins) {
+      try { subAdmins = JSON.parse(settings.sub_admins); } catch(e){}
+    }
+    subAdmins.push({ name: sub_name.trim(), password: sub_pass.trim() });
+    await supabase.from('settings').upsert({ key: 'sub_admins', value: JSON.stringify(subAdmins) }, { onConflict: 'key' });
+    res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Sub-admin added successfully!'));
+  } catch(e) {
+    res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Failed to add sub-admin.'));
   }
 });
 
 // Universal Add Product
-app.post('/admin/products/add', upload.single('image_file'), async (req, res) => {
+app.post('/secret-admin-panel-2026/products/add', upload.single('image_file'), async (req, res) => {
   if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
-  const { title, price, regular_price, description, image, variant_options } = req.body;
+  const { title, category, price, regular_price, cost_price, stock_quantity, description, image, variant_options } = req.body;
 
   let finalImage = (image || '').trim();
   if (req.file) {
@@ -486,14 +538,20 @@ app.post('/admin/products/add', upload.single('image_file'), async (req, res) =>
   }
 
   const cleanTitle = (title || 'Untitled Product').trim();
+  const cleanCat = (category || 'Trending').trim();
   const cleanPrice = parseFloat(price) || 0;
   const cleanRegPrice = parseFloat(regular_price) || cleanPrice;
+  const cleanCost = parseFloat(cost_price) || 0;
+  const cleanStock = parseInt(stock_quantity) || 50;
 
   const productPayload = {
     title: cleanTitle,
     name: cleanTitle,
+    category: cleanCat,
     price: cleanPrice,
     regular_price: cleanRegPrice,
+    cost_price: cleanCost,
+    stock_quantity: cleanStock,
     description: description || '',
     image: finalImage,
     image_url: finalImage,
@@ -504,8 +562,11 @@ app.post('/admin/products/add', upload.single('image_file'), async (req, res) =>
   const fallbacks = {
     title: cleanTitle,
     name: cleanTitle,
+    category: cleanCat,
     price: cleanPrice,
     regular_price: cleanRegPrice,
+    cost_price: cleanCost,
+    stock_quantity: cleanStock,
     description: description || '',
     image: finalImage,
     image_url: finalImage
@@ -513,18 +574,18 @@ app.post('/admin/products/add', upload.single('image_file'), async (req, res) =>
 
   try {
     const { error } = await universalInsert('products', productPayload, fallbacks);
-    if (error) return res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Error: ' + error.message));
-    res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Product added successfully!'));
+    if (error) return res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Error: ' + error.message));
+    res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Product added successfully!'));
   } catch (err) {
-    res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Error: ' + err.message));
+    res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Error: ' + err.message));
   }
 });
 
 // Universal Edit Product
-app.post('/admin/products/edit/:id', upload.single('image_file'), async (req, res) => {
+app.post('/secret-admin-panel-2026/products/edit/:id', upload.single('image_file'), async (req, res) => {
   if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
   const { id } = req.params;
-  const { title, price, regular_price, description, image, variant_options } = req.body;
+  const { title, category, price, regular_price, cost_price, stock_quantity, description, image, variant_options } = req.body;
 
   let finalImage = (image || '').trim();
   if (req.file) {
@@ -533,14 +594,20 @@ app.post('/admin/products/edit/:id', upload.single('image_file'), async (req, re
   }
 
   const cleanTitle = (title || 'Untitled Product').trim();
+  const cleanCat = (category || 'Trending').trim();
   const cleanPrice = parseFloat(price) || 0;
   const cleanRegPrice = parseFloat(regular_price) || cleanPrice;
+  const cleanCost = parseFloat(cost_price) || 0;
+  const cleanStock = parseInt(stock_quantity) || 50;
 
   const updatePayload = {
     title: cleanTitle,
     name: cleanTitle,
+    category: cleanCat,
     price: cleanPrice,
     regular_price: cleanRegPrice,
+    cost_price: cleanCost,
+    stock_quantity: cleanStock,
     description: description || '',
     image: finalImage,
     image_url: finalImage,
@@ -550,8 +617,11 @@ app.post('/admin/products/edit/:id', upload.single('image_file'), async (req, re
   const fallbacks = {
     title: cleanTitle,
     name: cleanTitle,
+    category: cleanCat,
     price: cleanPrice,
     regular_price: cleanRegPrice,
+    cost_price: cleanCost,
+    stock_quantity: cleanStock,
     description: description || '',
     image: finalImage,
     image_url: finalImage
@@ -559,29 +629,33 @@ app.post('/admin/products/edit/:id', upload.single('image_file'), async (req, re
 
   try {
     const { error } = await universalUpdate('products', id, updatePayload, fallbacks);
-    if (error) return res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Update Error: ' + error.message));
-    res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Product updated successfully!'));
+    if (error) return res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Update Error: ' + error.message));
+    res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Product updated successfully!'));
   } catch (err) {
-    res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Update Error: ' + err.message));
+    res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Update Error: ' + err.message));
   }
 });
 
-app.post('/admin/products/delete/:id', async (req, res) => {
+app.post('/secret-admin-panel-2026/products/delete/:id', async (req, res) => {
   if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
   try {
     await supabase.from('products').delete().eq('id', req.params.id);
-    res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Product deleted.'));
+    res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Product deleted.'));
   } catch (err) {
-    res.redirect('/admin/dashboard');
+    res.redirect('/secret-admin-panel-2026/dashboard');
   }
 });
 
-app.post('/admin/orders/status/:id', async (req, res) => {
+app.post('/secret-admin-panel-2026/orders/status/:id', async (req, res) => {
   if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
   const orderId = req.params.id;
-  const newStatus = req.body.status;
+  const { status, consignment_id, admin_notes } = req.body;
   try {
-    await universalUpdate('orders', orderId, { status: newStatus }, { status: newStatus });
+    const updateObj = { status: status || 'Pending' };
+    if (consignment_id !== undefined) updateObj.consignment_id = consignment_id.trim();
+    if (admin_notes !== undefined) updateObj.admin_notes = admin_notes.trim();
+
+    await universalUpdate('orders', orderId, updateObj, updateObj);
     const { data: orderData } = await supabase.from('orders').select('*').eq('id', orderId).single();
     const settings = await getSettings();
 
@@ -591,7 +665,7 @@ app.post('/admin/orders/status/:id', async (req, res) => {
         customerName: orderData.customer_name || orderData.name || 'Customer',
         orderId: orderData.id,
         totalAmount: orderData.price || orderData.total || 0,
-        status: newStatus,
+        status: status,
         hotLine: settings.whatsapp_number
       });
 
@@ -606,31 +680,58 @@ app.post('/admin/orders/status/:id', async (req, res) => {
           productTitle: orderData.product_title || orderData.product_name || 'Order Item',
           totalAmount: orderData.price || orderData.total || 0,
           address: orderData.address || '',
-          status: newStatus,
+          status: status,
           hotLine: settings.whatsapp_number
         });
       }
     }
 
-    res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Order status updated & customer notified!'));
+    res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Order updated & customer notified!'));
   } catch (err) {
-    res.redirect('/admin/dashboard');
+    res.redirect('/secret-admin-panel-2026/dashboard');
   }
 });
 
-app.post('/admin/orders/delete/:id', async (req, res) => {
+app.post('/secret-admin-panel-2026/orders/bulk-action', async (req, res) => {
+  if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
+  const { selected_orders, bulk_status } = req.body;
+  if (!selected_orders || !bulk_status) return res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('No orders selected for bulk action!'));
+  
+  const orderIds = Array.isArray(selected_orders) ? selected_orders : [selected_orders];
+  try {
+    for (const id of orderIds) {
+      await universalUpdate('orders', id, { status: bulk_status }, { status: bulk_status });
+      const { data: orderData } = await supabase.from('orders').select('*').eq('id', id).single();
+      const settings = await getSettings();
+      if (orderData && orderData.phone) {
+        sendOrderSMS({
+          phone: orderData.phone,
+          customerName: orderData.customer_name || orderData.name || 'Customer',
+          orderId: orderData.id,
+          totalAmount: orderData.price || orderData.total || 0,
+          status: bulk_status,
+          hotLine: settings.whatsapp_number
+        });
+      }
+    }
+    res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent(`Successfully updated ${orderIds.length} orders to "${bulk_status}"!`));
+  } catch(e) {
+    res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Bulk action failed.'));
+  }
+});
+
+app.post('/secret-admin-panel-2026/orders/delete/:id', async (req, res) => {
   if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
   try {
     await supabase.from('orders').delete().eq('id', req.params.id);
-    res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Order deleted.'));
+    res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Order deleted.'));
   } catch (err) {
-    res.redirect('/admin/dashboard');
+    res.redirect('/secret-admin-panel-2026/dashboard');
   }
 });
 
-// Update Settings (Supports BOTH Logo File Upload AND Hero Showcase Product Image Upload!)
-app.post('/admin/settings/update', upload.fields([{ name: 'logo_file', maxCount: 1 }, { name: 'hero_file', maxCount: 1 }]), async (req, res) => {
-  if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
+app.post('/secret-admin-panel-2026/settings/update', upload.fields([{ name: 'logo_file', maxCount: 1 }, { name: 'hero_file', maxCount: 1 }]), async (req, res) => {
+  if (!req.session || !req.session.isAdmin) return res.redirect('/secret-admin-panel-2026');
   const settingsData = { ...req.body };
 
   if (req.files && req.files['logo_file'] && req.files['logo_file'][0]) {
@@ -647,12 +748,12 @@ app.post('/admin/settings/update', upload.fields([{ name: 'logo_file', maxCount:
     for (const [key, value] of Object.entries(settingsData)) {
       await supabase.from('settings').upsert({ key, value }, { onConflict: 'key' });
     }
-    res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Hero Showcase, Brand Logo, FAQ & Store Settings updated!'));
+    res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Hero Spotlight, Brand Logo, FAQ & Store Settings updated!'));
   } catch (err) {
-    res.redirect('/admin/dashboard');
+    res.redirect('/secret-admin-panel-2026/dashboard');
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`TrendzzNow Modern 3D Glassmorphism Server v19 running on port ${PORT}`);
+  console.log(`TrendzzNow Ultimate Professional Server v21 running on port ${PORT}`);
 });

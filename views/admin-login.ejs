@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - TrendzzNow</title>
+    <title>Secure Admin Login - TrendzzNow</title>
     <link rel="stylesheet" href="/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -11,20 +11,20 @@
     <div class="login-card glass-modal">
         <div class="login-header">
             <span class="brand-name" style="color:#9c1448; font-size:28px;">Trendzz<span style="color:#1F1B5C;">Now</span></span>
-            <h3>Admin Panel Login</h3>
-            <p>Enter your password to access the control panel</p>
+            <h3>Secure Control Panel</h3>
+            <p>Enter your credentials to access management</p>
         </div>
 
         <% if (error) { %>
             <div class="error-msg">⚠️ <%= error %></div>
         <% } %>
 
-        <form action="/admin/login" method="POST">
+        <form action="/secret-admin-panel-2026/login" method="POST">
             <div class="form-group">
                 <label>Admin Password</label>
                 <input type="password" name="password" placeholder="Enter admin123" required autofocus>
             </div>
-            <button type="submit" class="login-btn">🔐 Login</button>
+            <button type="submit" class="login-btn">🔐 Authenticate</button>
         </form>
 
         <div class="login-hint">

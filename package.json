@@ -1,7 +1,7 @@
 {
   "name": "trendzznow",
-  "version": "19.0.0",
-  "description": "TrendzzNow Next-Gen 3D Glassmorphism E-commerce Platform v19",
+  "version": "21.0.0",
+  "description": "TrendzzNow Ultimate Professional E-commerce Platform v21 with Hidden Secure Admin URL, Slide-out Mobile/Desktop Menu Drawer, Professional Category Filtering, Footer Delivery/Courier Placement, Social Media Sharing Deep-links & Fully Admin-Editable Sections",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js"
