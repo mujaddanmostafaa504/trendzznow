@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" id="htmlRoot">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= product.title %> | <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></title>
+    <link rel="canonical" href="https://trendzznow.com/product/<%= product.id %>">
+    <meta property="og:title" content="<%= product.title %> - ৳<%= product.price %> | TrendzzNow">
+    <meta property="og:description" content="<%= product.description || 'Order premium lifestyle product with cash on delivery across Bangladesh.' %>">
+    <meta property="og:image" content="<%= product.image || settings.logo_light || 'https://trendzznow.com/images/banner.jpg' %>">
+    <meta property="og:url" content="https://trendzznow.com/product/<%= product.id %>">
+    <meta property="og:type" content="product">
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="banner-notice">
+        <span>🚚 Cash on Delivery Available across Bangladesh | Hotline: <%= settings.whatsapp_number || '01731763504' %></span>
+    </div>
+
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo-area">
+                <% if (settings.logo_light) { %>
+                    <img src="<%= settings.logo_light %>" alt="Logo" class="brand-logo">
+                <% } else { %>
+                    <div class="brand-logo-icon">⚡</div>
+                <% } %>
+                <div class="brand-badge" style="margin-left:8px;">
+                    <span class="brand-name"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
+                    <small class="brand-sub"><%= settings.tagline_en || 'Official Store' %></small>
+                </div>
+            </a>
+            <nav class="nav-links">
+                <a href="/">Home</a>
+                <a href="/#products">All Products</a>
+                <a href="/#faq">FAQ</a>
+                <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="wa-nav-btn">💬 WhatsApp</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container product-detail-container">
+        <div class="product-detail-grid">
+            <div class="product-detail-img-wrap">
+                <% if (product.image) { %>
+                    <img src="<%= product.image %>" alt="<%= product.title %>" class="detail-main-img">
+                <% } else { %>
+                    <div class="no-img" style="height: 400px;">No Image Available</div>
+                <% } %>
+                <span class="cod-badge-large">🛡️ 100% Cash on Delivery — Check Before Paying</span>
+            </div>
+
+            <div class="product-detail-info">
+                <h1 class="detail-title"><%= product.title %></h1>
+                <div class="detail-price-box">
+                    <% if (product.regular_price && product.regular_price > product.price) { %>
+                        <span class="detail-reg-price">৳ <%= product.regular_price %></span>
+                    <% } %>
+                    <span class="detail-price">৳ <%= product.price %></span>
+                    <span class="stock-badge">✓ In Stock</span>
+                </div>
+
+                <div class="detail-desc-box">
+                    <h3>Product Description:</h3>
+                    <p style="white-space: pre-line;"><%= product.description || 'Premium quality lifestyle product sourced directly for TrendzzNow customers.' %></p>
+                </div>
+
+                <div class="quick-order-box">
+                    <h3>⚡ Place Your Order Now (Cash on Delivery)</h3>
+                    <form id="directOrderForm" onsubmit="submitDirectOrder(event)">
+                        <input type="hidden" name="product_title" value="<%= product.title %>">
+                        <input type="hidden" name="price" value="<%= product.price %>">
+                        <input type="hidden" id="detailDeliveryCharge" name="delivery_charge" value="<%= settings.delivery_inside_dhaka || 70 %>">
+
+                        <% if (product.variant_options) { %>
+                            <div class="form-group">
+                                <label>Select Variant / Color *</label>
+                                <select name="variant" required>
+                                    <% product.variant_options.split(',').forEach(v => { if(v.trim()) { %>
+                                        <option value="<%= v.trim() %>"><%= v.trim() %></option>
+                                    <% } }) %>
+                                </select>
+                            </div>
+                        <% } %>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Your Name *</label>
+                                <input type="text" name="customer_name" required placeholder="Full Name">
+                            </div>
+                            <div class="form-group">
+                                <label>Mobile Number *</label>
+                                <input type="tel" name="phone" required placeholder="017xxxxxxxx" minlength="11" maxlength="15">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Quantity</label>
+                                <input type="number" id="detailQty" name="quantity" value="1" min="1" max="50" onchange="updateDetailTotal()">
+                            </div>
+                            <div class="form-group">
+                                <label>Delivery Area *</label>
+                                <select id="detailDeliveryArea" name="delivery_area" onchange="updateDetailTotal()">
+                                    <option value="Inside Dhaka" data-charge="<%= settings.delivery_inside_dhaka || 70 %>">Inside Dhaka (৳ <%= settings.delivery_inside_dhaka || 70 %>)</option>
+                                    <option value="Outside Dhaka" data-charge="<%= settings.delivery_outside_dhaka || 130 %>">Outside Dhaka (৳ <%= settings.delivery_outside_dhaka || 130 %>)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Complete Delivery Address *</label>
+                            <textarea name="address" rows="2" required placeholder="House, Road, Area, Thana & District"></textarea>
+                        </div>
+
+                        <div class="order-summary-box">
+                            <div class="summary-line"><span>Product Total:</span> <span id="detailSumProduct">৳ <%= product.price %></span></div>
+                            <div class="summary-line"><span>Delivery Charge:</span> <span id="detailSumDelivery">৳ <%= settings.delivery_inside_dhaka || 70 %></span></div>
+                            <div class="summary-line total-line"><span>Total Payable:</span> <span id="detailSumTotal">৳ <%= (parseFloat(product.price) || 0) + (parseFloat(settings.delivery_inside_dhaka) || 70) %></span></div>
+                        </div>
+
+                        <button type="submit" id="detailSubmitBtn" class="submit-order-btn">✅ Confirm Order (Cash on Delivery)</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-grid">
+            <div><h3><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></h3><p>🌐 www.trendzznow.com</p></div>
+            <div><h4>Support</h4><p>📞 WhatsApp: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p></div>
+        </div>
+    </footer>
+
+    <script>
+        const unitPrice = parseFloat('<%= product.price %>') || 0;
+        function updateDetailTotal() {
+            const qty = parseInt(document.getElementById('detailQty').value) || 1;
+            const areaSelect = document.getElementById('detailDeliveryArea');
+            const dCharge = parseFloat(areaSelect.options[areaSelect.selectedIndex].getAttribute('data-charge')) || 0;
+            const prodTotal = unitPrice * qty;
+            document.getElementById('detailDeliveryCharge').value = dCharge;
+            document.getElementById('detailSumProduct').innerText = '৳ ' + prodTotal;
+            document.getElementById('detailSumDelivery').innerText = '৳ ' + dCharge;
+            document.getElementById('detailSumTotal').innerText = '৳ ' + (prodTotal + dCharge);
+        }
+        async function submitDirectOrder(e) {
+            e.preventDefault();
+            const btn = document.getElementById('detailSubmitBtn');
+            btn.disabled = true;
+            btn.innerText = 'Processing...';
+            const data = Object.fromEntries(new FormData(e.target).entries());
+            try {
+                const res = await fetch('/order/place', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    alert('🎉 Thank you! Your order has been placed successfully.');
+                    e.target.reset();
+                    updateDetailTotal();
+                } else {
+                    alert('Order Error: ' + result.message);
+                }
+            } catch (err) {
+                alert('Failed to place order.');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '✅ Confirm Order (Cash on Delivery)';
+            }
+        }
+    </script>
+</body>
+</html>
