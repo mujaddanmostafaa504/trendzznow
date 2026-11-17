@@ -9,8 +9,10 @@ create table if not exists products (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+alter table products add column if not exists description text;
 alter table products add column if not exists regular_price numeric;
 alter table products add column if not exists variant_options text;
+alter table products add column if not exists image text;
 alter table products add column if not exists created_at timestamp with time zone default timezone('utc'::text, now()) not null;
 
 create table if not exists orders (
@@ -27,6 +29,7 @@ create table if not exists orders (
 
 alter table orders add column if not exists created_at timestamp with time zone default timezone('utc'::text, now()) not null;
 alter table orders add column if not exists status text default 'Pending';
+alter table orders add column if not exists quantity int default 1;
 
 create table if not exists settings (
   key text primary key,
@@ -36,3 +39,5 @@ create table if not exists settings (
 alter table products disable row level security;
 alter table orders disable row level security;
 alter table settings disable row level security;
+
+NOTIFY pgrst, 'reload schema';

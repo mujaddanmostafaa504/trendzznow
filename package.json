@@ -1,7 +1,7 @@
 {
   "name": "trendzznow",
-  "version": "13.0.0",
-  "description": "TrendzzNow Complete Master E-commerce Platform with Direct Image Upload, Custom Brand Logos, Delivery Partner Badges, Interactive FAQ, Legal Policy Pages & Bulletproof Cookie-Session",
+  "version": "14.0.0",
+  "description": "TrendzzNow Bulletproof E-commerce Platform with Schema-Resilient Orders, Product Edit/Add, Direct Image Upload, Brand Logo, Delivery Badges, FAQ & Policies",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js"

@@ -2,7 +2,6 @@ const express = require('express');
 const cookieSession = require('cookie-session');
 const compression = require('compression');
 const multer = require('multer');
-const fs = require('fs');
 const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 
@@ -16,16 +15,9 @@ const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Ensure uploads dir exists
-const uploadDir = path.join(__dirname, '../public/uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Multer setup (Memory storage so we can upload to Supabase Storage OR convert/save cleanly without losing on Render restart)
 const upload = multer({ 
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+  limits: { fileSize: 5 * 1024 * 1024 }
 });
 
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -74,9 +66,9 @@ const defaultSettings = {
   faq_3_a: 'If you receive a damaged or wrong item, notify us immediately via WhatsApp (01731763504) for a free instant replacement.',
   faq_4_q: 'How can I track my order?',
   faq_4_a: 'Click the "Track Order" button in the top menu and enter your mobile number to see live order status.',
-  privacy_policy: 'At TrendzzNow (trendzznow.com), we value your privacy. Customer names, phone numbers, and delivery addresses are strictly used only to process and ship your orders via our trusted courier partners. We never sell or share your personal data with third parties.',
-  return_policy: 'We offer a 7-Day Easy Replacement Policy for any manufacturing defect, transit damage, or wrong item delivered. Please inspect the parcel upon delivery or record an unboxing video and contact us on WhatsApp at 01731763504 within 24 hours.',
-  terms_conditions: 'By placing an order on TrendzzNow, you agree to provide accurate contact and delivery details. Orders confirmed via website or WhatsApp are dispatched within 24 hours. Refusing genuine parcels without valid reason may restrict future COD eligibility.'
+  privacy_policy: 'At TrendzzNow (trendzznow.com), we value your privacy. Customer names, phone numbers, and delivery addresses are strictly used only to process and ship your orders via our trusted courier partners.',
+  return_policy: 'We offer a 7-Day Easy Replacement Policy for any manufacturing defect, transit damage, or wrong item delivered. Contact us on WhatsApp at 01731763504 within 24 hours.',
+  terms_conditions: 'By placing an order on TrendzzNow, you agree to provide accurate contact and delivery details. Orders confirmed via website or WhatsApp are dispatched within 24 hours.'
 };
 
 async function getSettings() {
@@ -97,36 +89,53 @@ async function getSettings() {
   }
 }
 
-// Helper: Upload image file to Supabase Storage (with automatic Base64 fallback so images NEVER disappear on Render!)
 async function handleImageUpload(file) {
   if (!file) return null;
   try {
     const ext = path.extname(file.originalname) || '.jpg';
     const fileName = `img_${Date.now()}_${Math.floor(Math.random() * 10000)}${ext}`;
-    
-    // Try uploading to Supabase Storage bucket 'product-images'
     const { data, error } = await supabase.storage
       .from('product-images')
-      .upload(fileName, file.buffer, {
-        contentType: file.mimetype,
-        upsert: true
-      });
+      .upload(fileName, file.buffer, { contentType: file.mimetype, upsert: true });
 
     if (!error && data) {
-      const { data: publicUrlData } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(fileName);
-      if (publicUrlData && publicUrlData.publicUrl) {
-        return publicUrlData.publicUrl;
-      }
+      const { data: publicUrlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
+      if (publicUrlData && publicUrlData.publicUrl) return publicUrlData.publicUrl;
     }
-  } catch (e) {
-    console.warn('Supabase storage upload skipped, using persistent Data URI fallback.');
-  }
-
-  // Persistent Data URI fallback (Stored directly in Supabase DB row so Render container restart NEVER deletes the image!)
+  } catch (e) {}
   const base64 = file.buffer.toString('base64');
   return `data:${file.mimetype};base64,${base64}`;
+}
+
+// Automatically strips missing columns if Supabase schema cache lacks them
+async function safeInsert(table, payload) {
+  let currentPayload = { ...payload };
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const { data, error } = await supabase.from(table).insert([currentPayload]).select();
+    if (!error) return { data, error: null };
+    const match = error.message && error.message.match(/Could not find the '([^']+)' column/);
+    if (match && match[1] && Object.prototype.hasOwnProperty.call(currentPayload, match[1])) {
+      delete currentPayload[match[1]];
+      continue;
+    }
+    return { data: null, error };
+  }
+  return { data: null, error: { message: 'Insert failed after schema adaptation.' } };
+}
+
+async function safeUpdate(table, id, payload) {
+  let currentPayload = { ...payload };
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const { data, error } = await supabase.from(table).update(currentPayload).eq('id', id).select();
+    if (!error) return { data, error: null };
+    const match = error.message && error.message.match(/Could not find the '([^']+)' column/);
+    if (match && match[1] && Object.prototype.hasOwnProperty.call(currentPayload, match[1])) {
+      delete currentPayload[match[1]];
+      continue;
+    }
+    return { data: null, error };
+  }
+  return { data: null, error: { message: 'Update failed after schema adaptation.' } };
 }
 
 app.get('/healthz', (req, res) => res.status(200).send('OK'));
@@ -197,12 +206,16 @@ app.get('/order/track', async (req, res) => {
   }
 });
 
-// Place Order Route
+// Bulletproof Place Order Route
 app.post('/order/place', async (req, res) => {
   const { 
     customer_name, phone, address, product_title, price, quantity,
     delivery_area, delivery_charge, payment_method, trx_id, courier_choice, variant, discount_applied
   } = req.body;
+
+  if (!customer_name || !phone || !address) {
+    return res.status(400).json({ success: false, message: 'Name, Phone, and Address are required.' });
+  }
 
   const basePrice = parseFloat(price) || 0;
   const qty = parseInt(quantity) || 1;
@@ -212,33 +225,24 @@ app.post('/order/place', async (req, res) => {
 
   const variantText = variant ? ` [Variant: ${variant}]` : '';
   const discountText = discountVal > 0 ? ` | Discount: -৳${discountVal}` : '';
-  const detailedAddress = `${address} | Area: ${delivery_area || 'N/A'} | Payment: ${payment_method || 'COD'}${trx_id ? ' (TrxID: ' + trx_id + ')' : ''} | Courier: ${courier_choice || 'SteadFast'}${discountText}`;
+  const detailedAddress = `${address} | Area: ${delivery_area || 'Inside Dhaka'} | Payment: ${payment_method || 'COD'}${trx_id ? ' (TrxID: ' + trx_id + ')' : ''} | Courier: ${courier_choice || 'SteadFast'}${discountText}`;
+
+  const orderPayload = {
+    customer_name: customer_name.trim(),
+    phone: phone.trim(),
+    address: detailedAddress,
+    product_title: `${product_title || 'Product'}${variantText} (x${qty})`,
+    price: totalAmount,
+    quantity: qty,
+    status: 'Pending',
+    created_at: new Date().toISOString()
+  };
 
   try {
-    let { error } = await supabase.from('orders').insert([{
-      customer_name: (customer_name || 'Guest').trim(),
-      phone: (phone || '').trim(),
-      address: detailedAddress,
-      product_title: `${product_title}${variantText} (x${qty})`,
-      price: totalAmount,
-      quantity: qty,
-      status: 'Pending',
-      created_at: new Date().toISOString()
-    }]);
-
+    const { error } = await safeInsert('orders', orderPayload);
     if (error) {
-      const fallback = await supabase.from('orders').insert([{
-        customer_name: (customer_name || 'Guest').trim(),
-        phone: (phone || '').trim(),
-        address: detailedAddress,
-        product_title: `${product_title}${variantText} (x${qty})`,
-        price: totalAmount,
-        quantity: qty
-      }]);
-      error = fallback.error;
+      return res.status(500).json({ success: false, message: error.message });
     }
-
-    if (error) return res.status(500).json({ success: false, message: error.message });
     res.json({ success: true, message: 'Order placed successfully!' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -302,7 +306,7 @@ app.post('/admin/password/change', async (req, res) => {
   }
 });
 
-// Add Product (Supports BOTH Direct File Upload AND Image URL!)
+// Bulletproof Add Product
 app.post('/admin/products/add', upload.single('image_file'), async (req, res) => {
   if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
   const { title, price, regular_price, description, image, variant_options } = req.body;
@@ -313,35 +317,26 @@ app.post('/admin/products/add', upload.single('image_file'), async (req, res) =>
     if (uploadedUrl) finalImage = uploadedUrl;
   }
 
+  const productPayload = {
+    title: (title || 'Untitled Product').trim(),
+    price: parseFloat(price) || 0,
+    regular_price: parseFloat(regular_price) || parseFloat(price) || 0,
+    description: description || '',
+    image: finalImage,
+    variant_options: variant_options || '',
+    created_at: new Date().toISOString()
+  };
+
   try {
-    let { error } = await supabase.from('products').insert([{
-      title,
-      price: parseFloat(price) || 0,
-      regular_price: parseFloat(regular_price) || parseFloat(price) || 0,
-      description,
-      image: finalImage,
-      variant_options: variant_options || '',
-      created_at: new Date().toISOString()
-    }]);
-
-    if (error) {
-      const fallback = await supabase.from('products').insert([{
-        title,
-        price: parseFloat(price) || 0,
-        description,
-        image: finalImage
-      }]);
-      error = fallback.error;
-    }
-
+    const { error } = await safeInsert('products', productPayload);
     if (error) return res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Error: ' + error.message));
     res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Product added successfully!'));
   } catch (err) {
-    res.redirect('/admin/dashboard');
+    res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Error: ' + err.message));
   }
 });
 
-// Edit Product (Supports Direct File Upload OR URL)
+// Bulletproof Edit Product
 app.post('/admin/products/edit/:id', upload.single('image_file'), async (req, res) => {
   if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
   const { id } = req.params;
@@ -353,28 +348,21 @@ app.post('/admin/products/edit/:id', upload.single('image_file'), async (req, re
     if (uploadedUrl) finalImage = uploadedUrl;
   }
 
+  const updatePayload = {
+    title: (title || 'Untitled Product').trim(),
+    price: parseFloat(price) || 0,
+    regular_price: parseFloat(regular_price) || parseFloat(price) || 0,
+    description: description || '',
+    image: finalImage,
+    variant_options: variant_options || ''
+  };
+
   try {
-    let { error } = await supabase.from('products').update({
-      title,
-      price: parseFloat(price) || 0,
-      regular_price: parseFloat(regular_price) || parseFloat(price) || 0,
-      description,
-      image: finalImage,
-      variant_options: variant_options || ''
-    }).eq('id', id);
-
-    if (error) {
-      await supabase.from('products').update({
-        title,
-        price: parseFloat(price) || 0,
-        description,
-        image: finalImage
-      }).eq('id', id);
-    }
-
+    const { error } = await safeUpdate('products', id, updatePayload);
+    if (error) return res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Update Error: ' + error.message));
     res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Product updated successfully!'));
   } catch (err) {
-    res.redirect('/admin/dashboard');
+    res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Update Error: ' + err.message));
   }
 });
 
@@ -391,7 +379,7 @@ app.post('/admin/products/delete/:id', async (req, res) => {
 app.post('/admin/orders/status/:id', async (req, res) => {
   if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
   try {
-    await supabase.from('orders').update({ status: req.body.status }).eq('id', req.params.id);
+    await safeUpdate('orders', req.params.id, { status: req.body.status });
     res.redirect('/admin/dashboard?msg=' + encodeURIComponent('Order status updated!'));
   } catch (err) {
     res.redirect('/admin/dashboard');
@@ -408,18 +396,13 @@ app.post('/admin/orders/delete/:id', async (req, res) => {
   }
 });
 
-// Update Settings (Supports Direct Logo File Upload + Brand Name + FAQs + Policies!)
 app.post('/admin/settings/update', upload.single('logo_file'), async (req, res) => {
   if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
   const settingsData = { ...req.body };
-
   if (req.file) {
     const uploadedLogoUrl = await handleImageUpload(req.file);
-    if (uploadedLogoUrl) {
-      settingsData.logo_light = uploadedLogoUrl;
-    }
+    if (uploadedLogoUrl) settingsData.logo_light = uploadedLogoUrl;
   }
-
   try {
     for (const [key, value] of Object.entries(settingsData)) {
       await supabase.from('settings').upsert({ key, value }, { onConflict: 'key' });
@@ -431,5 +414,5 @@ app.post('/admin/settings/update', upload.single('logo_file'), async (req, res) 
 });
 
 app.listen(PORT, () => {
-  console.log(`TrendzzNow Master Server v13 running on port ${PORT}`);
+  console.log(`TrendzzNow Bulletproof Server v14 running on port ${PORT}`);
 });

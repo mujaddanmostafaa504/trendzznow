@@ -133,11 +133,7 @@
                                     <a href="/product/<%= p.id %>" class="details-btn">
                                         <span class="en-text">Details</span><span class="bn-text" style="display:none;">বিস্তারিত</span>
                                     </a>
-                                    <button type="button" class="buy-btn" 
-                                        data-title="<%= p.title %>" 
-                                        data-price="<%= p.price %>" 
-                                        data-variants="<%= p.variant_options || '' %>"
-                                        onclick="openCheckoutFromBtn(this)">
+                                    <button type="button" class="buy-btn" onclick="openCheckoutById('<%= p.id %>')">
                                         🛒 <span class="en-text">Order Now</span><span class="bn-text" style="display:none;">অর্ডার করুন</span>
                                     </button>
                                 </div>
@@ -208,42 +204,34 @@
             <div class="faq-list">
                 <div class="faq-item active">
                     <button class="faq-question" onclick="toggleFaq(this)">
-                        <span>1. <%= settings.faq_1_q || 'How long does delivery take across Bangladesh?' %></span>
+                        <span>1. <%= settings.faq_1_q %></span>
                         <span class="faq-arrow">▼</span>
                     </button>
-                    <div class="faq-answer">
-                        <p><%= settings.faq_1_a || 'Inside Dhaka delivery takes 24–48 hours, and outside Dhaka takes 2–4 business days via SteadFast, Pathao, or RedX.' %></p>
-                    </div>
+                    <div class="faq-answer"><p><%= settings.faq_1_a %></p></div>
                 </div>
 
                 <div class="faq-item">
                     <button class="faq-question" onclick="toggleFaq(this)">
-                        <span>2. <%= settings.faq_2_q || 'Can I check the product before paying?' %></span>
+                        <span>2. <%= settings.faq_2_q %></span>
                         <span class="faq-arrow">▼</span>
                     </button>
-                    <div class="faq-answer">
-                        <p><%= settings.faq_2_a || 'Yes! We offer 100% Cash on Delivery (COD). You can inspect the parcel in front of the delivery rider before paying.' %></p>
-                    </div>
+                    <div class="faq-answer"><p><%= settings.faq_2_a %></p></div>
                 </div>
 
                 <div class="faq-item">
                     <button class="faq-question" onclick="toggleFaq(this)">
-                        <span>3. <%= settings.faq_3_q || 'What is your return & replacement policy?' %></span>
+                        <span>3. <%= settings.faq_3_q %></span>
                         <span class="faq-arrow">▼</span>
                     </button>
-                    <div class="faq-answer">
-                        <p><%= settings.faq_3_a || 'If you receive a damaged or wrong item, notify us immediately via WhatsApp (01731763504) for a free instant replacement.' %></p>
-                    </div>
+                    <div class="faq-answer"><p><%= settings.faq_3_a %></p></div>
                 </div>
 
                 <div class="faq-item">
                     <button class="faq-question" onclick="toggleFaq(this)">
-                        <span>4. <%= settings.faq_4_q || 'How can I track my order?' %></span>
+                        <span>4. <%= settings.faq_4_q %></span>
                         <span class="faq-arrow">▼</span>
                     </button>
-                    <div class="faq-answer">
-                        <p><%= settings.faq_4_a || 'Click the "Track Order" button in the top menu and enter your mobile number to see live order status.' %></p>
-                    </div>
+                    <div class="faq-answer"><p><%= settings.faq_4_a %></p></div>
                 </div>
             </div>
         </div>
@@ -275,8 +263,8 @@
                         <input type="text" name="customer_name" required placeholder="Full Name">
                     </div>
                     <div class="form-group">
-                        <label>Mobile Number (11 digits) *</label>
-                        <input type="tel" id="phoneInput" name="phone" required placeholder="017xxxxxxxx" pattern="01[3-9][0-9]{8}">
+                        <label>Mobile Number *</label>
+                        <input type="tel" id="phoneInput" name="phone" required placeholder="017xxxxxxxx" minlength="11" maxlength="15">
                     </div>
                 </div>
 
@@ -357,7 +345,7 @@
         </div>
     </div>
 
-    <!-- Policy Modal (Privacy Policy, Return Policy, Terms & Conditions) -->
+    <!-- Policy Modal -->
     <div id="policyModal" class="modal">
         <div class="modal-content" style="max-width: 600px;">
             <span class="close" onclick="closePolicyModal()">&times;</span>
@@ -405,6 +393,7 @@
     </footer>
 
     <script>
+        const storeProductsMap = <%- JSON.stringify(products.reduce((acc, item) => { acc[item.id] = { id: item.id, title: item.title, price: item.price, variant_options: item.variant_options || '' }; return acc; }, {})) %>;
         let currentBasePrice = 0;
         let currentDiscount = 0;
         let currentLang = localStorage.getItem('trendzz_lang') || 'en';
@@ -414,18 +403,9 @@
         const validPromoDiscount = parseFloat("<%= settings.promo_discount || '50' %>") || 0;
 
         const policiesData = {
-            privacy: {
-                title: "🔒 Privacy Policy",
-                body: `<%= (settings.privacy_policy || '').replace(/`/g, "'") %>`
-            },
-            return: {
-                title: "🔄 Return & Replacement Policy",
-                body: `<%= (settings.return_policy || '').replace(/`/g, "'") %>`
-            },
-            terms: {
-                title: "📜 Terms & Conditions",
-                body: `<%= (settings.terms_conditions || '').replace(/`/g, "'") %>`
-            }
+            privacy: { title: "🔒 Privacy Policy", body: <%- JSON.stringify(settings.privacy_policy || '') %> },
+            return: { title: "🔄 Return & Replacement Policy", body: <%- JSON.stringify(settings.return_policy || '') %> },
+            terms: { title: "📜 Terms & Conditions", body: <%- JSON.stringify(settings.terms_conditions || '') %> }
         };
 
         function openPolicyModal(type) {
@@ -437,10 +417,7 @@
         }
         function closePolicyModal() { document.getElementById('policyModal').style.display = 'none'; }
 
-        function toggleFaq(btn) {
-            const item = btn.parentElement;
-            item.classList.toggle('active');
-        }
+        function toggleFaq(btn) { btn.parentElement.classList.toggle('active'); }
 
         function applyLanguage(lang) {
             currentLang = lang;
@@ -467,8 +444,10 @@
             });
         }
 
-        function openCheckoutFromBtn(btn) {
-            openCheckout(btn.getAttribute('data-title'), btn.getAttribute('data-price'), btn.getAttribute('data-variants'));
+        function openCheckoutById(id) {
+            const prod = storeProductsMap[id];
+            if (!prod) return;
+            openCheckout(prod.title, prod.price, prod.variant_options);
         }
 
         function openCheckout(title, price, variants) {
@@ -579,10 +558,10 @@
                     e.target.reset();
                     togglePaymentDetails();
                 } else {
-                    alert('Error: ' + result.message);
+                    alert('Order Error: ' + result.message);
                 }
             } catch (err) {
-                alert('Failed to place order.');
+                alert('Network error while placing order. Please try again.');
             } finally {
                 btn.disabled = false;
                 btn.innerText = '✅ Confirm Order';

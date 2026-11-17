@@ -10,23 +10,6 @@
     <meta property="og:image" content="<%= product.image || settings.logo_light || 'https://trendzznow.com/images/banner.jpg' %>">
     <meta property="og:url" content="https://trendzznow.com/product/<%= product.id %>">
     <meta property="og:type" content="product">
-    <script type="application/ld+json">
-    <%- JSON.stringify({
-      "@context": "https://schema.org/",
-      "@type": "Product",
-      "name": product.title || "Product",
-      "image": product.image ? [product.image] : [],
-      "description": product.description || "Premium quality product from TrendzzNow.",
-      "brand": { "@type": "Brand", "name": "TrendzzNow" },
-      "offers": {
-        "@type": "Offer",
-        "url": "https://trendzznow.com/product/" + product.id,
-        "priceCurrency": "BDT",
-        "price": String(product.price || 0),
-        "availability": "https://schema.org/InStock"
-      }
-    }) %>
-    </script>
     <link rel="stylesheet" href="/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -107,8 +90,8 @@
                                 <input type="text" name="customer_name" required placeholder="Full Name">
                             </div>
                             <div class="form-group">
-                                <label>Mobile Number (11 digits) *</label>
-                                <input type="tel" name="phone" required placeholder="017xxxxxxxx" pattern="01[3-9][0-9]{8}">
+                                <label>Mobile Number *</label>
+                                <input type="tel" name="phone" required placeholder="017xxxxxxxx" minlength="11" maxlength="15">
                             </div>
                         </div>
 
@@ -181,7 +164,7 @@
                     e.target.reset();
                     updateDetailTotal();
                 } else {
-                    alert('Error: ' + result.message);
+                    alert('Order Error: ' + result.message);
                 }
             } catch (err) {
                 alert('Failed to place order.');
