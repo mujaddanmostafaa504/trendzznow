@@ -19,7 +19,7 @@
             <div class="error-msg">⚠️ <%= error %></div>
         <% } %>
 
-        <form action="/secret-admin-panel-2026/login" method="POST">
+        <form action="/secret-admin-panel-2026/login" method="POST"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <div class="form-group">
                 <label>Admin Password</label>
                 <input type="password" name="password" placeholder="Enter your configured admin password" required autofocus>

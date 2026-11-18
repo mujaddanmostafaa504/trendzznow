@@ -37,3 +37,11 @@
     });
   });
 })();
+
+// V23 admin dashboard finishing helpers
+window.addEventListener('DOMContentLoaded', () => {
+  const hashView = (window.location.hash || '').replace(/^#/, '').split('?')[0];
+  if (hashView && document.querySelector(`[data-admin-view="${CSS.escape(hashView)}"]`)) {
+    document.querySelector(`[data-admin-view="${CSS.escape(hashView)}"]`).click();
+  }
+});

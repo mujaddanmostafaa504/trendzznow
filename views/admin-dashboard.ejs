@@ -19,7 +19,8 @@
         .tab-bar { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; flex-wrap: wrap; }
         .tab-btn { background: #e2e8f0; color: #333; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; }
         .tab-btn.active { background: #1F1B5C; color: #fff; }
-    </style>
+    .admin-logout-form{margin:0}.admin-logout-form .logout-btn{cursor:pointer;border:0;font:inherit}
+</style>
 </head>
 <body class="admin-body admin-upgraded">
     <div class="admin-app-shell">
@@ -32,8 +33,12 @@
           <button type="button" class="admin-nav-item active" data-admin-view="overview"><span>▦</span>Overview</button>
           <button type="button" class="admin-nav-item" data-admin-view="orders"><span>▤</span>Orders <em><%= orders.length %></em></button>
           <button type="button" class="admin-nav-item" data-admin-view="products"><span>▣</span>Products & Stock <em><%= products.length %></em></button>
+          <button type="button" class="admin-nav-item" data-admin-view="categories"><span>▥</span>Categories <em><%= categories.length %></em></button>
+          <button type="button" class="admin-nav-item" data-admin-view="customers"><span>♙</span>Customers <em><%= customers.length %></em></button>
+          <button type="button" class="admin-nav-item" data-admin-view="analytics"><span>◫</span>Analytics</button>
+          <button type="button" class="admin-nav-item" data-admin-view="history"><span>◷</span>Stock & Audit History</button>
           <button type="button" class="admin-nav-item" data-admin-view="settings"><span>⚙</span>Storefront & Policies</button>
-          <button type="button" class="admin-nav-item" data-admin-view="security"><span>♙</span>Security</button>
+          <button type="button" class="admin-nav-item" data-admin-view="security"><span>♧</span>Security</button>
         </nav>
         <div class="admin-sidebar-bottom"><span class="admin-online-dot"></span> Store control panel <small>Private administrator area</small></div>
       </aside>
@@ -45,7 +50,7 @@
         </div>
         <div class="admin-header-actions">
             <a href="/" target="_blank" class="view-site-btn">🌐 View Website</a>
-            <a href="/secret-admin-panel-2026/logout" class="logout-btn">Logout</a>
+            <form action="/secret-admin-panel-2026/logout" method="POST" class="admin-logout-form"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" class="logout-btn">Logout</button></form>
         </div>
     </header>
 
@@ -64,9 +69,9 @@
         <!-- Advanced Analytics Cards -->
         <div class="stats-grid admin-panel-view" id="adminOverviewPanel" data-admin-panel="overview">
             <div class="stat-card">
-                <span class="stat-title">Total Gross Sales</span>
-                <span class="stat-num" style="color:#00b894;">৳ <%= analytics.totalRevenue %></span>
-                <small style="color:#666; font-size:11.5px;">Estimated Net Profit: <strong>৳ <%= analytics.netProfit %></strong></small>
+                <span class="stat-title">Open + delivered order value</span>
+                <span class="stat-num" style="color:#00b894;">৳ <%= Number(analytics.totalRevenue||0).toLocaleString('en-BD') %></span>
+                <small style="color:#666; font-size:11.5px;">Delivered revenue: <strong>৳ <%= Number(analytics.deliveredRevenue||0).toLocaleString('en-BD') %></strong></small>
             </div>
             <div class="stat-card">
                 <span class="stat-title">Pending Orders</span>
@@ -108,7 +113,7 @@
         <!-- Order Filter & Bulk Actions Bar -->
         <section class="admin-section admin-panel-view" id="adminOrdersPanel" data-admin-panel="orders">
             <div class="admin-section-heading">
-                <div><span class="admin-eyebrow">FULFILMENT</span><h3>Customer orders</h3><p>Review, update and fulfil customer purchases.</p></div>
+                <div><span class="admin-eyebrow">FULFILMENT</span><h3>Customer orders</h3><p>Review, update and fulfil customer purchases. Cancelling Pending/Confirmed orders before courier dispatch returns reserved stock; dispatched/returned goods need manual inspection.</p></div>
                 <div style="display:flex; gap:10px; flex-wrap:wrap;">
                     <button onclick="exportOrdersCSV()" class="export-btn">📥 Export CSV (Excel)</button>
                     <button onclick="window.print()" class="print-btn" style="padding: 8px 14px; font-size: 13px;">🖨️ Print Order List</button>
@@ -126,7 +131,7 @@
             </div>
 
             <!-- Bulk Status Update Form -->
-            <form action="/secret-admin-panel-2026/orders/bulk-action" method="POST" id="bulkForm" style="background:#f8f9fc; padding:12px; border-radius:8px; margin-bottom:15px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <form action="/secret-admin-panel-2026/orders/bulk-action" method="POST" id="bulkForm" style="background:#f8f9fc; padding:12px; border-radius:8px; margin-bottom:15px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <span style="font-weight:700; font-size:13px; color:#1F1B5C;">⚡ Bulk Action:</span>
                 <select name="bulk_status" class="status-select" required style="padding:7px; font-size:13px;">
                     <option value="">-- Select Status to Apply to Checked --</option>
@@ -175,7 +180,7 @@
                                         <% if (o.admin_notes) { %><br><small style="color:#d63031; font-weight:700;">📝 <%= o.admin_notes %></small><% } %>
                                     </td>
                                     <td>
-                                        <form action="/secret-admin-panel-2026/orders/status/<%= o.id %>" method="POST" style="display:flex; flex-direction:column; gap:5px;">
+                                        <form action="/secret-admin-panel-2026/orders/status/<%= o.id %>" method="POST" style="display:flex; flex-direction:column; gap:5px;"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                             <select name="status" class="status-select">
                                                 <option value="Pending" <%= o.status === 'Pending' ? 'selected' : '' %>>⏳ Pending</option>
                                                 <option value="Confirmed" <%= o.status === 'Confirmed' ? 'selected' : '' %>>✅ Confirmed</option>
@@ -183,6 +188,7 @@
                                                 <option value="Sent to Pathao" <%= o.status === 'Sent to Pathao' ? 'selected' : '' %>>🛵 Pathao</option>
                                                 <option value="Delivered" <%= o.status === 'Delivered' ? 'selected' : '' %>>🎉 Delivered</option>
                                                 <option value="Cancelled" <%= o.status === 'Cancelled' ? 'selected' : '' %>>❌ Cancelled</option>
+                                                <option value="Return" <%= o.status === 'Return' ? 'selected' : '' %>>↩ Return / inspect</option>
                                             </select>
                                             <input type="text" name="consignment_id" value="<%= o.consignment_id || '' %>" placeholder="Tracking / Consignment ID" style="padding:4px; font-size:11px; border:1px solid #ccc; border-radius:4px;">
                                             <input type="text" name="admin_notes" value="<%= o.admin_notes || '' %>" placeholder="Admin note..." style="padding:4px; font-size:11px; border:1px solid #ccc; border-radius:4px;">
@@ -194,9 +200,11 @@
                                             <button type="button" class="print-btn" onclick="printShippingLabel('<%= o.id %>')">🏷️ Label</button>
                                             <button type="button" class="print-btn" style="background:#2d3436;" onclick="printInvoiceById('<%= o.id %>')">🖨️ Slip</button>
                                             <button type="button" class="copy-btn" onclick="copyCustomerById('<%= o.id %>')">📋 Copy</button>
-                                            <form action="/secret-admin-panel-2026/orders/delete/<%= o.id %>" method="POST" onsubmit="return confirm('Delete order?');" style="display:inline;">
+                                            <% if (['Pending','Confirmed'].includes(o.status)) { %>
+                                            <form action="/secret-admin-panel-2026/orders/delete/<%= o.id %>" method="POST" onsubmit="return confirm('Delete this Pending/Confirmed order? Its reserved stock will be returned.');" style="display:inline;"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                                 <button type="submit" class="delete-btn">Del</button>
                                             </form>
+                                            <% } else { %><span class="admin-muted" title="Fulfilment history is retained">Keep</span><% } %>
                                         </div>
                                     </td>
                                 </tr>
@@ -209,102 +217,157 @@
             </div>
         </section>
 
-        <!-- Product Management with Category, Stock & Cost Price -->
-        <div class="two-col-grid admin-panel-view" id="adminProductsPanel" data-admin-panel="products">
-            <section class="admin-section">
-                <h3>➕ Add Product (Category, Stock & Cost)</h3>
-                <form action="/secret-admin-panel-2026/products/add" method="POST" enctype="multipart/form-data">
-                    <div class="form-group"><label>Product Title *</label><input type="text" name="title" required placeholder="e.g. Dynamic Leaf Table Lamp"></div>
-                    <div class="form-group"><label>Category Name *</label><input type="text" name="category" required list="trendzzCategoryOptions" placeholder="e.g. Electronics, Home & Kitchen, Beauty"><datalist id="trendzzCategoryOptions"><% [...new Set(products.map(p => p.category).filter(Boolean))].sort().forEach(cat => { %><option value="<%= cat %>"></option><% }) %></datalist></div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Selling Price (BDT) *</label><input type="number" name="price" required min="0.01" step="0.01" placeholder="950"></div>
-                        <div class="form-group"><label>Regular Price</label><input type="number" name="regular_price" min="0" step="0.01" placeholder="1250"></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Buying / Cost Price (৳)</label><input type="number" name="cost_price" min="0" step="0.01" placeholder="600"></div>
-                        <div class="form-group"><label>Stock Quantity</label><input type="number" name="stock_quantity" value="50" min="0" step="1"></div>
-                    </div>
-                    <div class="upload-box">
-                        <label>📸 Upload Product Image Directly (JPG/PNG/WebP)</label>
-                        <input type="file" name="image_file" accept="image/*" style="margin-top:6px;">
-                        <small style="display:block; color:#666; margin-top:4px;">OR paste Image URL:</small>
-                        <input type="text" name="image" placeholder="https://..." style="margin-top:6px;">
-                    </div>
-                    <div class="form-group"><label>Variants (comma separated)</label><input type="text" name="variant_options" placeholder="Cream, Black, Wood"></div>
-                    <div class="form-group"><label>Description</label><textarea name="description" rows="3"></textarea></div>
-                    <button type="submit" class="add-product-btn">➕ Add Product to Inventory</button>
-                </form>
-            </section>
-
-            <section class="admin-section">
-                <h3>🛍️ Product inventory <span class="admin-count-pill"><%= products.length %></span></h3>
-                <div class="admin-table-tools"><input type="search" id="inventorySearch" placeholder="Search products or category…" aria-label="Search inventory"><span class="admin-muted">Low-stock threshold: 5</span></div>
-                <div class="table-responsive" style="max-height: 460px; overflow-y: auto;">
-                    <table class="data-table">
-                        <thead><tr><th>Image</th><th>Name, Category, Price & Stock</th><th>Action</th></tr></thead>
-                        <tbody>
-                            <% products.forEach(p => { 
-                                const stockKnown = !!p.stock_known;
-                                const stock = stockKnown ? p.stock_quantity : null;
-                                const isLowStock = stockKnown && Number(stock) <= 5;
-                            %>
-                                <tr class="inventory-row" data-inventory-search="<%= ((p.title || '') + ' ' + (p.category || '')).toLowerCase() %>">
-                                    <td><% if (p.image) { %><img src="<%= p.image %>" width="45" height="45" style="object-fit:cover;border-radius:4px;"><% } %></td>
-                                    <td>
-                                        <strong><%= p.title %></strong> <small style="background:#f1f3f5; padding:2px 6px; border-radius:4px;"><%= p.category || 'General' %></small><br>
-                                        <span class="price-pill">৳ <%= p.price %></span> 
-                                        <span style="font-size:12px; font-weight:700; color:<%= isLowStock ? '#d63031' : '#00b894' %>;">
-                                            📦 Stock: <%= stockKnown ? stock : 'Not set' %>
-                                            <% if (isLowStock) { %><span class="badge-low-stock">Low Stock!</span><% } %>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div style="display:flex; gap:5px;">
-                                            <button type="button" class="edit-btn" onclick="openEditProductById('<%= p.id %>')">✏️ Edit</button>
-                                            <form action="/secret-admin-panel-2026/products/delete/<%= p.id %>" method="POST" onsubmit="return confirm('Delete product?');"><button type="submit" class="delete-btn">Del</button></form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <% }) %>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        </div>
-
-        <!-- Edit Product Section -->
-        <section class="admin-section admin-panel-view" data-admin-panel="products" id="editSection" style="display:none; background:#fff8e5; border:2px solid #ffd166;">
-            <h3>✏️ Edit Product (<span id="editProductIdTitle"></span>)</h3>
-            <form id="editProductForm" method="POST" enctype="multipart/form-data">
-                <div class="form-group"><label>Product Title *</label><input type="text" id="editTitle" name="title" required></div>
-                <div class="form-group"><label>Category Name *</label><input type="text" id="editCategory" name="category" required></div>
+        <!-- Complete product and inventory workspace -->
+        <section class="admin-panel-view" id="adminProductsPanel" data-admin-panel="products">
+          <div class="admin-product-layout">
+            <section class="admin-section admin-product-form-card">
+              <div class="admin-section-heading"><div><span class="admin-eyebrow">CATALOG</span><h3>＋ Add product</h3><p>Create a product with pricing, stock and category details.</p></div></div>
+              <form action="/secret-admin-panel-2026/products/add" method="POST" enctype="multipart/form-data" class="admin-product-form"><input type="hidden" name="is_active_present" value="1"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <div class="form-group"><label>Product title *</label><input type="text" name="title" required maxlength="180" placeholder="e.g. Dynamic Leaf Table Lamp"></div>
                 <div class="form-row">
-                    <div class="form-group"><label>Selling Price *</label><input type="number" id="editPrice" name="price" required></div>
-                    <div class="form-group"><label>Regular Price</label><input type="number" id="editRegularPrice" name="regular_price"></div>
+                  <div class="form-group"><label>Category *</label><input type="text" name="category" required list="trendzzCategoryOptions" maxlength="80" placeholder="Choose or type category"><datalist id="trendzzCategoryOptions"><% categories.forEach(cat => { %><option value="<%= cat %>"></option><% }) %></datalist></div>
+                  <div class="form-group"><label>SKU / Product code</label><input type="text" name="sku" maxlength="80" placeholder="e.g. TN-LAMP-001"></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label>Buying / Cost Price (৳)</label><input type="number" id="editCostPrice" name="cost_price"></div>
-                    <div class="form-group"><label>Stock Quantity</label><input type="number" id="editStockQty" name="stock_quantity"></div>
+                  <div class="form-group"><label>Selling price (৳) *</label><input type="number" name="price" required min="0.01" step="0.01" placeholder="950"></div>
+                  <div class="form-group"><label>Regular price (৳)</label><input type="number" name="regular_price" min="0" step="0.01" placeholder="1250"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Buying / cost price (৳)</label><input type="number" name="cost_price" min="0" step="0.01" value="0"></div>
+                  <div class="form-group"><label>Opening stock *</label><input type="number" name="stock_quantity" min="0" step="1" value="0" required></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Low-stock alert at</label><input type="number" name="low_stock_threshold" min="0" step="1" value="5"></div>
+                  <div class="form-group"><label>Variants (comma separated)</label><input type="text" name="variant_options" placeholder="Cream, Black, Wood"></div>
                 </div>
                 <div class="upload-box">
-                    <label>📸 Upload New Image File (Optional)</label>
-                    <input type="file" name="image_file" accept="image/*" style="margin-top:6px;">
-                    <small style="display:block; color:#666; margin-top:4px;">Current Image URL / Data:</small>
-                    <input type="text" id="editImage" name="image" style="margin-top:4px;">
+                  <label>Product image (JPG, PNG, WebP or GIF; max 5 MB)</label>
+                  <input type="file" name="image_file" accept="image/jpeg,image/png,image/webp,image/gif" data-image-preview-input="newProductPreview">
+                  <img id="newProductPreview" class="admin-image-preview" alt="Product image preview" hidden>
+                  <small>Or paste a public image URL</small><input type="url" name="image" placeholder="https://example.com/product.jpg">
                 </div>
-                <div class="form-group"><label>Variants</label><input type="text" id="editVariants" name="variant_options"></div>
-                <div class="form-group"><label>Description</label><textarea id="editDesc" name="description" rows="3"></textarea></div>
-                <div style="display:flex; gap:10px;">
-                    <button type="submit" class="save-settings-btn" style="flex:1;">💾 Save Product Changes</button>
-                    <button type="button" onclick="document.getElementById('editSection').style.display='none'" style="background:#666;color:#fff;border:none;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:bold;">Cancel</button>
-                </div>
-            </form>
+                <div class="form-group"><label>Description</label><textarea name="description" rows="4" maxlength="12000" placeholder="Product description and key details"></textarea></div>
+                <label class="admin-check-label"><input type="checkbox" name="is_active" checked> Publish this product on the storefront</label>
+                <button type="submit" class="add-product-btn">＋ Save product</button>
+              </form>
+            </section>
+
+            <section class="admin-section admin-inventory-card">
+              <div class="admin-section-heading"><div><span class="admin-eyebrow">STOCK CONTROL</span><h3>Product inventory <span class="admin-count-pill"><%= products.length %></span></h3><p>Search, filter, export and manage products.</p></div><div class="admin-inline-actions"><a class="admin-secondary-action" href="/secret-admin-panel-2026/products/export.csv">↓ Export CSV</a></div></div>
+              <div class="admin-inventory-toolbar">
+                <input type="search" id="inventorySearch" placeholder="Search title, SKU or category…" aria-label="Search inventory">
+                <select id="inventoryCategoryFilter" aria-label="Filter category"><option value="">All categories</option><% categories.forEach(cat => { %><option value="<%= cat.toLowerCase() %>"><%= cat %></option><% }) %></select>
+                <select id="inventorySort" aria-label="Sort products"><option value="newest">Newest first</option><option value="title">Name A–Z</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option><option value="stock-low">Stock: low to high</option></select>
+              </div>
+              <div class="admin-import-export-row">
+                <form action="/secret-admin-panel-2026/products/import-csv" method="POST" enctype="multipart/form-data" class="admin-csv-import-form"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <label for="productCsvFile">Import products CSV</label><input id="productCsvFile" type="file" name="csv_file" accept=".csv,text/csv" required><button type="submit" class="admin-small-action">Import CSV</button>
+                </form>
+                <small>CSV columns: title, category, sku, price, regular_price, cost_price, stock_quantity, low_stock_threshold, variant_options, image, description, is_active</small>
+              </div>
+              <form action="/secret-admin-panel-2026/products/bulk-action" method="POST" id="productBulkForm" class="admin-bulk-tools"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <select name="bulk_action" id="productBulkAction" required><option value="">Bulk action…</option><option value="activate">Publish selected</option><option value="deactivate">Unpublish selected</option><option value="set_stock">Set stock quantity</option><option value="add_stock">Add stock quantity</option><option value="remove_stock">Remove stock quantity</option><option value="set_category">Change category</option><option value="delete">Delete selected</option></select>
+                <input type="number" name="stock_amount" id="bulkStockAmount" min="0" step="1" placeholder="Qty" hidden>
+                <input type="text" name="bulk_category" id="bulkCategory" maxlength="80" placeholder="New category" hidden>
+                <button type="submit" class="admin-small-action">Apply to selected</button><span class="admin-muted" id="selectedProductCount">0 selected</span>
+              </form>
+              <div class="table-responsive admin-products-table-wrap">
+                <table class="data-table admin-products-table" id="productsTable">
+                  <thead><tr><th><input type="checkbox" id="selectAllProducts" aria-label="Select all products"></th><th>Product</th><th>SKU / Category</th><th>Pricing</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+                  <tbody id="productsTableBody">
+                    <% products.forEach(p => { const stockKnown=!!p.stock_known; const stock=stockKnown?Number(p.stock_quantity):null; const threshold=Number(p.low_stock_threshold ?? settings.low_stock_threshold ?? 5); const low=stockKnown && stock<=threshold; %>
+                      <tr class="inventory-row" data-id="<%= p.id %>" data-title="<%= (p.title||'').toLowerCase() %>" data-sku="<%= (p.sku||'').toLowerCase() %>" data-category="<%= (p.category||'').toLowerCase() %>" data-price="<%= Number(p.price)||0 %>" data-stock="<%= stockKnown?stock:-1 %>" data-created="<%= p.created_at||'' %>">
+                        <td><input type="checkbox" class="product-row-check" name="selected_products" value="<%= p.id %>" form="productBulkForm" aria-label="Select <%= p.title %>"></td>
+                        <td><div class="admin-product-cell"><% if (p.image) { %><img src="<%= p.image %>" alt="" loading="lazy"><% } else { %><span class="admin-product-placeholder">TN</span><% } %><span><strong><%= p.title %></strong><small>#<%= p.id %></small></span></div></td>
+                        <td><strong><%= p.sku || '—' %></strong><small class="admin-cell-sub"><%= p.category || 'Uncategorized' %></small></td>
+                        <td><strong>৳ <%= Number(p.price||0).toLocaleString('en-BD') %></strong><% if (Number(p.regular_price)>Number(p.price)) { %><small class="admin-cell-sub"><s>৳ <%= Number(p.regular_price).toLocaleString('en-BD') %></s></small><% } %><small class="admin-cell-sub">Cost: ৳ <%= Number(p.cost_price||0).toLocaleString('en-BD') %></small></td>
+                        <td><span class="admin-stock-pill <%= !stockKnown?'unknown':stock===0?'out':low?'low':'ok' %>"><%= stockKnown?stock:'Not set' %> <%= stockKnown?'units':'' %></span><small class="admin-cell-sub">Alert at <%= threshold %></small></td>
+                        <td><span class="admin-state-pill <%= p.is_active?'published':'draft' %>"><%= p.is_active?'Published':'Draft' %></span></td>
+                        <td><div class="admin-row-actions"><button type="button" class="edit-btn" onclick="openEditProductById('<%= p.id %>')">Edit</button><button type="button" class="admin-small-action" onclick="openStockAdjustModal('<%= p.id %>')">Stock</button><form action="/secret-admin-panel-2026/products/delete/<%= p.id %>" method="POST" onsubmit="return confirm('Delete this product? This cannot be undone.');"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" class="delete-btn">Delete</button></form></div></td>
+                      </tr>
+                    <% }) %>
+                    <% if (!products.length) { %><tr><td colspan="7"><div class="admin-empty-state">No products yet. Add your first product using the form.</div></td></tr><% } %>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
         </section>
+
+        <section class="admin-section admin-panel-view" id="editSection" data-admin-panel="products" hidden>
+          <div class="admin-section-heading"><div><span class="admin-eyebrow">PRODUCT EDITOR</span><h3>Edit product <span id="editProductIdTitle"></span></h3><p>Update product data without changing its order history.</p></div></div>
+          <form id="editProductForm" method="POST" enctype="multipart/form-data" class="admin-product-form"><input type="hidden" name="is_active_present" value="1"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="form-row"><div class="form-group"><label>Product title *</label><input type="text" id="editTitle" name="title" required maxlength="180"></div><div class="form-group"><label>Category *</label><input type="text" id="editCategory" name="category" list="trendzzCategoryOptions" required maxlength="80"></div></div>
+            <div class="form-row"><div class="form-group"><label>SKU</label><input type="text" id="editSku" name="sku" maxlength="80"></div><div class="form-group"><label>Selling price (৳) *</label><input type="number" id="editPrice" name="price" min="0.01" step="0.01" required></div><div class="form-group"><label>Regular price (৳)</label><input type="number" id="editRegularPrice" name="regular_price" min="0" step="0.01"></div></div>
+            <div class="form-row"><div class="form-group"><label>Cost price (৳)</label><input type="number" id="editCostPrice" name="cost_price" min="0" step="0.01"></div><div class="form-group"><label>Stock quantity</label><input type="number" id="editStockQty" name="stock_quantity" min="0" step="1"></div><div class="form-group"><label>Low-stock threshold</label><input type="number" id="editLowStock" name="low_stock_threshold" min="0" step="1"></div></div>
+            <div class="upload-box"><label>Upload a replacement image (optional)</label><input type="file" name="image_file" accept="image/jpeg,image/png,image/webp,image/gif" data-image-preview-input="editProductPreview"><img id="editProductPreview" class="admin-image-preview" alt="New product image preview" hidden><label>Image URL</label><input type="url" id="editImage" name="image"></div>
+            <div class="form-group"><label>Variants (comma separated)</label><input type="text" id="editVariants" name="variant_options"></div><div class="form-group"><label>Description</label><textarea id="editDesc" name="description" rows="4" maxlength="12000"></textarea></div>
+            <label class="admin-check-label"><input type="checkbox" id="editIsActive" name="is_active" checked> Published on storefront</label>
+            <div class="admin-inline-actions"><button type="submit" class="save-settings-btn">Save product changes</button><button type="button" class="admin-secondary-action" onclick="document.getElementById('editSection').hidden=true">Cancel</button></div>
+          </form>
+        </section>
+
+        <dialog id="stockAdjustDialog" class="admin-dialog">
+          <form id="stockAdjustForm" method="POST"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <div class="admin-section-heading"><div><span class="admin-eyebrow">INVENTORY CONTROL</span><h3>Adjust stock</h3><p id="stockAdjustProductName"></p></div><button type="button" class="admin-dialog-close" onclick="document.getElementById('stockAdjustDialog').close()" aria-label="Close">×</button></div>
+            <label>Adjustment type<select name="adjustment_type" required><option value="add">Add stock</option><option value="remove">Remove stock</option><option value="set">Set exact quantity</option></select></label>
+            <label>Quantity<input type="number" name="quantity" min="0" step="1" required value="1"></label>
+            <label>Reason<input type="text" name="reason" maxlength="500" placeholder="Restock, damage, correction…"></label>
+            <button class="save-settings-btn" type="submit">Save stock adjustment</button>
+          </form>
+        </dialog>
+
+        <section class="admin-section admin-panel-view" id="adminCategoriesPanel" data-admin-panel="categories">
+          <div class="admin-section-heading"><div><span class="admin-eyebrow">CATALOG STRUCTURE</span><h3>Product categories</h3><p>Manage category names used by product listings. Existing products are kept when categories are renamed or reassigned.</p></div></div>
+          <form action="/secret-admin-panel-2026/categories/add" method="POST" class="admin-inline-form"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="text" name="category" maxlength="80" required placeholder="New category name"><button class="admin-small-action" type="submit">＋ Add category</button></form>
+          <div class="table-responsive"><table class="data-table"><thead><tr><th>Category</th><th>Products</th><th>Rename</th><th>Remove / Reassign</th></tr></thead><tbody>
+            <% categories.forEach(cat => { const count=products.filter(p => String(p.category||'Uncategorized')===cat).length; %>
+              <tr><td><strong><%= cat %></strong></td><td><%= count %></td><td><form action="/secret-admin-panel-2026/categories/rename" method="POST" class="admin-inline-form"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="old_category" value="<%= cat %>"><input type="text" name="new_category" maxlength="80" required placeholder="New name"><button type="submit" class="admin-small-action">Rename</button></form></td><td><form action="/secret-admin-panel-2026/categories/reassign-delete" method="POST" class="admin-inline-form" onsubmit="return confirm('Move all products to the replacement category?')"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="category" value="<%= cat %>"><input type="text" name="replacement_category" maxlength="80" value="Uncategorized" required><button class="delete-btn" type="submit">Reassign</button></form></td></tr>
+            <% }) %>
+          </tbody></table></div>
+        </section>
+
+        <section class="admin-section admin-panel-view" id="adminCustomersPanel" data-admin-panel="customers">
+          <div class="admin-section-heading"><div><span class="admin-eyebrow">CUSTOMER RELATIONSHIPS</span><h3>Customers <span class="admin-count-pill"><%= customers.length %></span></h3><p>Customer information is grouped from order records; phone and address details stay inside the protected admin area.</p></div><button type="button" class="export-btn" onclick="exportCustomersCSV()">↓ Export customers CSV</button></div>
+          <div class="admin-table-tools"><input type="search" id="customerSearch" placeholder="Search customer name, phone or email…"><span class="admin-muted">Unique phone numbers with orders</span></div>
+          <div class="table-responsive"><table class="data-table" id="customersTable"><thead><tr><th>Customer</th><th>Phone</th><th>Email</th><th>Orders</th><th>Non-cancelled order value</th><th>Last order</th></tr></thead><tbody>
+            <% customers.forEach(c => { %><tr class="customer-row"><td><strong><%= c.name || 'Customer' %></strong></td><td><a href="tel:<%= c.phone %>"><%= c.phone %></a></td><td><%= c.email || '—' %></td><td><%= c.orderCount %></td><td>৳ <%= Number(c.totalSpend||0).toLocaleString('en-BD') %></td><td><%= c.lastOrderAt ? new Date(c.lastOrderAt).toLocaleString() : '—' %></td></tr><% }) %>
+            <% if (!customers.length) { %><tr><td colspan="6"><div class="admin-empty-state">Customer profiles will appear after the first order.</div></td></tr><% } %>
+          </tbody></table></div>
+        </section>
+
+        <section class="admin-section admin-panel-view" id="adminAnalyticsPanel" data-admin-panel="analytics">
+          <div class="admin-section-heading"><div><span class="admin-eyebrow">STORE PERFORMANCE</span><h3>Analytics & reports</h3><p>Figures are derived from current product and order records. Delivered sales are shown separately from open order value.</p></div></div>
+          <div class="stats-grid admin-analytics-grid">
+            <div class="stat-card"><span class="stat-title">Delivered revenue</span><span class="stat-num">৳ <%= Number(analytics.deliveredRevenue||0).toLocaleString('en-BD') %></span></div>
+            <div class="stat-card"><span class="stat-title">Total order records</span><span class="stat-num"><%= analytics.totalOrders||0 %></span></div>
+            <div class="stat-card"><span class="stat-title">Customers</span><span class="stat-num"><%= analytics.totalCustomers||0 %></span></div>
+            <div class="stat-card"><span class="stat-title">Inventory cost value</span><span class="stat-num">৳ <%= Number(analytics.totalInventoryCost||0).toLocaleString('en-BD') %></span></div>
+          </div>
+          <section class="admin-subpanel"><h4>Delivered sales · last 7 days</h4><div class="admin-sales-chart"><% const maxDaySales=Math.max(1,...(analytics.dailySales||[]).map(d=>Number(d.amount)||0)); (analytics.dailySales||[]).forEach(day=>{ %><div class="admin-sales-bar-group"><div class="admin-sales-bar-value">৳<%= Math.round(day.amount).toLocaleString('en-BD') %></div><div class="admin-sales-bar-track"><span style="height:<%= Math.max(2,Math.round((day.amount/maxDaySales)*100)) %>%"></span></div><small><%= new Date(day.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short'}) %></small></div><% }) %></div></section>
+          <section class="admin-subpanel"><h4>Order status breakdown</h4><div class="admin-status-breakdown"><% Object.entries(analytics.statusCounts||{}).sort((a,b)=>b[1]-a[1]).forEach(([status,count])=>{ %><div><span><%= status %></span><strong><%= count %></strong></div><% }) %><% if (!Object.keys(analytics.statusCounts||{}).length) { %><div class="admin-empty-state">No order data yet.</div><% } %></div></section>
+        </section>
+
+        <section class="admin-panel-view" id="adminHistoryPanel" data-admin-panel="history">
+          <section class="admin-section"><div class="admin-section-heading"><div><span class="admin-eyebrow">STOCK CONTROL</span><h3>Inventory movement history</h3><p>Records are added when initial stock is created, orders reserve stock, or an admin adjusts quantities. Apply the SQL migration to activate persistent history.</p></div></div>
+            <div class="table-responsive"><table class="data-table"><thead><tr><th>Date</th><th>Product</th><th>Movement</th><th>Change</th><th>Previous → New</th><th>Reason / Ref</th></tr></thead><tbody>
+              <% inventoryMovements.forEach(m=>{ %><tr><td><%= m.created_at ? new Date(m.created_at).toLocaleString() : '—' %></td><td><strong><%= m.product_title %></strong><small class="admin-cell-sub">#<%= m.product_id || 'deleted' %></small></td><td><%= m.movement_type %></td><td><strong><%= Number(m.quantity_change)>0?'+':'' %><%= m.quantity_change %></strong></td><td><%= m.previous_quantity %> → <%= m.new_quantity %></td><td><%= m.reason || '—' %> <small><%= m.reference || '' %></small></td></tr><% }) %>
+              <% if (!inventoryMovements.length) { %><tr><td colspan="6"><div class="admin-empty-state">No stock history yet. Apply the V23 migration and future changes will be logged.</div></td></tr><% } %>
+            </tbody></table></div>
+          </section>
+          <section class="admin-section"><div class="admin-section-heading"><div><span class="admin-eyebrow">SECURITY</span><h3>Administrator activity log</h3><p>Recent changes made from this admin panel.</p></div></div>
+            <div class="table-responsive"><table class="data-table"><thead><tr><th>Date</th><th>Action</th><th>Entity</th><th>Details</th><th>IP</th></tr></thead><tbody>
+              <% auditLogs.forEach(a=>{ %><tr><td><%= a.created_at ? new Date(a.created_at).toLocaleString() : '—' %></td><td><strong><%= a.action %></strong></td><td><%= a.entity_type %> <%= a.entity_id %></td><td><%= JSON.stringify(a.details||{}) %></td><td><%= a.ip_address || '—' %></td></tr><% }) %>
+              <% if (!auditLogs.length) { %><tr><td colspan="5"><div class="admin-empty-state">No audit activity has been recorded yet.</div></td></tr><% } %>
+            </tbody></table></div>
+          </section>
+        </section>
+
         <!-- Sub-admin access is intentionally disabled until role-based permissions are implemented. -->
         <!-- Master Hero Spotlight, Brand Logo, FAQ & Policies Settings -->
         <section class="admin-section admin-panel-view" id="adminSettingsPanel" data-admin-panel="settings">
             <div class="admin-section-heading"><div><span class="admin-eyebrow">CONTENT MANAGEMENT</span><h3>Storefront & policies</h3><p>Update the existing homepage, branding, delivery details and the same four FAQ entries.</p></div></div>
-            <form action="/secret-admin-panel-2026/settings/update" method="POST" enctype="multipart/form-data">
+            <form action="/secret-admin-panel-2026/settings/update" method="POST" enctype="multipart/form-data"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 
                 <details class="admin-settings-group" open><summary>01 · Hero banner & spotlight card</summary>
                 <div class="form-row">
@@ -359,8 +422,16 @@
                     <div class="form-group"><label>🚚 Inside Dhaka (৳)</label><input type="number" name="delivery_inside_dhaka" value="<%= settings.delivery_inside_dhaka || '70' %>"></div>
                     <div class="form-group"><label>🚚 Outside Dhaka (৳)</label><input type="number" name="delivery_outside_dhaka" value="<%= settings.delivery_outside_dhaka || '130' %>"></div>
                     <div class="form-group"><label>🎟️ Promo Code</label><input type="text" name="promo_code" value="<%= settings.promo_code || 'TREND50' %>"></div>
-                    <div class="form-group"><label>💰 Promo Discount (৳)</label><input type="number" name="promo_discount" value="<%= settings.promo_discount || '50' %>"></div>
+                    <div class="form-group"><label>💰 Promo Discount (৳)</label><input type="number" name="promo_discount" value="<%= settings.promo_discount || '50' %>" min="0"></div>
+                    <div class="form-group"><label>Low-stock alert threshold</label><input type="number" name="low_stock_threshold" value="<%= settings.low_stock_threshold || '5' %>" min="0" step="1"></div>
+                    <div class="form-group"><label>Courier partner display names</label><input type="text" name="courier_partners" value="<%= settings.courier_partners || 'SteadFast,Pathao,RedX' %>" placeholder="SteadFast,Pathao,RedX"></div>
                 </div>
+                <p class="admin-muted">Courier names configure storefront options only. Live courier booking requires provider API credentials and a separate verified integration.</p>
+                <div class="form-row">
+                    <div class="form-group"><label>AI support widget enabled</label><select name="ai_enabled"><option value="false" <%= settings.ai_enabled !== 'true' ? 'selected' : '' %>>Disabled</option><option value="true" <%= settings.ai_enabled === 'true' ? 'selected' : '' %>>Enabled (requires OPENAI_API_KEY and OPENAI_MODEL)</option></select><small class="admin-muted">AI credentials status: <strong><%= assistantConfigured ? 'Configured in server environment' : 'Not configured in Render yet' %></strong></small></div>
+                    <div class="form-group"><label>AI welcome message</label><input type="text" name="ai_welcome_message" value="<%= settings.ai_welcome_message || '' %>" maxlength="500"></div>
+                </div>
+                <div class="form-group"><label>AI handoff message</label><input type="text" name="ai_handoff_message" value="<%= settings.ai_handoff_message || '' %>" maxlength="500"></div>
 
                 </details><details class="admin-settings-group"><summary>05 · Existing FAQ questions & answers</summary>
                 <div class="form-row">
@@ -392,6 +463,7 @@
         <section class="admin-section password-box admin-panel-view" id="adminSecurityPanel" data-admin-panel="security">
             <h3>🔐 Admin Password</h3>
             <p>For security, set or rotate <code>ADMIN_PASSWORD</code> in your Render environment variables, then redeploy. Do not store administrator passwords in the database.</p>
+            <div class="admin-security-grid"><div><strong>Session protection</strong><span>Signed, HTTP-only session cookie. HTTPS secure mode is enabled in production.</span></div><div><strong>Form protection</strong><span>Admin POST actions require a session-bound CSRF token.</span></div><div><strong>Login protection</strong><span>Admin login is rate-limited. Use a unique 16+ character password.</span></div><div><strong>Secrets</strong><span>Keep Supabase service-role key, session secret, AI and provider API keys in Render Environment only.</span></div><div><strong>Data safety</strong><span>Back up Supabase before schema updates. The V23 migration is additive and does not delete orders or products.</span></div></div>
         </section>
     </main>
       </div>
@@ -405,9 +477,13 @@
         const adminViewMeta = {
             overview: { title: 'Overview', heading: 'Store overview', description: 'A live view of your orders, sales and product inventory.' },
             orders: { title: 'Orders', heading: 'Customer orders', description: 'Review customer details, manage fulfilment and update delivery status.' },
-            products: { title: 'Products & Stock', heading: 'Products & inventory', description: 'Add products, update pricing and manage available stock.' },
+            products: { title: 'Products & Stock', heading: 'Products & inventory', description: 'Manage products, pricing, variants, stock and CSV operations.' },
+            categories: { title: 'Categories', heading: 'Product categories', description: 'Organise category names and safely reassign products.' },
+            customers: { title: 'Customers', heading: 'Customer directory', description: 'Review customer order history summaries and export customer records.' },
+            analytics: { title: 'Analytics', heading: 'Store performance', description: 'Review delivered revenue, order trends and inventory value.' },
+            history: { title: 'Stock & Audit History', heading: 'Operational history', description: 'Review stock movements and administrator actions.' },
             settings: { title: 'Storefront & Policies', heading: 'Storefront settings', description: 'Manage homepage content, brand identity, delivery details and existing FAQ entries.' },
-            security: { title: 'Security', heading: 'Admin security', description: 'Keep administrator access protected through your hosting environment settings.' }
+            security: { title: 'Security', heading: 'Admin security', description: 'Review session protection and manage deployment secrets safely.' }
         };
         function showAdminView(view) {
             const selected = adminViewMeta[view] ? view : 'overview';
@@ -423,6 +499,8 @@
             document.getElementById('adminHeaderTitle').textContent = meta.title;
             document.getElementById('adminPageTitle').textContent = meta.heading;
             document.getElementById('adminPageDescription').textContent = meta.description;
+            const editSection = document.getElementById('editSection');
+            if (editSection && selected !== 'products') editSection.hidden = true;
             document.getElementById('adminSidebar').classList.remove('is-open');
             window.scrollTo({ top: 0, behavior: 'smooth' });
             history.replaceState(null, '', `#${selected}`);
@@ -442,13 +520,6 @@
                 row.style.display = (!query || row.dataset.searchMatch === 'yes') && statusMatch ? '' : 'none';
             });
         });
-        document.getElementById('inventorySearch')?.addEventListener('input', function () {
-            const query = this.value.trim().toLowerCase();
-            document.querySelectorAll('.inventory-row').forEach(row => {
-                row.style.display = row.dataset.inventorySearch.includes(query) ? '' : 'none';
-            });
-        });
-
         function toggleSelectAll(master) {
             const checkboxes = document.querySelectorAll('.order-chk');
             checkboxes.forEach(chk => {
@@ -476,7 +547,7 @@
         function openEditProductById(id) {
             const p = allProductsMap[id];
             if (!p) return alert('Product data not found!');
-            document.getElementById('editSection').style.display = 'block';
+            document.getElementById('editSection').hidden = false;
             document.getElementById('editProductForm').action = '/secret-admin-panel-2026/products/edit/' + p.id;
             document.getElementById('editProductIdTitle').innerText = '#' + p.id + ' - ' + (p.title || '');
             document.getElementById('editTitle').value = p.title || '';
@@ -488,14 +559,86 @@
             document.getElementById('editImage').value = p.image || '';
             document.getElementById('editVariants').value = p.variant_options || '';
             document.getElementById('editDesc').value = p.description || '';
+            document.getElementById('editSku').value = p.sku || '';
+            document.getElementById('editLowStock').value = p.low_stock_threshold ?? 5;
+            document.getElementById('editIsActive').checked = p.is_active !== false;
+            if (p.image) { document.getElementById('editProductPreview').src = p.image; document.getElementById('editProductPreview').hidden = false; }
+            document.getElementById('editSection').hidden = false;
             document.getElementById('editSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
+        function openStockAdjustModal(id) {
+            const product = allProductsMap[id];
+            if (!product) return;
+            document.getElementById('stockAdjustForm').action = '/secret-admin-panel-2026/inventory/adjust/' + encodeURIComponent(id);
+            document.getElementById('stockAdjustProductName').textContent = (product.title || 'Product') + ' · Current stock: ' + (product.stock_known ? product.stock_quantity : 'Not set');
+            document.getElementById('stockAdjustDialog').showModal();
+        }
+
+        function updateSelectedProductsCount() {
+            const count = document.querySelectorAll('.product-row-check:checked').length;
+            const label = document.getElementById('selectedProductCount');
+            if (label) label.textContent = count + ' selected';
+        }
+        document.getElementById('selectAllProducts')?.addEventListener('change', function () {
+            document.querySelectorAll('.product-row-check').forEach(box => { if (box.closest('tr').style.display !== 'none') box.checked = this.checked; });
+            updateSelectedProductsCount();
+        });
+        document.querySelectorAll('.product-row-check').forEach(box => box.addEventListener('change', updateSelectedProductsCount));
+        document.getElementById('productBulkAction')?.addEventListener('change', function () {
+            document.getElementById('bulkStockAmount').hidden = !['set_stock','add_stock','remove_stock'].includes(this.value);
+            document.getElementById('bulkCategory').hidden = this.value !== 'set_category';
+        });
+        document.getElementById('productBulkForm')?.addEventListener('submit', function (event) {
+            const count = document.querySelectorAll('.product-row-check:checked').length;
+            if (!count) { event.preventDefault(); alert('Select at least one product.'); return; }
+            if (this.bulk_action.value === 'delete' && !confirm('Delete ' + count + ' selected product(s)? This cannot be undone.')) event.preventDefault();
+        });
+        function applyInventoryFilters() {
+            const query = (document.getElementById('inventorySearch')?.value || '').trim().toLowerCase();
+            const category = (document.getElementById('inventoryCategoryFilter')?.value || '').toLowerCase();
+            const rows = [...document.querySelectorAll('.inventory-row')];
+            rows.forEach(row => {
+                const matchesQuery = !query || [row.dataset.title,row.dataset.sku,row.dataset.category].join(' ').includes(query);
+                const matchesCategory = !category || row.dataset.category === category;
+                row.style.display = matchesQuery && matchesCategory ? '' : 'none';
+            });
+            const sort = document.getElementById('inventorySort')?.value || 'newest';
+            const tbody = document.getElementById('productsTableBody');
+            rows.sort((a,b) => {
+                if (sort === 'title') return a.dataset.title.localeCompare(b.dataset.title);
+                if (sort === 'price-low') return Number(a.dataset.price)-Number(b.dataset.price);
+                if (sort === 'price-high') return Number(b.dataset.price)-Number(a.dataset.price);
+                if (sort === 'stock-low') return Number(a.dataset.stock)-Number(b.dataset.stock);
+                return new Date(b.dataset.created || 0)-new Date(a.dataset.created || 0);
+            }).forEach(row => tbody.appendChild(row));
+        }
+        ['inventorySearch','inventoryCategoryFilter','inventorySort'].forEach(id => document.getElementById(id)?.addEventListener(id==='inventorySearch'?'input':'change', applyInventoryFilters));
+        document.getElementById('customerSearch')?.addEventListener('input', function () {
+            const query=this.value.trim().toLowerCase();
+            document.querySelectorAll('.customer-row').forEach(row => row.style.display=row.innerText.toLowerCase().includes(query)?'':'none');
+        });
+        document.querySelectorAll('[data-image-preview-input]').forEach(input => input.addEventListener('change', function () {
+            const target=document.getElementById(this.dataset.imagePreviewInput); const file=this.files&&this.files[0];
+            if (!target || !file) { if(target) target.hidden=true; return; }
+            if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type) || file.size>5*1024*1024) { alert('Choose a JPG, PNG, WebP or GIF image under 5 MB.'); this.value=''; target.hidden=true; return; }
+            target.src=URL.createObjectURL(file); target.hidden=false;
+        }));
+        function exportCustomersCSV() {
+            const table=document.getElementById('customersTable'); if(!table)return;
+            const rows=[...table.querySelectorAll('tr')].map(row=>[...row.querySelectorAll('th,td')].map(cell=>{let v=cell.innerText.replace(/[\r\n]+/g,' ');if(/^[=+@\-\t\r]/.test(v))v='\''+v;return '"'+v.replace(/"/g,'""')+'"';}).join(','));
+            const link=document.createElement('a'); link.download='trendzznow-customers.csv'; link.href=URL.createObjectURL(new Blob(['\uFEFF'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'})); link.click(); URL.revokeObjectURL(link.href);
+        }
+
+        function escapePrintText(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+        }
         function printShippingLabel(id) {
             const d = allOrdersMap[id];
             if (!d) return;
             const win = window.open('', '_blank', 'width=500,height=600');
-            win.document.write(`<html><body style="font-family:Arial;padding:25px;border:3px solid #000;"><h2 style="text-align:center;margin-top:0;">SHIPPING LABEL</h2><hr><p><strong>Order ID:</strong> #${d.id}</p><p><strong>Customer Name:</strong> ${d.customer_name}</p><p><strong>Phone:</strong> ${d.phone}</p><p><strong>Delivery Address:</strong> ${d.address}</p><hr><p><strong>Product:</strong> ${d.product_title}</p><h3>COD Amount: ৳${d.price}</h3><p style="text-align:center;font-size:12px;margin-top:30px;">TrendzzNow Courier Dispatch Label</p></div><script>window.print();<\/script></body></html>`);
+            if (!win) return alert('Allow pop-ups to print this label.');
+            win.document.write(`<html><body style="font-family:Arial;padding:25px;border:3px solid #000;"><h2 style="text-align:center;margin-top:0;">SHIPPING LABEL</h2><hr><p><strong>Order ID:</strong> #${escapePrintText(d.id)}</p><p><strong>Customer Name:</strong> ${escapePrintText(d.customer_name)}</p><p><strong>Phone:</strong> ${escapePrintText(d.phone)}</p><p><strong>Delivery Address:</strong> ${escapePrintText(d.address)}</p><hr><p><strong>Product:</strong> ${escapePrintText(d.product_title)}</p><h3>COD Amount: ৳${escapePrintText(d.price)}</h3><p style="text-align:center;font-size:12px;margin-top:30px;">TrendzzNow Courier Dispatch Label</p><script>window.print();<\/script></body></html>`);
             win.document.close();
         }
 
@@ -503,7 +646,8 @@
             const d = allOrdersMap[id];
             if (!d) return;
             const win = window.open('', '_blank', 'width=650,height=600');
-            win.document.write(`<html><body style="font-family:Arial;padding:20px;"><div style="border:2px dashed #222;padding:20px;"><h2>TrendzzNow Invoice #${d.id}</h2><p><strong>Name:</strong> ${d.customer_name}</p><p><strong>Phone:</strong> ${d.phone}</p><p><strong>Address:</strong> ${d.address}</p><p><strong>Product:</strong> ${d.product_title}</p><h3>Total COD: ৳${d.price}</h3></div><script>window.print();<\/script></body></html>`);
+            if (!win) return alert('Allow pop-ups to print this invoice.');
+            win.document.write(`<html><body style="font-family:Arial;padding:20px;"><div style="border:2px dashed #222;padding:20px;"><h2>TrendzzNow Invoice #${escapePrintText(d.id)}</h2><p><strong>Name:</strong> ${escapePrintText(d.customer_name)}</p><p><strong>Phone:</strong> ${escapePrintText(d.phone)}</p><p><strong>Address:</strong> ${escapePrintText(d.address)}</p><p><strong>Product:</strong> ${escapePrintText(d.product_title)}</p><h3>Total COD: ৳${escapePrintText(d.price)}</h3></div><script>window.print();<\/script></body></html>`);
             win.document.close();
         }
 
@@ -518,7 +662,11 @@
             let csv = [];
             for (let i = 0; i < table.rows.length; i++) {
                 let row = [], cols = table.rows[i].querySelectorAll('td, th');
-                for (let j = 0; j < cols.length - 1; j++) row.push('"' + cols[j].innerText.replace(/(\r\n|\n|\r)/gm, " ") + '"');
+                for (let j = 0; j < cols.length - 1; j++) {
+                    let value = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, ' ');
+                    if (/^[=+@\-\t\r]/.test(value)) value = "'" + value;
+                    row.push('"' + value.replace(/"/g, '""') + '"');
+                }
                 csv.push(row.join(','));
             }
             let link = document.createElement('a');

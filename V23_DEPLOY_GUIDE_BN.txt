@@ -1,0 +1,59 @@
+TRENDZZNOW V23.1 — UPDATE GUIDE (EXISTING GITHUB + RENDER)
+
+IMPORTANT: First back up your Supabase project. Do not deploy new server code before applying the V23 SQL migration because order status changes and stock restoration call the new database functions.
+
+STEP 1 — BACKUP
+1. Open Supabase Dashboard.
+2. Export/backup your current database before changing schema.
+3. Keep the backup privately; do not add it to GitHub.
+
+STEP 2 — APPLY THE DATABASE MIGRATION
+1. Open Supabase → SQL Editor.
+2. Open this ZIP's database/supabase-setup.sql.
+3. Review it, then run the full script against your existing TrendzzNow database.
+4. Confirm it finishes successfully.
+5. The V23 changes use ADD COLUMN IF NOT EXISTS, CREATE TABLE IF NOT EXISTS, CREATE OR REPLACE FUNCTION, and CREATE INDEX IF NOT EXISTS. They do not DROP or TRUNCATE existing product/order/settings tables.
+6. The new database functions are granted only to the Supabase service_role. Keep SUPABASE_KEY server-side in Render.
+
+STEP 3 — REPLACE FILES IN YOUR EXISTING LOCAL GITHUB REPOSITORY
+1. Download and extract TRENDZZNOW_V23_COMPLETE_ADMIN_STOREFRONT.zip.
+2. Open the TRENDZZNOW_GITHUB_READY folder inside the extracted package.
+3. Copy the CONTENTS of that folder into your existing trendzznow repository root, replacing matching files.
+4. Confirm package.json, server/, views/, public/, database/, render.yaml and README.md are at repository root (not inside another nested folder).
+5. Do not copy .env, node_modules, database backups, or customer data.
+
+STEP 4 — RUN THE CHECKS
+Open PowerShell/CMD in the repository root and run:
+  npm install
+  npm test
+If npm test reports an error, do not push until the error is understood and fixed.
+
+STEP 5 — COMMIT AND PUSH
+GitHub Desktop:
+1. Review changed files.
+2. Summary: TrendzzNow V23 complete storefront and admin update
+3. Commit to main.
+4. Push origin.
+
+STEP 6 — RENDER
+1. Render will deploy the new GitHub commit automatically if Auto-Deploy is enabled.
+2. Keep existing environment variables: SUPABASE_URL, SUPABASE_KEY, ADMIN_PASSWORD, SESSION_SECRET, APP_BASE_URL.
+3. No new required secret is needed for the basic storefront/admin functions.
+4. Optional AI: set OPENAI_API_KEY and OPENAI_MODEL (a model enabled for your OpenAI API project), then redeploy and enable AI in Admin → Storefront & Policies.
+
+STEP 7 — LIVE SMOKE TEST
+- Open https://www.trendzznow.com/ and test desktop + mobile.
+- Login at https://www.trendzznow.com/secret-admin-panel-2026
+- Add, edit, publish/unpublish and delete a test product.
+- Add a test category and test CSV export/import using a small test file.
+- Place a controlled test COD order and verify the database order and stock quantity.
+- Cancel a Pending/Confirmed test order and verify stock returns once.
+- Try to reactivate a cancelled test order after reducing stock below the needed quantity; it should refuse.
+- Verify a dispatched/delivered/returned order cannot be deleted.
+- Test order tracking with both exact order ID and checkout phone.
+- Remove test customer/order/product data carefully after testing.
+
+NOT LIVE WITHOUT PROVIDER ACCESS/CREDENTIALS:
+- Automatic bKash/Nagad/SSLCommerz payment collection and webhook verification.
+- Courier API booking and live tracking.
+- Multi-admin roles, customer accounts, wishlist/reviews, multi-item cart, automated product URL import.

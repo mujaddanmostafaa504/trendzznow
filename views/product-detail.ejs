@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= product.title %> | <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></title>
-    <link rel="canonical" href="https://trendzznow.com/product/<%= product.id %>">
+    <link rel="canonical" href="https://www.trendzznow.com/product/<%= product.id %>">
     <meta property="og:title" content="<%= product.title %> - ৳<%= product.price %> | TrendzzNow">
     <meta property="og:description" content="<%= product.description || 'Stay on trend. Stay in style.' %>">
-    <meta property="og:image" content="<%= product.image || settings.logo_light || 'https://trendzznow.com/images/banner.jpg' %>">
-    <meta property="og:url" content="https://trendzznow.com/product/<%= product.id %>">
+    <meta property="og:image" content="<%= product.image || settings.logo_light || 'https://www.trendzznow.com/images/banner.jpg' %>">
+    <meta property="og:url" content="https://www.trendzznow.com/product/<%= product.id %>">
     <meta property="og:type" content="product">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/upgrade.css">
@@ -197,6 +197,18 @@
             }
         }
     </script>
+    <% if (assistantEnabled) { %>
+      <link rel="stylesheet" href="/assistant.css">
+      <div id="tnAssistant" class="tn-assistant-root" data-welcome="<%= settings.ai_welcome_message || 'Hello! How can I help?' %>" data-handoff="<%= settings.ai_handoff_message || 'Please contact our support team.' %>" data-whatsapp="<%= settings.whatsapp_number || '' %>">
+        <section class="tn-assistant-panel" data-assistant-panel hidden aria-label="TrendzzNow AI customer support">
+          <header class="tn-assistant-head"><span><strong>TrendzzNow Assistant</strong><small>Product and store support · AI assistant</small></span><button type="button" class="tn-assistant-close" data-assistant-close aria-label="Close chat">×</button></header>
+          <div class="tn-assistant-messages" data-assistant-messages aria-live="polite"></div>
+          <form class="tn-assistant-form"><input name="message" type="text" maxlength="1200" autocomplete="off" placeholder="Ask about products or delivery…" required><button type="submit">Send</button></form>
+        </section>
+        <button type="button" class="tn-assistant-toggle" data-assistant-toggle aria-label="Open AI customer support" aria-expanded="false">✦</button>
+      </div>
+      <script src="/assistant.js" defer></script>
+    <% } %>
     <script src="/upgrade.js" defer></script>
 </body>
 </html>

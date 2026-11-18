@@ -1,12 +1,12 @@
 {
   "name": "trendzznow",
-  "version": "22.0.0",
-  "description": "TrendzzNow v22 storefront and admin UX upgrade, retaining existing Express/EJS/Supabase application.",
+  "version": "23.1.0",
+  "description": "TrendzzNow storefront, secure admin operations, stock controls and optional AI support update.",
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
-    "check": "node --check server/index.js && node --check server/notifications.js && node --check server.js && node --check public/upgrade.js && node --check public/admin-upgrade.js",
-    "test": "npm run check"
+    "check": "node --check server/index.js && node --check server/notifications.js && node --check server.js && node --check public/upgrade.js && node --check public/admin-upgrade.js && node --check public/assistant.js && node --check scripts/check-templates.js",
+    "test": "npm run check && node scripts/check-templates.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.8",

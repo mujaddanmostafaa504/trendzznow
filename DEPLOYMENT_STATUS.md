@@ -1,32 +1,35 @@
-# Deployment status
+# TrendzzNow V23.1 deployment status
 
-- [x] Existing v21 files retained as the base.
-- [x] Git ignore and environment template added.
-- [x] Render Blueprint added.
-- [x] Supabase schema made non-destructive and RLS enabled.
-- [x] Default admin password removed.
-- [x] Environment-based session signing secret required.
-- [x] Login/order/tracking rate limits added.
-- [x] Server-side order price, delivery and promo validation added.
-- [x] Exact order ID + phone required for order tracking.
-- [x] Existing project audit, checklist and master prompt included.
-- [ ] Real payment gateway configured and tested.
-- [ ] Courier API integration configured and tested.
-- [ ] AI customer assistant implemented and tested.
-- [ ] Role-based admin permissions and audit logs implemented.
-- [ ] End-to-end staging test completed with the owner's Supabase project and credentials.
+## Implemented in this source package
+- Customer storefront and product details page retain the existing FAQ and footer structure.
+- Admin workspace includes Overview, Orders, Products & Stock, Categories, Customers, Analytics, Stock & Audit History, Storefront & Policies, and Security.
+- Product fields include SKU, cost/selling/regular price, variants, stock, low-stock threshold and publish state.
+- Product search, category filtering, sorting, CSV import/export and bulk actions are implemented.
+- Manual stock adjustment and movement history are implemented.
+- Customer summaries are derived from existing order records; no separate customer table is required.
+- Admin activity records are stored in `admin_audit_logs`.
+- New orders are marked as stock-reserved. Database transactions return reserved stock when Pending/Confirmed orders are cancelled before dispatch, prevent reactivation without sufficient stock, and restore stock when eligible pending orders are deleted. Dispatched/delivered/returned records cannot be deleted. Legacy orders are not auto-restocked because their reservation history is unknown.
+- Admin POST requests and logout use session-bound CSRF validation, including multipart forms; admin responses are no-store/noindex.
+- Optional customer AI chat is grounded in the current catalogue, FAQ and store policies using OpenAI Responses API. The assistant cannot access orders or perform transactions.
 
-This package can be pushed to GitHub. A successful live deployment still requires valid Supabase and Render environment configuration.
+## Required before deploy
+1. Back up the Supabase project.
+2. Run the updated `database/supabase-setup.sql` migration in Supabase SQL Editor.
+3. Push the V23 folder contents to the existing GitHub repository root.
+4. Confirm existing Render variables remain present: `SUPABASE_URL`, `SUPABASE_KEY`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `APP_BASE_URL`.
+5. Optional AI: add both `OPENAI_API_KEY` and `OPENAI_MODEL` (choose a model enabled for your API project), redeploy, then enable the assistant in Admin settings.
 
+## Not implemented as live integrations
+- bKash/Nagad/other gateway API collection and verified payment callbacks.
+- SteadFast/Pathao/RedX API booking and live tracking.
+- Multi-admin role-based accounts.
+- Multi-item cart, customer accounts, wishlists and reviews.
+- Automated third-party product URL importer.
 
-## v22 changes
-- Storefront UX: responsive product grid, combined filters, sorting, share/copy product links, honest stock state (no hard-coded rating/viewer claims).
-- Admin UX: responsive sidebar navigation and separated views for existing live modules.
-- Existing backend routes, database tables and FAQ entries are preserved.
-- Re-run local checks and deploy through the existing Render service after pushing this update.
+These require provider credentials, source-specific integration work or additional customer-facing flows. They are not represented as active features in this update.
 
-
-## v22.0.0 UI implementation status
-Implemented: storefront responsive refinements, combined category/search filtering, sorting, product share, social URL settings/footer links, removal of placeholder ratings/viewer counts, responsive admin navigation/views, order/inventory search, upload preview and UI validation. Existing FAQ entries, route paths and database schema are preserved.
-
-Not implemented by this UI update: AI chatbot, live online payment processing, courier APIs, product URL import automation, customer accounts, multi-item cart, admin roles, admin audit log and end-to-end live provider tests.
+## V23.1 refinements
+- Product deletion is blocked while Pending/Confirmed orders still reference that product.
+- Duplicate SKU rows are skipped during CSV import.
+- Admin sessions are invalidated after the admin password or session secret is rotated.
+- Automated `npm test` checks JavaScript syntax, template smoke rendering, storefront FAQ/admin-route conditions and non-destructive SQL.

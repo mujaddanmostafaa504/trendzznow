@@ -1,4 +1,4 @@
-TRENDZZNOW — GITHUB PUSH GUIDE (WINDOWS)
+TRENDZZNOW V23.1 — GITHUB PUSH GUIDE (WINDOWS)
 
 1) ZIP extract করুন। Extract করা folder খুললে package.json, server, views, public, database, render.yaml দেখতে হবে।
 2) GitHub Desktop খুলুন।
@@ -6,14 +6,14 @@ TRENDZZNOW — GITHUB PUSH GUIDE (WINDOWS)
 4) Extract করা TRENDZZNOW_GITHUB_READY folder নির্বাচন করুন।
 5) যদি repository না থাকে, "create a repository" / "publish repository" option ব্যবহার করুন।
 6) Repository public করার আগে নিশ্চিত হন যে .env বা কোনো secret file নেই। .gitignore .env file বাদ দেয়।
-7) Commit message দিন: Prepare TrendzzNow for Render deployment
+7) Commit message দিন: Upgrade TrendzzNow storefront and admin to V23.1
 8) Commit to main এবং Publish repository / Push origin চাপুন।
 
 COMMAND LINE OPTION:
 
   git init
   git add .
-  git commit -m "Prepare TrendzzNow for Render deployment"
+  git commit -m "Upgrade TrendzzNow storefront and admin to V23.1"
   git branch -M main
   git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
   git push -u origin main
