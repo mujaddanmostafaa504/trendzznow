@@ -838,6 +838,17 @@ function readProductPayload(body, existing = {}) {
   };
 }
 
+// Compatibility GET routes: product creation/editing are POST/inline actions.
+ // Prevent direct browser navigation to these paths from returning "Cannot GET".
+app.get('/secret-admin-panel-2026/products/add', (req, res) => {
+  if (!req.session || !req.session.isAdmin) return res.redirect('/secret-admin-panel-2026');
+  return res.redirect('/secret-admin-panel-2026/dashboard#products');
+});
+app.get('/secret-admin-panel-2026/products/edit/:id', (req, res) => {
+  if (!req.session || !req.session.isAdmin) return res.redirect('/secret-admin-panel-2026');
+  return res.redirect('/secret-admin-panel-2026/dashboard#products');
+});
+
 app.post('/secret-admin-panel-2026/products/add', upload.single('image_file'), verifyAdminCsrf, async (req, res) => {
   if (!req.session || !req.session.isAdmin) return res.status(401).send('Unauthorized');
   try {
