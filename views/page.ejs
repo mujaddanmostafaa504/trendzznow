@@ -1,0 +1,11 @@
+<%- include('partials/site-top', { settings: settings, title: title }) %>
+    <main class="container" style="max-width:820px; padding:36px 16px 56px;">
+        <h1 style="color:#1F1B5C; margin:0 0 18px;"><%= title %></h1>
+        <div style="background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:22px; line-height:1.75; color:#334155;">
+            <% paragraphs.forEach(function (p) { %>
+                <p style="margin:0 0 12px;"><%= p %></p>
+            <% }) %>
+        </div>
+        <p style="margin-top:18px;"><a href="/">← Continue shopping</a></p>
+    </main>
+<%- include('partials/site-bottom', { settings: settings }) %>

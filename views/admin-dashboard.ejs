@@ -3,642 +3,1282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Admin Dashboard - TrendzzNow</title>
+    <title>TrendzzNow Enterprise Admin Suite</title>
     <link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="/upgrade.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        .action-btn-group { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
-        .print-btn { background-color: #0984e3; color: #fff; border: none; padding: 5px 9px; border-radius: 4px; cursor: pointer; font-size: 11.5px; font-weight: 600; }
-        .copy-btn { background-color: #00b894; color: #fff; border: none; padding: 5px 9px; border-radius: 4px; cursor: pointer; font-size: 11.5px; font-weight: 600; }
-        .edit-btn { background-color: #fdcb6e; color: #222; border: none; padding: 5px 9px; border-radius: 4px; cursor: pointer; font-size: 11.5px; font-weight: 600; }
-        .export-btn { background-color: #6c5ce7; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
-        .upload-box { background: #f8f9fc; border: 2px dashed #b2bec3; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
-        .upload-box label { color: #1F1B5C; font-weight: 700; }
-        .badge-low-stock { background: #ff7675; color: #fff; padding: 2px 7px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-left: 6px; }
-        .tab-bar { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; flex-wrap: wrap; }
-        .tab-btn { background: #e2e8f0; color: #333; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; }
-        .tab-btn.active { background: #1F1B5C; color: #fff; }
-    .admin-logout-form{margin:0}.admin-logout-form .logout-btn{cursor:pointer;border:0;font:inherit}
-</style>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="admin-body admin-upgraded">
-    <div class="admin-app-shell">
-      <aside class="admin-sidebar" id="adminSidebar">
-        <a class="admin-sidebar-brand" href="/secret-admin-panel-2026/dashboard" aria-label="TrendzzNow dashboard">
-          <span class="admin-brand-mark">T</span><span><strong><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></strong><small>STORE MANAGEMENT</small></span>
-        </a>
-        <div class="admin-sidebar-label">WORKSPACE</div>
-        <nav class="admin-side-nav" aria-label="Admin navigation">
-          <button type="button" class="admin-nav-item active" data-admin-view="overview"><span>▦</span>Overview</button>
-          <button type="button" class="admin-nav-item" data-admin-view="orders"><span>▤</span>Orders <em><%= orders.length %></em></button>
-          <button type="button" class="admin-nav-item" data-admin-view="products"><span>▣</span>Products & Stock <em><%= products.length %></em></button>
-          <button type="button" class="admin-nav-item" data-admin-view="categories"><span>▥</span>Categories <em><%= categories.length %></em></button>
-          <button type="button" class="admin-nav-item" data-admin-view="customers"><span>♙</span>Customers <em><%= customers.length %></em></button>
-          <button type="button" class="admin-nav-item" data-admin-view="analytics"><span>◫</span>Analytics</button>
-          <button type="button" class="admin-nav-item" data-admin-view="history"><span>◷</span>Stock & Audit History</button>
-          <button type="button" class="admin-nav-item" data-admin-view="settings"><span>⚙</span>Storefront & Policies</button>
-          <button type="button" class="admin-nav-item" data-admin-view="security"><span>♧</span>Security</button>
-        </nav>
-        <div class="admin-sidebar-bottom"><span class="admin-online-dot"></span> Store control panel <small>Private administrator area</small></div>
-      </aside>
-      <div class="admin-main-area">
-    <header class="admin-header">
-        <div class="admin-brand">
-            <button type="button" class="admin-mobile-menu" id="adminMobileMenu" aria-label="Open admin navigation">☰</button>
-            <div><h2 id="adminHeaderTitle">Overview</h2><span class="admin-header-subtitle">Manage your store operations</span></div>
+<body class="saas-admin-body">
+    <div id="unsavedBanner" class="unsaved-warning-bar" style="display:none;">
+        <span>⚠️ You have unsaved changes in this section.</span>
+        <div>
+            <button type="button" onclick="discardUnsavedChanges()" class="btn-outline-sm">Reset / Discard</button>
         </div>
-        <div class="admin-header-actions">
-            <a href="/" target="_blank" class="view-site-btn">🌐 View Website</a>
-            <form action="/secret-admin-panel-2026/logout" method="POST" class="admin-logout-form"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" class="logout-btn">Logout</button></form>
-        </div>
-    </header>
+    </div>
 
-    <main class="admin-container">
-        <div class="admin-page-intro">
-          <div><span class="admin-eyebrow">TRENDZZNOW CONTROL CENTER</span><h1 id="adminPageTitle">Store overview</h1><p id="adminPageDescription">A live view of your orders, sales and product inventory.</p></div>
-          <div class="admin-intro-actions"><a href="/#products" target="_blank" rel="noopener" class="admin-secondary-action">View storefront ↗</a><button type="button" class="admin-primary-action" data-admin-jump="products">＋ Add product</button></div>
-        </div>
-        <% if (msg) { %>
-            <div class="success-banner" style="<%= msg.startsWith('Error') || msg.startsWith('Update Error') ? 'background:#fde8ec;color:#b71540;' : '' %>">
-                <span><%= msg.startsWith('Error') || msg.startsWith('Update Error') ? '⚠️' : '✅' %> <%= msg %></span>
-                <button onclick="this.parentElement.style.display='none'" style="background:none;border:none;font-weight:bold;cursor:pointer;">&times;</button>
-            </div>
-        <% } %>
-
-        <!-- Advanced Analytics Cards -->
-        <div class="stats-grid admin-panel-view" id="adminOverviewPanel" data-admin-panel="overview">
-            <div class="stat-card">
-                <span class="stat-title">Open + delivered order value</span>
-                <span class="stat-num" style="color:#00b894;">৳ <%= Number(analytics.totalRevenue||0).toLocaleString('en-BD') %></span>
-                <small style="color:#666; font-size:11.5px;">Delivered revenue: <strong>৳ <%= Number(analytics.deliveredRevenue||0).toLocaleString('en-BD') %></strong></small>
-            </div>
-            <div class="stat-card">
-                <span class="stat-title">Pending Orders</span>
-                <span class="stat-num" style="color:#e17055;"><%= analytics.pendingCount %> <small style="font-size:13px; color:#666;">(Total: <%= orders.length %>)</small></span>
-                <small style="color:#0984e3;">Confirmed/Shipped: <%= analytics.confirmedCount %></small>
-            </div>
-            <div class="stat-card">
-                <span class="stat-title">Successful Deliveries</span>
-                <span class="stat-num" style="color:#00b894;"><%= analytics.deliveredCount %></span>
-                <small style="color:#d63031;">Returns/Cancelled: <%= analytics.returnCount %></small>
-            </div>
-            <div class="stat-card">
-                <span class="stat-title">Active Inventory</span>
-                <span class="stat-num" style="color:#1F1B5C;"><%= products.length %> Items</span>
-                <small style="color:#666;">WhatsApp Hotline: <%= settings.whatsapp_number || '01731763504' %></small>
-            </div>
-        </div>
-
-        <div class="admin-overview-lower admin-panel-view" data-admin-panel="overview">
-          <section class="admin-section overview-summary-card">
-            <div class="admin-section-heading"><div><span class="admin-eyebrow">LATEST ACTIVITY</span><h3>Recent orders</h3><p>The newest orders recorded in your store.</p></div><button type="button" class="admin-text-action" data-admin-jump="orders">View all orders →</button></div>
-            <% if (orders.length) { %>
-              <div class="overview-order-list">
-                <% orders.slice(0, 5).forEach(o => { %>
-                  <div class="overview-order-row"><span class="overview-order-id">#<%= o.id %></span><span class="overview-order-customer"><strong><%= o.customer_name %></strong><small><%= o.product_title %></small></span><span class="overview-order-amount">৳ <%= o.price %></span><span class="overview-status"><%= o.status %></span></div>
-                <% }) %>
-              </div>
-            <% } else { %><div class="admin-empty-state">No customer orders have been recorded yet.</div><% } %>
-          </section>
-          <section class="admin-section overview-summary-card">
-            <div class="admin-section-heading"><div><span class="admin-eyebrow">STOCK MONITOR</span><h3>Low-stock products</h3><p>Items with five or fewer units recorded.</p></div><button type="button" class="admin-text-action" data-admin-jump="products">Manage inventory →</button></div>
-            <% const lowStockProducts = products.filter(p => p.stock_known && Number(p.stock_quantity) <= 5); %>
-            <% if (lowStockProducts.length) { %>
-              <div class="overview-stock-list"><% lowStockProducts.slice(0, 6).forEach(p => { %><div class="overview-stock-row"><span><strong><%= p.title %></strong><small><%= p.category %></small></span><b><%= p.stock_quantity %> left</b></div><% }) %></div>
-            <% } else { %><div class="admin-empty-state">No low-stock alerts based on recorded stock values.</div><% } %>
-          </section>
-        </div>
-
-        <!-- Order Filter & Bulk Actions Bar -->
-        <section class="admin-section admin-panel-view" id="adminOrdersPanel" data-admin-panel="orders">
-            <div class="admin-section-heading">
-                <div><span class="admin-eyebrow">FULFILMENT</span><h3>Customer orders</h3><p>Review, update and fulfil customer purchases. Cancelling Pending/Confirmed orders before courier dispatch returns reserved stock; dispatched/returned goods need manual inspection.</p></div>
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <button onclick="exportOrdersCSV()" class="export-btn">📥 Export CSV (Excel)</button>
-                    <button onclick="window.print()" class="print-btn" style="padding: 8px 14px; font-size: 13px;">🖨️ Print Order List</button>
+    <div class="saas-layout" id="saasLayout">
+        <!-- Collapsible Enterprise Sidebar Navigation -->
+        <aside class="saas-sidebar" id="saasSidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo-icon">⚡</div>
+                <div class="sidebar-brand-text">
+                    <strong><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></strong>
+                    <span>Enterprise Suite v22</span>
                 </div>
+                <button type="button" class="sidebar-close-mobile" onclick="toggleMobileSidebar()">&times;</button>
             </div>
 
-            <div class="admin-table-tools"><input type="search" id="orderSearch" placeholder="Search order ID, customer, phone or product…" aria-label="Search orders"><span class="admin-muted"><%= orders.length %> total orders</span></div>
-            <!-- Tab Filters -->
-            <div class="tab-bar">
-                <button class="tab-btn active" onclick="filterOrderTab('all', this)">All Orders (<%= orders.length %>)</button>
-                <button class="tab-btn" onclick="filterOrderTab('Pending', this)">Pending (<%= analytics.pendingCount %>)</button>
-                <button class="tab-btn" onclick="filterOrderTab('Confirmed', this)">Confirmed / Shipped</button>
-                <button class="tab-btn" onclick="filterOrderTab('Delivered', this)">Delivered (<%= analytics.deliveredCount %>)</button>
-                <button class="tab-btn" onclick="filterOrderTab('Return', this)">Returns / Cancelled</button>
+            <nav class="sidebar-nav">
+                <button type="button" class="s-nav-item active" data-pane="pane-overview" onclick="switchAdminPane('pane-overview', this)">
+                    <span class="s-icon">📊</span><span class="s-label">Overview & Analytics</span>
+                </button>
+                <button type="button" class="s-nav-item" data-pane="pane-orders" onclick="switchAdminPane('pane-orders', this)">
+                    <span class="s-icon">📦</span><span class="s-label">Order Management</span>
+                    <span class="s-badge"><%= analytics.pendingCount %></span>
+                </button>
+                <button type="button" class="s-nav-item" data-pane="pane-products" onclick="switchAdminPane('pane-products', this)">
+                    <span class="s-icon">🛍️</span><span class="s-label">Products & Catalog</span>
+                </button>
+                <button type="button" class="s-nav-item" data-pane="pane-inventory" onclick="switchAdminPane('pane-inventory', this)">
+                    <span class="s-icon">🏭</span><span class="s-label">Inventory & Stock</span>
+                </button>
+                <button type="button" class="s-nav-item" data-pane="pane-reviews" onclick="switchAdminPane('pane-reviews', this)">
+                    <span class="s-icon">⭐</span><span class="s-label">Customer Reviews</span>
+                    <% const pendingReviews = (reviewsList || []).filter(r => r.status !== 'approved').length; %>
+                    <% if (pendingReviews) { %><span class="s-badge"><%= pendingReviews %></span><% } %>
+                </button>
+                <button type="button" class="s-nav-item" data-pane="pane-cms" onclick="switchAdminPane('pane-cms', this)">
+                    <span class="s-icon">🎨</span><span class="s-label">Website CMS & FAQ</span>
+                </button>
+                <button type="button" class="s-nav-item" data-pane="pane-commerce" onclick="switchAdminPane('pane-commerce', this)">
+                    <span class="s-icon">🚚</span><span class="s-label">Commerce & Courier</span>
+                </button>
+                <button type="button" class="s-nav-item" data-pane="pane-social" onclick="switchAdminPane('pane-social', this)">
+                    <span class="s-icon">📣</span><span class="s-label">Social & OG Tools</span>
+                </button>
+                <button type="button" class="s-nav-item" data-pane="pane-ai" onclick="switchAdminPane('pane-ai', this)">
+                    <span class="s-icon">🤖</span><span class="s-label">AI Customer Support</span>
+                </button>
+                <button type="button" class="s-nav-item" data-pane="pane-security" onclick="switchAdminPane('pane-security', this)">
+                    <span class="s-icon">🔐</span><span class="s-label">Security & Audit Logs</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="role-badge-box">
+                    <small>Signed in as</small>
+                    <strong><%= adminName %> (<%= adminRole %>)</strong>
+                </div>
+                <a href="/secret-admin-panel-2026/logout" class="s-logout-btn">Sign Out</a>
             </div>
+        </aside>
 
-            <!-- Bulk Status Update Form -->
-            <form action="/secret-admin-panel-2026/orders/bulk-action" method="POST" id="bulkForm" style="background:#f8f9fc; padding:12px; border-radius:8px; margin-bottom:15px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                <span style="font-weight:700; font-size:13px; color:#1F1B5C;">⚡ Bulk Action:</span>
-                <select name="bulk_status" class="status-select" required style="padding:7px; font-size:13px;">
-                    <option value="">-- Select Status to Apply to Checked --</option>
-                    <option value="Confirmed">✅ Mark as Confirmed</option>
-                    <option value="Sent to SteadFast">🚚 Mark as Sent to SteadFast</option>
-                    <option value="Sent to Pathao">🛵 Mark as Sent to Pathao</option>
-                    <option value="Delivered">🎉 Mark as Delivered</option>
-                    <option value="Cancelled">❌ Mark as Cancelled</option>
-                </select>
-                <button type="submit" class="mini-save-btn" style="padding:8px 16px; font-size:13px;">Apply to Selected</button>
-            </form>
+        <!-- Main Workspace Area -->
+        <div class="saas-main">
+            <!-- Top Navigation Bar -->
+            <header class="saas-topbar">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <button type="button" class="topbar-toggle-btn" onclick="toggleSidebarCollapse()" title="Toggle Sidebar">☰</button>
+                    <h1 id="activePaneTitle" class="topbar-title">Dashboard Overview</h1>
+                </div>
+                <div class="topbar-actions">
+                    <span class="status-dot-pill">● DB Connected</span>
+                    <a href="/" target="_blank" class="btn-secondary-sm">🌐 Live Storefront ↗</a>
+                </div>
+            </header>
 
-            <div class="table-responsive">
-                <table class="data-table" id="ordersTable">
-                    <thead>
-                        <tr>
-                            <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
-                            <th>ID & Date</th>
-                            <th>Customer & Phone</th>
-                            <th>Product</th>
-                            <th>Total & Notes</th>
-                            <th>Status & Consignment</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% if (orders.length > 0) { %>
-                            <% orders.forEach(o => { 
-                                const dateFormatted = o.created_at ? new Date(o.created_at).toLocaleDateString() : '-';
-                                let rowCategory = 'Pending';
-                                if (o.status === 'Delivered') rowCategory = 'Delivered';
-                                else if (o.status === 'Cancelled' || o.status === 'Return') rowCategory = 'Return';
-                                else if (o.status !== 'Pending') rowCategory = 'Confirmed';
-                            %>
-                                <tr class="order-row" data-status="<%= rowCategory %>">
-                                    <td><input type="checkbox" name="selected_orders" value="<%= o.id %>" form="bulkForm" class="order-chk"></td>
-                                    <td><strong>#<%= o.id %></strong><br><small><%= dateFormatted %></small></td>
-                                    <td>
-                                        <strong><%= o.customer_name %></strong><br>
-                                        <a href="tel:<%= o.phone %>" style="color:#9c1448;font-weight:600;"><%= o.phone %></a><br>
-                                        <a href="https://wa.me/88<%= (o.phone || '').replace(/^\+?88/, '') %>" target="_blank" style="font-size:12px;color:#25D366;font-weight:bold;">💬 WhatsApp</a>
-                                    </td>
-                                    <td><strong><%= o.product_title %></strong></td>
-                                    <td>
-                                        <span class="price-pill">৳ <%= o.price %></span>
-                                        <% if (o.admin_notes) { %><br><small style="color:#d63031; font-weight:700;">📝 <%= o.admin_notes %></small><% } %>
-                                    </td>
-                                    <td>
-                                        <form action="/secret-admin-panel-2026/orders/status/<%= o.id %>" method="POST" style="display:flex; flex-direction:column; gap:5px;"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                                            <select name="status" class="status-select">
-                                                <option value="Pending" <%= o.status === 'Pending' ? 'selected' : '' %>>⏳ Pending</option>
-                                                <option value="Confirmed" <%= o.status === 'Confirmed' ? 'selected' : '' %>>✅ Confirmed</option>
-                                                <option value="Sent to SteadFast" <%= o.status === 'Sent to SteadFast' ? 'selected' : '' %>>🚚 SteadFast</option>
-                                                <option value="Sent to Pathao" <%= o.status === 'Sent to Pathao' ? 'selected' : '' %>>🛵 Pathao</option>
-                                                <option value="Delivered" <%= o.status === 'Delivered' ? 'selected' : '' %>>🎉 Delivered</option>
-                                                <option value="Cancelled" <%= o.status === 'Cancelled' ? 'selected' : '' %>>❌ Cancelled</option>
-                                                <option value="Return" <%= o.status === 'Return' ? 'selected' : '' %>>↩ Return / inspect</option>
-                                            </select>
-                                            <input type="text" name="consignment_id" value="<%= o.consignment_id || '' %>" placeholder="Tracking / Consignment ID" style="padding:4px; font-size:11px; border:1px solid #ccc; border-radius:4px;">
-                                            <input type="text" name="admin_notes" value="<%= o.admin_notes || '' %>" placeholder="Admin note..." style="padding:4px; font-size:11px; border:1px solid #ccc; border-radius:4px;">
-                                            <button type="submit" class="mini-save-btn">Save Order</button>
-                                        </form>
-                                    </td>
-                                    <td>
-                                        <div class="action-btn-group">
-                                            <button type="button" class="print-btn" onclick="printShippingLabel('<%= o.id %>')">🏷️ Label</button>
-                                            <button type="button" class="print-btn" style="background:#2d3436;" onclick="printInvoiceById('<%= o.id %>')">🖨️ Slip</button>
-                                            <button type="button" class="copy-btn" onclick="copyCustomerById('<%= o.id %>')">📋 Copy</button>
-                                            <% if (['Pending','Confirmed'].includes(o.status)) { %>
-                                            <form action="/secret-admin-panel-2026/orders/delete/<%= o.id %>" method="POST" onsubmit="return confirm('Delete this Pending/Confirmed order? Its reserved stock will be returned.');" style="display:inline;"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                                                <button type="submit" class="delete-btn">Del</button>
-                                            </form>
-                                            <% } else { %><span class="admin-muted" title="Fulfilment history is retained">Keep</span><% } %>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <% }) %>
+            <div class="saas-content-wrap">
+                <% if (msg) { %>
+                    <div class="saas-alert <%= msg.startsWith('Error') || msg.startsWith('Update Error') ? 'alert-error' : 'alert-success' %>">
+                        <span><%= msg.startsWith('Error') || msg.startsWith('Update Error') ? '⚠️' : '✅' %> <%= msg %></span>
+                        <button type="button" onclick="this.parentElement.remove()">&times;</button>
+                    </div>
+                <% } %>
+
+                <!-- CUSTOMER REVIEWS PANE -->
+                <section id="pane-reviews" class="admin-pane">
+                    <div class="pane-header-bar">
+                        <div>
+                            <h2>Customer Reviews</h2>
+                            <p>New reviews wait here. Approve to publish them on the product page, or delete spam.</p>
+                        </div>
+                    </div>
+                    <div class="saas-card">
+                        <% if (!(reviewsList || []).length) { %>
+                            <p style="color:#64748b;">No reviews yet.</p>
                         <% } else { %>
-                            <tr><td colspan="7" style="text-align: center; padding: 20px;">No orders yet.</td></tr>
+                        <div style="overflow-x:auto;">
+                            <table class="saas-table">
+                                <thead><tr><th>Product</th><th>Customer</th><th>Rating</th><th>Review</th><th>Status</th><th>Action</th></tr></thead>
+                                <tbody>
+                                <% reviewsList.forEach(function (r) { const prod = products.find(function (x) { return String(x.id) === String(r.product_id); }); %>
+                                    <tr>
+                                        <td><a href="/product/<%= r.product_id %>" target="_blank">#<%= r.product_id %></a> <%= prod ? prod.title : '' %></td>
+                                        <td><%= r.name %><% if (r.verified) { %> <span title="Matched a delivered order">✔</span><% } %></td>
+                                        <td><%= '★'.repeat(Number(r.rating) || 0) %></td>
+                                        <td style="max-width:320px;"><%= r.comment %></td>
+                                        <td><%= r.status === 'approved' ? '✅ Published' : '⏳ Pending' %></td>
+                                        <td style="white-space:nowrap;">
+                                            <form method="POST" action="/secret-admin-panel-2026/reviews/<%= r.id %>/status" style="display:inline;">
+                                                <input type="hidden" name="status" value="<%= r.status === 'approved' ? 'pending' : 'approved' %>">
+                                                <button type="submit" class="btn-primary-sm"><%= r.status === 'approved' ? 'Hide' : 'Approve' %></button>
+                                            </form>
+                                            <form method="POST" action="/secret-admin-panel-2026/reviews/<%= r.id %>/delete" style="display:inline;" onsubmit="return confirm('Delete this review?');">
+                                                <button type="submit" class="btn-secondary-sm">Delete</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
                         <% } %>
-                    </tbody>
-                </table>
+                    </div>
+                </section>
+
+                <!-- 1. MAIN DASHBOARD OVERVIEW PANE -->
+                <section id="pane-overview" class="admin-pane active">
+                    <div class="pane-header-bar">
+                        <div>
+                            <h2>Real-Time Performance Metrics</h2>
+                            <p>Live database-driven revenue, orders, customer activity, and stock health</p>
+                        </div>
+                        <div class="date-filter-bar">
+                            <label>Date Range:</label>
+                            <select id="dashDateRange" onchange="filterDashboardByRange(this.value)">
+                                <option value="all">All Time</option>
+                                <option value="7">Last 7 Days</option>
+                                <option value="30">Last 30 Days</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="kpi-grid-5">
+                        <div class="kpi-card">
+                            <span class="kpi-label">Gross Revenue</span>
+                            <strong class="kpi-val" style="color:#059669;" id="kpiRevenue">৳ <%= analytics.totalRevenue %></strong>
+                            <small class="kpi-sub">Net Est. Profit: ৳ <%= analytics.netProfit %></small>
+                        </div>
+                        <div class="kpi-card">
+                            <span class="kpi-label">Total Orders</span>
+                            <strong class="kpi-val" id="kpiOrders"><%= orders.length %></strong>
+                            <small class="kpi-sub" style="color:#d97706;">⏳ <%= analytics.pendingCount %> Pending</small>
+                        </div>
+                        <div class="kpi-card">
+                            <span class="kpi-label">Delivered Orders</span>
+                            <strong class="kpi-val" style="color:#2563eb;"><%= analytics.deliveredCount %></strong>
+                            <small class="kpi-sub">Confirmed/Transit: <%= analytics.confirmedCount %></small>
+                        </div>
+                        <div class="kpi-card">
+                            <span class="kpi-label">Verified Customers</span>
+                            <strong class="kpi-val"><%= analytics.totalCustomers %></strong>
+                            <small class="kpi-sub">Unique buyer numbers</small>
+                        </div>
+                        <div class="kpi-card">
+                            <span class="kpi-label">Active Catalog</span>
+                            <strong class="kpi-val"><%= products.length %> SKU</strong>
+                            <small class="kpi-sub" style="color:#dc2626;"><%= products.filter(p => p.stock_quantity <= 5).length %> Low Stock Alerts</small>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-2col">
+                        <!-- Visual Revenue & Order Status Chart Card -->
+                        <div class="saas-card">
+                            <h3>📈 Revenue & Order Fulfillment Breakdown</h3>
+                            <% 
+                                const totalOrd = Math.max(1, orders.length);
+                                const pendPct = Math.round((analytics.pendingCount / totalOrd) * 100);
+                                const confPct = Math.round((analytics.confirmedCount / totalOrd) * 100);
+                                const delivPct = Math.round((analytics.deliveredCount / totalOrd) * 100);
+                                const retPct = Math.round((analytics.returnCount / totalOrd) * 100);
+                            %>
+                            <div class="chart-bars-box">
+                                <div class="c-bar-row">
+                                    <div class="c-bar-label"><span>Pending Orders (<%= analytics.pendingCount %>)</span><strong><%= pendPct %>%</strong></div>
+                                    <div class="c-bar-track"><div class="c-bar-fill" style="width:<%= pendPct %>%; background:#f59e0b;"></div></div>
+                                </div>
+                                <div class="c-bar-row">
+                                    <div class="c-bar-label"><span>Confirmed / In Transit (<%= analytics.confirmedCount %>)</span><strong><%= confPct %>%</strong></div>
+                                    <div class="c-bar-track"><div class="c-bar-fill" style="width:<%= confPct %>%; background:#3b82f6;"></div></div>
+                                </div>
+                                <div class="c-bar-row">
+                                    <div class="c-bar-label"><span>Delivered Successfully (<%= analytics.deliveredCount %>)</span><strong><%= delivPct %>%</strong></div>
+                                    <div class="c-bar-track"><div class="c-bar-fill" style="width:<%= delivPct %>%; background:#10b981;"></div></div>
+                                </div>
+                                <div class="c-bar-row">
+                                    <div class="c-bar-label"><span>Returned / Cancelled (<%= analytics.returnCount %>)</span><strong><%= retPct %>%</strong></div>
+                                    <div class="c-bar-track"><div class="c-bar-fill" style="width:<%= retPct %>%; background:#ef4444;"></div></div>
+                                </div>
+                            </div>
+
+                            <h4 style="margin:22px 0 10px 0; font-size:14px; color:#475569;">Recent Daily Sales Ledger</h4>
+                            <div class="daily-ledger-list">
+                                <% const dateKeys = Object.keys(dailyRevenue).sort().reverse().slice(0, 6); %>
+                                <% if (dateKeys.length > 0) { %>
+                                    <% dateKeys.forEach(dk => { %>
+                                        <div class="ledger-item">
+                                            <span>📅 <%= dk %></span>
+                                            <strong>৳ <%= dailyRevenue[dk] %></strong>
+                                        </div>
+                                    <% }) %>
+                                <% } else { %>
+                                    <p class="muted-empty">No sales recorded yet.</p>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <!-- Low Stock Alerts & Recent Orders Quick View -->
+                        <div class="saas-card">
+                            <h3>🚨 Low-Stock Inventory Alerts (≤ 5 Units)</h3>
+                            <% const lowStockItems = products.filter(p => p.stock_quantity <= 5); %>
+                            <% if (lowStockItems.length > 0) { %>
+                                <div class="alert-list-stack">
+                                    <% lowStockItems.forEach(lp => { %>
+                                        <div class="low-stock-row">
+                                            <div>
+                                                <strong><%= lp.title %></strong>
+                                                <small>SKU: <%= lp.sku %> • Category: <%= lp.category %></small>
+                                            </div>
+                                            <span class="danger-pill"><%= lp.stock_quantity %> left</span>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                            <% } else { %>
+                                <div class="healthy-stock-banner">✅ All products have healthy stock levels (&gt; 5 units).</div>
+                            <% } %>
+
+                            <h3 style="margin-top:24px;">🕒 Recent Orders</h3>
+                            <div class="recent-orders-mini">
+                                <% orders.slice(0, 5).forEach(ro => { %>
+                                    <div class="ro-row">
+                                        <div>
+                                            <strong>#<%= ro.id %> — <%= ro.customer_name %></strong>
+                                            <small><%= ro.product_title %></small>
+                                        </div>
+                                        <div style="text-align:right;">
+                                            <strong style="color:#9c1448;">৳ <%= ro.price %></strong>
+                                            <span class="status-tag-sm"><%= ro.status %></span>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. ORDER MANAGEMENT PANE -->
+                <section id="pane-orders" class="admin-pane">
+                    <div class="pane-header-bar">
+                        <div>
+                            <h2>Order Management & Fulfillment</h2>
+                            <p>Search, filter, update status with audit history, print courier labels, or export CSV</p>
+                        </div>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <button type="button" onclick="exportOrdersCSV()" class="btn-primary-sm">📥 Export CSV</button>
+                            <button type="button" onclick="window.print()" class="btn-secondary-sm">🖨️ Print Table</button>
+                        </div>
+                    </div>
+
+                    <div class="saas-card">
+                        <div class="order-filters-grid">
+                            <input type="text" id="orderSearchInput" placeholder="🔍 Search Order ID, Customer Name, or Phone..." oninput="filterOrderRows()">
+                            <select id="orderStatusFilter" onchange="filterOrderRows()">
+                                <option value="all">All Order Statuses</option>
+                                <option value="Pending">⏳ Pending</option>
+                                <option value="Confirmed">✅ Confirmed</option>
+                                <option value="Sent to SteadFast">🚚 Sent to SteadFast</option>
+                                <option value="Sent to Pathao">🛵 Sent to Pathao</option>
+                                <option value="Delivered">🎉 Delivered</option>
+                                <option value="Cancelled">❌ Cancelled</option>
+                            </select>
+                            <select id="orderPaymentFilter" onchange="filterOrderRows()">
+                                <option value="all">All Payment Types</option>
+                                <option value="COD">Cash on Delivery (COD)</option>
+                                <option value="Paid">bKash / Nagad (TrxID)</option>
+                            </select>
+                            <input type="date" id="orderDateFilter" onchange="filterOrderRows()">
+                        </div>
+
+                        <form action="/secret-admin-panel-2026/orders/bulk-action" method="POST" id="bulkForm" class="bulk-action-strip">
+                            <label style="display:flex; align-items:center; gap:8px; font-weight:700;">
+                                <input type="checkbox" id="selectAllOrders" onclick="toggleSelectAllOrders(this)"> Select Visible
+                            </label>
+                            <select name="bulk_status" required>
+                                <option value="">-- Apply Bulk Status to Selected --</option>
+                                <option value="Confirmed">✅ Mark Confirmed</option>
+                                <option value="Sent to SteadFast">🚚 Mark Sent to SteadFast</option>
+                                <option value="Sent to Pathao">🛵 Mark Sent to Pathao</option>
+                                <option value="Delivered">🎉 Mark Delivered</option>
+                                <option value="Cancelled">❌ Mark Cancelled</option>
+                            </select>
+                            <button type="submit" class="btn-primary-sm">Apply Bulk Update</button>
+                        </form>
+
+                        <div class="table-responsive">
+                            <table class="saas-table" id="ordersTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width:36px;"></th>
+                                        <th>Order ID & Date</th>
+                                        <th>Customer & Masked Phone</th>
+                                        <th>Items & Qty</th>
+                                        <th>Total & Payment</th>
+                                        <th>Status, Consignment & Notes</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (orders.length > 0) { %>
+                                        <% orders.forEach(o => { 
+                                            const isoDate = o.created_at ? o.created_at.substring(0, 10) : '';
+                                            const rawPhone = String(o.phone || '');
+                                            const maskedPhone = rawPhone.length >= 7 ? rawPhone.slice(0, 3) + '****' + rawPhone.slice(-3) : rawPhone;
+                                            const isDigitalPay = (o.address || '').includes('TrxID:');
+                                        %>
+                                            <tr class="order-tr" 
+                                                data-search="<%= (`#${o.id} ${o.customer_name} ${rawPhone} ${o.product_title}`).toLowerCase() %>"
+                                                data-status="<%= o.status || 'Pending' %>"
+                                                data-pay="<%= isDigitalPay ? 'Paid' : 'COD' %>"
+                                                data-date="<%= isoDate %>">
+                                                <td><input type="checkbox" name="selected_orders" value="<%= o.id %>" form="bulkForm" class="order-chk"></td>
+                                                <td>
+                                                    <strong style="font-size:15px; color:#1e293b;">#<%= o.id %></strong><br>
+                                                    <small style="color:#64748b;"><%= isoDate || 'Today' %></small>
+                                                </td>
+                                                <td>
+                                                    <strong><%= o.customer_name %></strong><br>
+                                                    <span class="phone-mask-wrap">
+                                                        <code class="phone-display" data-raw="<%= rawPhone %>" data-masked="<%= maskedPhone %>"><%= maskedPhone %></code>
+                                                        <button type="button" class="btn-tiny-reveal" onclick="togglePhoneReveal(this)" title="Reveal/Mask Phone">👁️</button>
+                                                    </span><br>
+                                                    <a href="https://wa.me/88<%= rawPhone.replace(/^\+?88/, '') %>?text=<%= encodeURIComponent('Hello ' + o.customer_name + ', regarding your TrendzzNow Order #' + o.id + ' (' + o.product_title + ')') %>" target="_blank" class="wa-inline-link">💬 WhatsApp Customer</a>
+                                                </td>
+                                                <td style="max-width:220px;">
+                                                    <div style="font-weight:600; color:#1e293b;"><%= o.product_title %></div>
+                                                    <small style="color:#64748b;">Qty: <%= o.quantity %></small>
+                                                </td>
+                                                <td>
+                                                    <span class="price-pill">৳ <%= o.price %></span><br>
+                                                    <small class="pay-badge <%= isDigitalPay ? 'pay-digital' : 'pay-cod' %>"><%= isDigitalPay ? '📲 TrxID' : '💵 COD' %></small>
+                                                </td>
+                                                <td style="min-width:230px;">
+                                                    <form action="/secret-admin-panel-2026/orders/status/<%= o.id %>" method="POST" class="inline-status-form">
+                                                        <select name="status">
+                                                            <option value="Pending" <%= o.status === 'Pending' ? 'selected' : '' %>>⏳ Pending</option>
+                                                            <option value="Confirmed" <%= o.status === 'Confirmed' ? 'selected' : '' %>>✅ Confirmed</option>
+                                                            <option value="Sent to SteadFast" <%= o.status === 'Sent to SteadFast' ? 'selected' : '' %>>🚚 SteadFast</option>
+                                                            <option value="Sent to Pathao" <%= o.status === 'Sent to Pathao' ? 'selected' : '' %>>🛵 Pathao</option>
+                                                            <option value="Delivered" <%= o.status === 'Delivered' ? 'selected' : '' %>>🎉 Delivered</option>
+                                                            <option value="Cancelled" <%= o.status === 'Cancelled' ? 'selected' : '' %>>❌ Cancelled</option>
+                                                        </select>
+                                                        <input type="text" name="consignment_id" value="<%= o.consignment_id || '' %>" placeholder="Consignment / Tracking ID">
+                                                        <input type="text" name="admin_notes" value="<%= o.admin_notes || '' %>" placeholder="Internal remarks...">
+                                                        <button type="submit" class="btn-primary-sm" style="width:100%;">Update & Log</button>
+                                                    </form>
+                                                </td>
+                                                <td>
+                                                    <div class="action-stack">
+                                                        <button type="button" class="btn-secondary-sm" onclick="openOrderDetailModal('<%= o.id %>')">🔍 Details / Audit</button>
+                                                        <button type="button" class="btn-secondary-sm" onclick="printShippingLabel('<%= o.id %>')">🏷️ Label</button>
+                                                        <button type="button" class="btn-secondary-sm" onclick="printInvoiceById('<%= o.id %>')">🖨️ Invoice</button>
+                                                        <% if (adminRole === 'SuperAdmin') { %>
+                                                        <form action="/secret-admin-panel-2026/orders/delete/<%= o.id %>" method="POST" onsubmit="return confirm('Permanently delete Order #<%= o.id %>?');">
+                                                            <button type="submit" class="btn-danger-sm" style="width:100%;">🗑️ Delete</button>
+                                                        </form>
+                                                        <% } %>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <tr><td colspan="7" class="muted-empty">No customer orders recorded yet.</td></tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. PRODUCT MANAGEMENT PANE -->
+                <section id="pane-products" class="admin-pane">
+                    <div class="pane-header-bar">
+                        <div>
+                            <h2>Product Catalog & SKU Management</h2>
+                            <p>Add, edit, archive, manage categories/subcategories, multiple gallery images, and SEO</p>
+                        </div>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <button type="button" onclick="exportProductsCSV()" class="btn-secondary-sm">📤 Export Products CSV</button>
+                            <button type="button" onclick="document.getElementById('csvImportBox').style.display='block'" class="btn-secondary-sm">📥 Import CSV</button>
+                        </div>
+                    </div>
+
+                    <!-- CSV Import Box -->
+                    <div id="csvImportBox" class="saas-card" style="display:none; margin-bottom:20px; border:2px dashed #3b82f6;">
+                        <h4>📥 Bulk CSV Product Import</h4>
+                        <p style="font-size:13px; color:#475569;">Select a CSV file with headers: <code>title,sku,category,price,regular_price,cost_price,stock_quantity,description,image</code></p>
+                        <input type="file" id="csvFileInput" accept=".csv" style="margin-bottom:10px;">
+                        <div style="display:flex; gap:10px;">
+                            <button type="button" class="btn-primary-sm" onclick="processProductCSVImport()">Upload & Import</button>
+                            <button type="button" class="btn-outline-sm" onclick="document.getElementById('csvImportBox').style.display='none'">Cancel</button>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-2col">
+                        <!-- Add New Product Form -->
+                        <div class="saas-card">
+                            <h3>➕ Add New Product</h3>
+                            <form action="/secret-admin-panel-2026/products/add" method="POST" enctype="multipart/form-data" class="tracked-form">
+                                <div class="form-row">
+                                    <div class="form-group" style="flex:2;">
+                                        <label>Product Title *</label>
+                                        <input type="text" name="title" required placeholder="e.g. Dynamic Leaf Table Lamp">
+                                    </div>
+                                    <div class="form-group" style="flex:1;">
+                                        <label>SKU Code</label>
+                                        <input type="text" name="sku" placeholder="TN-101">
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Category *</label>
+                                        <input type="text" name="category" required placeholder="e.g. Home Decor, Gadgets">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Subcategory</label>
+                                        <input type="text" name="subcategory" placeholder="e.g. Table Lamps">
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Selling Price (৳) *</label>
+                                        <input type="number" name="price" required min="0" step="1" placeholder="950">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Regular Price (৳)</label>
+                                        <input type="number" name="regular_price" min="0" step="1" placeholder="1250">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Cost Price (৳)</label>
+                                        <input type="number" name="cost_price" min="0" step="1" placeholder="550">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Initial Stock *</label>
+                                        <input type="number" name="stock_quantity" required min="0" step="1" value="50">
+                                    </div>
+                                </div>
+
+                                <div class="upload-box">
+                                    <label>📸 Upload Product Images (Multiple Allowed — Max 5)</label>
+                                    <input type="file" name="image_files" accept="image/*" multiple onchange="previewUploadedFiles(this, 'addImgPreview')">
+                                    <div id="addImgPreview" class="img-preview-strip"></div>
+                                    <small style="display:block; color:#64748b; margin-top:6px;">OR paste comma-separated Image URLs:</small>
+                                    <input type="text" name="image" placeholder="https://example.com/img1.jpg, https://...">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Variants (comma separated)</label>
+                                    <input type="text" name="variant_options" placeholder="Cream, Black, Wood">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Product Description</label>
+                                    <textarea name="description" rows="3" placeholder="Detailed specifications and features..."></textarea>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>SEO Meta Title</label>
+                                        <input type="text" name="seo_title" placeholder="Custom title for Google & Social">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>SEO Meta Description</label>
+                                        <input type="text" name="seo_description" placeholder="Brief summary for search engines">
+                                    </div>
+                                </div>
+
+                                <div class="form-actions-bar">
+                                    <button type="submit" class="btn-primary-lg">💾 Publish Product</button>
+                                    <button type="reset" class="btn-outline-sm">Reset</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Existing Product Catalog List -->
+                        <div class="saas-card">
+                            <h3>🗂️ Product Catalog (<%= products.length %>)</h3>
+                            <div class="table-responsive" style="max-height:680px; overflow-y:auto;">
+                                <table class="saas-table" id="productsCatalogTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Thumb</th>
+                                            <th>Product, SKU & Category</th>
+                                            <th>Pricing & Stock</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <% products.forEach(p => { %>
+                                            <tr style="<%= p.is_archived ? 'opacity:0.55; background:#f8fafc;' : '' %>">
+                                                <td>
+                                                    <% if (p.image) { %>
+                                                        <img src="<%= p.image %>" width="52" height="52" style="object-fit:cover; border-radius:8px; border:1px solid #e2e8f0;">
+                                                    <% } else { %>
+                                                        <div style="width:52px; height:52px; background:#f1f5f9; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; color:#64748b;">No Img</div>
+                                                    <% } %>
+                                                </td>
+                                                <td>
+                                                    <strong><%= p.title %></strong>
+                                                    <% if (p.is_archived) { %><span class="danger-pill">Archived</span><% } %><br>
+                                                    <small style="color:#64748b;">SKU: <%= p.sku %> • <%= p.category %><%= p.subcategory ? ' / ' + p.subcategory : '' %></small>
+                                                </td>
+                                                <td>
+                                                    <strong style="color:#9c1448;">৳ <%= p.price %></strong>
+                                                    <% if (p.regular_price > p.price) { %><small style="text-decoration:line-through; color:#94a3b8;">৳<%= p.regular_price %></small><% } %><br>
+                                                    <small style="color:#475569;">Cost: ৳<%= p.cost_price %> • Stock: <strong><%= p.stock_quantity %></strong></small>
+                                                </td>
+                                                <td>
+                                                    <div class="action-stack">
+                                                        <button type="button" class="btn-secondary-sm" onclick="openEditProductModal('<%= p.id %>')">✏️ Edit</button>
+                                                        <form action="/secret-admin-panel-2026/products/archive/<%= p.id %>" method="POST">
+                                                            <input type="hidden" name="archive" value="<%= !p.is_archived %>">
+                                                            <button type="submit" class="btn-outline-sm" style="width:100%;"><%= p.is_archived ? '♻️ Restore' : '📁 Archive' %></button>
+                                                        </form>
+                                                        <% if (adminRole === 'SuperAdmin') { %>
+                                                        <form action="/secret-admin-panel-2026/products/delete/<%= p.id %>" method="POST" onsubmit="return confirm('Permanently delete <%= p.title.replace(/'/g, '') %>?');">
+                                                            <button type="submit" class="btn-danger-sm" style="width:100%;">🗑️ Delete</button>
+                                                        </form>
+                                                        <% } %>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <% }) %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. INVENTORY MANAGEMENT PANE -->
+                <section id="pane-inventory" class="admin-pane">
+                    <div class="pane-header-bar">
+                        <div>
+                            <h2>Real-Time Inventory & Stock Control</h2>
+                            <p>Adjust stock quantities, monitor low-stock alerts, and audit stock adjustment history</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-2col">
+                        <div class="saas-card">
+                            <h3>⚖️ Record Stock Adjustment</h3>
+                            <form action="/secret-admin-panel-2026/inventory/adjust" method="POST">
+                                <div class="form-group">
+                                    <label>Select Product *</label>
+                                    <select name="product_id" required>
+                                        <% products.forEach(p => { %>
+                                            <option value="<%= p.id %>"><%= p.title %> (SKU: <%= p.sku %> — Current Stock: <%= p.stock_quantity %>)</option>
+                                        <% }) %>
+                                    </select>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Adjustment Action *</label>
+                                        <select name="adjustment_type">
+                                            <option value="add">➕ Add Stock (Restock)</option>
+                                            <option value="subtract">➖ Subtract Stock (Damage/Manual)</option>
+                                            <option value="set">🎯 Set Exact Stock Count</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Quantity *</label>
+                                        <input type="number" name="quantity" required min="1" value="10">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Reason / Reference Note *</label>
+                                    <input type="text" name="reason" required placeholder="e.g. New shipment received from supplier">
+                                </div>
+                                <button type="submit" class="btn-primary-lg">✅ Apply Stock Adjustment</button>
+                            </form>
+                        </div>
+
+                        <div class="saas-card">
+                            <h3>📜 Stock Adjustment History Log</h3>
+                            <div class="table-responsive" style="max-height:360px; overflow-y:auto;">
+                                <table class="saas-table">
+                                    <thead>
+                                        <tr><th>Date</th><th>Product</th><th>Change</th><th>Reason & Actor</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <% if (stockLogs && stockLogs.length > 0) { %>
+                                            <% stockLogs.forEach(sl => { %>
+                                                <tr>
+                                                    <td><small><%= sl.time ? new Date(sl.time).toLocaleString() : '-' %></small></td>
+                                                    <td><strong><%= sl.product %></strong></td>
+                                                    <td><%= sl.oldStock %> &rarr; <strong><%= sl.newStock %></strong></td>
+                                                    <td><small><%= sl.reason %> (<%= sl.actor %>)</small></td>
+                                                </tr>
+                                            <% }) %>
+                                        <% } else { %>
+                                            <tr><td colspan="4" class="muted-empty">No manual stock adjustments logged yet.</td></tr>
+                                        <% } %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. WEBSITE CONTENT MANAGEMENT (CMS & FAQ) PANE -->
+                <section id="pane-cms" class="admin-pane">
+                    <div class="pane-header-bar">
+                        <div>
+                            <h2>Website Content Management (CMS)</h2>
+                            <p>Customize homepage hero, spotlight banner, brand logo, footer text, preserved FAQ, and legal policies</p>
+                        </div>
+                    </div>
+
+                    <form action="/secret-admin-panel-2026/settings/update" method="POST" enctype="multipart/form-data" class="saas-card tracked-form">
+                        <h3>1. Homepage Hero & 3D Spotlight Editor</h3>
+                        <div class="form-row">
+                            <div class="form-group"><label>Top Announcement Banner (EN)</label><input type="text" name="banner_text" value="<%= settings.banner_text %>"></div>
+                            <div class="form-group"><label>Top Announcement Banner (বাংলা)</label><input type="text" name="banner_text_bn" value="<%= settings.banner_text_bn %>"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Hero Main Headline (EN)</label><input type="text" name="hero_title_en" value="<%= settings.hero_title_en %>"></div>
+                            <div class="form-group"><label>Hero Main Headline (বাংলা)</label><input type="text" name="hero_title_bn" value="<%= settings.hero_title_bn %>"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Hero Subtitle (EN)</label><input type="text" name="hero_subtitle_en" value="<%= settings.hero_subtitle_en %>"></div>
+                            <div class="form-group"><label>Hero Subtitle (বাংলা)</label><input type="text" name="hero_subtitle_bn" value="<%= settings.hero_subtitle_bn %>"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Spotlight Badge</label><input type="text" name="hero_badge_text" value="<%= settings.hero_badge_text %>"></div>
+                            <div class="form-group"><label>Spotlight Product Title</label><input type="text" name="hero_featured_title" value="<%= settings.hero_featured_title %>"></div>
+                            <div class="form-group"><label>Spotlight Price Text</label><input type="text" name="hero_featured_price" value="<%= settings.hero_featured_price %>"></div>
+                            <div class="form-group"><label>Spotlight Target Link</label><input type="text" name="hero_featured_link" value="<%= settings.hero_featured_link %>"></div>
+                        </div>
+                        <div class="upload-box">
+                            <label>🌟 Upload Hero Spotlight Image (Direct Upload)</label>
+                            <input type="file" name="hero_file" accept="image/*" onchange="previewUploadedFiles(this, 'heroPreview')">
+                            <div id="heroPreview" class="img-preview-strip"></div>
+                            <input type="text" name="hero_image" value="<%= settings.hero_image || '' %>" placeholder="Or paste Hero Image URL">
+                        </div>
+
+                        <h3 style="margin-top:28px;">2. Brand Identity, Logo & Footer Editor</h3>
+                        <div class="form-row">
+                            <div class="form-group"><label>Brand Name Part 1</label><input type="text" name="brand_name_first" value="<%= settings.brand_name_first %>"></div>
+                            <div class="form-group"><label>Brand Name Part 2 (Accent)</label><input type="text" name="brand_name_second" value="<%= settings.brand_name_second %>"></div>
+                            <div class="form-group"><label>Slogan (EN)</label><input type="text" name="tagline_en" value="<%= settings.tagline_en %>"></div>
+                            <div class="form-group"><label>Slogan (বাংলা)</label><input type="text" name="tagline_bn" value="<%= settings.tagline_bn %>"></div>
+                        </div>
+                        <div class="upload-box">
+                            <label>🖼️ Upload Brand Logo (PNG/SVG/JPG)</label>
+                            <input type="file" name="logo_file" accept="image/*" onchange="previewUploadedFiles(this, 'logoPreview')">
+                            <div id="logoPreview" class="img-preview-strip"></div>
+                            <input type="text" name="logo_light" value="<%= settings.logo_light || '' %>" placeholder="Or paste Logo URL">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Footer About Summary</label><input type="text" name="footer_about_en" value="<%= settings.footer_about_en %>"></div>
+                            <div class="form-group"><label>Footer Copyright Notice</label><input type="text" name="footer_copyright" value="<%= settings.footer_copyright %>"></div>
+                        </div>
+
+                        <h3 style="margin-top:28px;">3. Preserved FAQ Editor (4 Questions & Answers)</h3>
+                        <div class="form-row">
+                            <div class="form-group"><label>FAQ 1 Question</label><input type="text" name="faq_1_q" value="<%= settings.faq_1_q %>"></div>
+                            <div class="form-group"><label>FAQ 1 Answer</label><input type="text" name="faq_1_a" value="<%= settings.faq_1_a %>"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>FAQ 2 Question</label><input type="text" name="faq_2_q" value="<%= settings.faq_2_q %>"></div>
+                            <div class="form-group"><label>FAQ 2 Answer</label><input type="text" name="faq_2_a" value="<%= settings.faq_2_a %>"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>FAQ 3 Question</label><input type="text" name="faq_3_q" value="<%= settings.faq_3_q %>"></div>
+                            <div class="form-group"><label>FAQ 3 Answer</label><input type="text" name="faq_3_a" value="<%= settings.faq_3_a %>"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>FAQ 4 Question</label><input type="text" name="faq_4_q" value="<%= settings.faq_4_q %>"></div>
+                            <div class="form-group"><label>FAQ 4 Answer</label><input type="text" name="faq_4_a" value="<%= settings.faq_4_a %>"></div>
+                        </div>
+
+                        <h3 style="margin-top:28px;">4. Legal Policies Editor (Privacy, Returns & Terms)</h3>
+                        <div class="form-group"><label>🔒 Privacy Policy</label><textarea name="privacy_policy" rows="3"><%= settings.privacy_policy %></textarea></div>
+                        <div class="form-group"><label>🔄 Return & Replacement Policy</label><textarea name="return_policy" rows="3"><%= settings.return_policy %></textarea></div>
+                        <div class="form-group"><label>📜 Terms & Conditions</label><textarea name="terms_conditions" rows="3"><%= settings.terms_conditions %></textarea></div>
+
+                        <div class="form-actions-bar">
+                            <button type="submit" class="btn-primary-lg">💾 Save All CMS, FAQ & Policy Settings</button>
+                            <button type="reset" class="btn-outline-sm">Reset Form</button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- 6. COMMERCE & COURIER SETTINGS PANE -->
+                <section id="pane-commerce" class="admin-pane">
+                    <div class="pane-header-bar">
+                        <div>
+                            <h2>Commerce, Delivery, Payment & Courier Configuration</h2>
+                            <p>Configure delivery charges, COD rules, bKash/Nagad numbers, promo coupons, and courier API keys</p>
+                        </div>
+                    </div>
+
+                    <form action="/secret-admin-panel-2026/settings/update" method="POST" class="saas-card tracked-form">
+                        <h3>🚚 Delivery Charges & Tax Configuration</h3>
+                        <div class="form-row">
+                            <div class="form-group"><label>Inside Dhaka Charge (৳)</label><input type="number" name="delivery_inside_dhaka" value="<%= settings.delivery_inside_dhaka || 70 %>"></div>
+                            <div class="form-group"><label>Outside Dhaka Charge (৳)</label><input type="number" name="delivery_outside_dhaka" value="<%= settings.delivery_outside_dhaka || 130 %>"></div>
+                            <div class="form-group"><label>Free Shipping Minimum Order (৳, 0=Disabled)</label><input type="number" name="free_shipping_threshold" value="<%= settings.free_shipping_threshold || 0 %>"></div>
+                            <div class="form-group"><label>Tax / VAT Percentage (%)</label><input type="number" name="tax_percentage" value="<%= settings.tax_percentage || 0 %>"></div>
+                        </div>
+
+                        <h3 style="margin-top:24px;">💳 Payment Numbers & Promo Coupons</h3>
+                        <div class="form-row">
+                            <div class="form-group"><label>📞 WhatsApp Order & Support Hotline</label><input type="text" name="whatsapp_number" value="<%= settings.whatsapp_number || '01731763504' %>"></div>
+                            <div class="form-group"><label>📲 bKash Merchant/Personal Number</label><input type="text" name="bkash_number" value="<%= settings.bkash_number || '01731763504' %>"></div>
+                            <div class="form-group"><label>📲 Nagad Merchant/Personal Number</label><input type="text" name="nagad_number" value="<%= settings.nagad_number || '01731763504' %>"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>🎟️ Active Coupon Code</label><input type="text" name="promo_code" value="<%= settings.promo_code || 'TREND50' %>"></div>
+                            <div class="form-group"><label>💰 Coupon Discount Amount (৳)</label><input type="number" name="promo_discount" value="<%= settings.promo_discount || '50' %>"></div>
+                            <div class="form-group">
+                                <label>Cash on Delivery (COD) Status</label>
+                                <select name="cod_enabled">
+                                    <option value="true" <%= settings.cod_enabled !== 'false' ? 'selected' : '' %>>✅ Enabled (100% COD Active)</option>
+                                    <option value="false" <%= settings.cod_enabled === 'false' ? 'selected' : '' %>>❌ Disabled (Advance Payment Only)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-top:24px;">📦 Courier Partners & API Integration</h3>
+                        <div class="form-row">
+                            <div class="form-group"><label>Active Courier Partners</label><input type="text" name="courier_partners" value="<%= settings.courier_partners || 'SteadFast,Pathao,RedX' %>"></div>
+                            <div class="form-group"><label>SteadFast API Key</label><input type="password" name="steadfast_api_key" value="<%= settings.steadfast_api_key || '' %>" placeholder="Optional SteadFast API Key"></div>
+                            <div class="form-group"><label>SteadFast Secret Key</label><input type="password" name="steadfast_secret_key" value="<%= settings.steadfast_secret_key || '' %>" placeholder="Optional SteadFast Secret"></div>
+                        </div>
+
+                        <div class="form-actions-bar">
+                            <button type="submit" class="btn-primary-lg">💾 Save Commerce & Courier Settings</button>
+                            <button type="reset" class="btn-outline-sm">Reset</button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- 7. SOCIAL MEDIA MANAGEMENT & OG TOOLS PANE -->
+                <section id="pane-social" class="admin-pane">
+                    <div class="pane-header-bar">
+                        <div>
+                            <h2>Social Media Links, OG Preview & Share Analytics</h2>
+                            <p>Manage official social profiles, extract Open Graph metadata from URLs, and track customer shares</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-2col">
+                        <form action="/secret-admin-panel-2026/settings/update" method="POST" class="saas-card tracked-form">
+                            <h3>🌐 Official Social Media URLs & Pixel</h3>
+                            <div class="form-group"><label>📘 Facebook Page URL</label><input type="url" name="social_facebook" value="<%= settings.social_facebook || '' %>" placeholder="https://facebook.com/trendzznow"></div>
+                            <div class="form-group"><label>📸 Instagram Profile URL</label><input type="url" name="social_instagram" value="<%= settings.social_instagram || '' %>" placeholder="https://instagram.com/trendzznow"></div>
+                            <div class="form-group"><label>▶️ YouTube Channel URL</label><input type="url" name="social_youtube" value="<%= settings.social_youtube || '' %>" placeholder="https://youtube.com/@trendzznow"></div>
+                            <div class="form-group"><label>🎵 TikTok Profile URL</label><input type="url" name="social_tiktok" value="<%= settings.social_tiktok || '' %>" placeholder="https://tiktok.com/@trendzznow"></div>
+                            <div class="form-group"><label>📊 Facebook Pixel ID</label><input type="text" name="facebook_pixel" value="<%= settings.facebook_pixel || '' %>" placeholder="e.g. 123456789012345"></div>
+                            <button type="submit" class="btn-primary-lg">💾 Save Social Links</button>
+                        </form>
+
+                        <div class="saas-card">
+                            <h3>🔍 Open Graph URL Inspector & Product Share Links</h3>
+                            <p style="font-size:13px; color:#64748b;">Test how any product or external URL appears when shared on Facebook, WhatsApp, or Instagram:</p>
+                            <div style="display:flex; gap:8px; margin-bottom:14px;">
+                                <input type="url" id="ogInspectUrl" placeholder="https://trendzznow.com/product/1" style="flex:1; padding:10px; border:1px solid #cbd5e1; border-radius:8px;">
+                                <button type="button" class="btn-primary-sm" onclick="extractOgMetadata()">Extract OG</button>
+                            </div>
+                            <div id="ogPreviewResult" style="display:none; background:#f8fafc; padding:14px; border-radius:10px; border:1px solid #e2e8f0; margin-bottom:18px;"></div>
+
+                            <h4>📈 Tracked Share Clicks (Total: <%= shareAnalytics.total_shares || 0 %>)</h4>
+                            <div class="share-product-links-list" style="max-height:240px; overflow-y:auto;">
+                                <% products.forEach(p => { %>
+                                    <div class="ro-row">
+                                        <div>
+                                            <strong><%= p.title %></strong>
+                                            <small>https://trendzznow.com/product/<%= p.id %></small>
+                                        </div>
+                                        <button type="button" class="btn-secondary-sm" onclick="navigator.clipboard.writeText('https://trendzznow.com/product/<%= p.id %>').then(()=>alert('Copied!'))">📋 Copy Link</button>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 8. AI CUSTOMER SUPPORT PANE -->
+                <section id="pane-ai" class="admin-pane">
+                    <div class="pane-header-bar">
+                        <div>
+                            <h2>AI Customer Support & Knowledge Base</h2>
+                            <p>Configure automated bilingual responses, store knowledge base, handoff rules, and conversation logs</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-2col">
+                        <form action="/secret-admin-panel-2026/settings/update" method="POST" class="saas-card tracked-form">
+                            <h3>🤖 AI Assistant Configuration</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>AI Widget Status on Storefront</label>
+                                    <select name="ai_enabled">
+                                        <option value="true" <%= settings.ai_enabled !== 'false' ? 'selected' : '' %>>✅ Active on Storefront</option>
+                                        <option value="false" <%= settings.ai_enabled === 'false' ? 'selected' : '' %>>⏸️ Hidden / Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Engine Mode</label>
+                                    <select name="ai_provider">
+                                        <option value="gemini" <%= settings.ai_provider === 'gemini' ? 'selected' : '' %>>Smart Knowledge Base + Catalog Sync</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Welcome Greeting (English)</label>
+                                <input type="text" name="ai_welcome_en" value="<%= settings.ai_welcome_en %>">
+                            </div>
+                            <div class="form-group">
+                                <label>Welcome Greeting (বাংলা)</label>
+                                <input type="text" name="ai_welcome_bn" value="<%= settings.ai_welcome_bn %>">
+                            </div>
+                            <div class="form-group">
+                                <label>Store Knowledge Base (Used to answer customer questions)</label>
+                                <textarea name="ai_kb_text" rows="4"><%= settings.ai_kb_text %></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Human Handoff Message (WhatsApp Escalation)</label>
+                                <input type="text" name="ai_handoff_msg" value="<%= settings.ai_handoff_msg %>">
+                            </div>
+
+                            <button type="submit" class="btn-primary-lg">💾 Save AI Support Settings</button>
+                        </form>
+
+                        <div class="saas-card">
+                            <h3>💬 Recent AI Customer Conversations (<%= aiConversations.length %>)</h3>
+                            <div class="table-responsive" style="max-height:420px; overflow-y:auto;">
+                                <table class="saas-table">
+                                    <thead><tr><th>Time</th><th>Customer Query</th><th>Bot Response</th></tr></thead>
+                                    <tbody>
+                                        <% if (aiConversations.length > 0) { %>
+                                            <% aiConversations.forEach(c => { %>
+                                                <tr>
+                                                    <td><small><%= c.time ? new Date(c.time).toLocaleTimeString() : '-' %></small></td>
+                                                    <td><strong><%= c.query %></strong></td>
+                                                    <td><small><%= c.reply %></small></td>
+                                                </tr>
+                                            <% }) %>
+                                        <% } else { %>
+                                            <tr><td colspan="3" class="muted-empty">No customer AI chats recorded yet.</td></tr>
+                                        <% } %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 9. SECURITY, ROLES & AUDIT LOGS PANE -->
+                <section id="pane-security" class="admin-pane">
+                    <div class="pane-header-bar">
+                        <div>
+                            <h2>Security, Role Permissions & Administrative Audit Trail</h2>
+                            <p>Manage master credentials, role-based staff accounts, and review all administrative actions</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-2col">
+                        <div>
+                            <div class="saas-card" style="margin-bottom:20px;">
+                                <h3>🔑 Change Master Administrator Password</h3>
+                                <form action="/secret-admin-panel-2026/password/change" method="POST">
+                                    <div class="form-row">
+                                        <div class="form-group"><label>New Password (min 6 chars) *</label><input type="password" name="new_password" required minlength="6"></div>
+                                        <div class="form-group"><label>Confirm Password *</label><input type="password" name="confirm_password" required minlength="6"></div>
+                                    </div>
+                                    <button type="submit" class="btn-primary-sm">Update Master Password</button>
+                                </form>
+                            </div>
+
+                            <div class="saas-card">
+                                <h3>👥 Role-Based Staff Accounts (<%= subAdmins.length %>)</h3>
+                                <form action="/secret-admin-panel-2026/subadmin/add" method="POST" style="margin-bottom:16px;">
+                                    <div class="form-row">
+                                        <div class="form-group"><label>Staff Name *</label><input type="text" name="sub_name" required placeholder="e.g. Rahim"></div>
+                                        <div class="form-group"><label>Access Password *</label><input type="password" name="sub_pass" required></div>
+                                        <div class="form-group">
+                                            <label>Assigned Role</label>
+                                            <select name="sub_role">
+                                                <option value="OrderManager">Order Manager (No Delete)</option>
+                                                <option value="InventoryStaff">Inventory & Packing Staff</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn-primary-sm">➕ Add Staff Account</button>
+                                </form>
+
+                                <% if (subAdmins.length > 0) { %>
+                                    <table class="saas-table">
+                                        <thead><tr><th>Name</th><th>Role</th><th>Action</th></tr></thead>
+                                        <tbody>
+                                            <% subAdmins.forEach(sa => { %>
+                                                <tr>
+                                                    <td><strong><%= sa.name %></strong></td>
+                                                    <td><span class="status-tag-sm"><%= sa.role || 'Staff' %></span></td>
+                                                    <td>
+                                                        <form action="/secret-admin-panel-2026/subadmin/delete" method="POST" onsubmit="return confirm('Remove staff account?');">
+                                                            <input type="hidden" name="sub_name" value="<%= sa.name %>">
+                                                            <button type="submit" class="btn-danger-sm">Revoke</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            <% }) %>
+                                        </tbody>
+                                    </table>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <div class="saas-card">
+                            <h3>🛡️ Administrative Audit Logs (<%= auditLogs.length %>)</h3>
+                            <div class="table-responsive" style="max-height:540px; overflow-y:auto;">
+                                <table class="saas-table">
+                                    <thead><tr><th>Timestamp</th><th>Actor</th><th>Action</th><th>Details</th></tr></thead>
+                                    <tbody>
+                                        <% if (auditLogs.length > 0) { %>
+                                            <% auditLogs.forEach(al => { %>
+                                                <tr>
+                                                    <td><small><%= al.timestamp ? new Date(al.timestamp).toLocaleString() : '-' %></small></td>
+                                                    <td><strong><%= al.actor %></strong></td>
+                                                    <td><span class="status-tag-sm"><%= al.action %></span></td>
+                                                    <td><small><%= al.details %></small></td>
+                                                </tr>
+                                            <% }) %>
+                                        <% } else { %>
+                                            <tr><td colspan="4" class="muted-empty">No administrative actions logged yet.</td></tr>
+                                        <% } %>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <!-- Complete product and inventory workspace -->
-        <section class="admin-panel-view" id="adminProductsPanel" data-admin-panel="products">
-          <div class="admin-product-layout">
-            <section class="admin-section admin-product-form-card">
-              <div class="admin-section-heading"><div><span class="admin-eyebrow">CATALOG</span><h3>＋ Add product</h3><p>Create a product with pricing, stock and category details.</p></div></div>
-              <form action="/secret-admin-panel-2026/products/add" method="POST" enctype="multipart/form-data" class="admin-product-form"><input type="hidden" name="is_active_present" value="1"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                <div class="form-group"><label>Product title *</label><input type="text" name="title" required maxlength="180" placeholder="e.g. Dynamic Leaf Table Lamp"></div>
+    <!-- Edit Product Modal -->
+    <div id="editProductModal" class="modal glass-modal-backdrop">
+        <div class="modal-content glass-modal" style="max-width:680px;">
+            <span class="close" onclick="document.getElementById('editProductModal').style.display='none'">&times;</span>
+            <h3 style="margin-top:0; color:#1e293b;">✏️ Edit Product (<span id="editProductIdTitle"></span>)</h3>
+            <form id="editProductForm" method="POST" enctype="multipart/form-data">
                 <div class="form-row">
-                  <div class="form-group"><label>Category *</label><input type="text" name="category" required list="trendzzCategoryOptions" maxlength="80" placeholder="Choose or type category"><datalist id="trendzzCategoryOptions"><% categories.forEach(cat => { %><option value="<%= cat %>"></option><% }) %></datalist></div>
-                  <div class="form-group"><label>SKU / Product code</label><input type="text" name="sku" maxlength="80" placeholder="e.g. TN-LAMP-001"></div>
+                    <div class="form-group" style="flex:2;"><label>Product Title *</label><input type="text" id="editTitle" name="title" required></div>
+                    <div class="form-group" style="flex:1;"><label>SKU</label><input type="text" id="editSku" name="sku"></div>
                 </div>
                 <div class="form-row">
-                  <div class="form-group"><label>Selling price (৳) *</label><input type="number" name="price" required min="0.01" step="0.01" placeholder="950"></div>
-                  <div class="form-group"><label>Regular price (৳)</label><input type="number" name="regular_price" min="0" step="0.01" placeholder="1250"></div>
+                    <div class="form-group"><label>Category *</label><input type="text" id="editCategory" name="category" required></div>
+                    <div class="form-group"><label>Subcategory</label><input type="text" id="editSubcategory" name="subcategory"></div>
                 </div>
                 <div class="form-row">
-                  <div class="form-group"><label>Buying / cost price (৳)</label><input type="number" name="cost_price" min="0" step="0.01" value="0"></div>
-                  <div class="form-group"><label>Opening stock *</label><input type="number" name="stock_quantity" min="0" step="1" value="0" required></div>
-                </div>
-                <div class="form-row">
-                  <div class="form-group"><label>Low-stock alert at</label><input type="number" name="low_stock_threshold" min="0" step="1" value="5"></div>
-                  <div class="form-group"><label>Variants (comma separated)</label><input type="text" name="variant_options" placeholder="Cream, Black, Wood"></div>
+                    <div class="form-group"><label>Selling Price (৳) *</label><input type="number" id="editPrice" name="price" required min="0"></div>
+                    <div class="form-group"><label>Regular Price (৳)</label><input type="number" id="editRegularPrice" name="regular_price" min="0"></div>
+                    <div class="form-group"><label>Cost Price (৳)</label><input type="number" id="editCostPrice" name="cost_price" min="0"></div>
+                    <div class="form-group"><label>Stock Qty *</label><input type="number" id="editStockQty" name="stock_quantity" required min="0"></div>
                 </div>
                 <div class="upload-box">
-                  <label>Product image (JPG, PNG, WebP or GIF; max 5 MB)</label>
-                  <input type="file" name="image_file" accept="image/jpeg,image/png,image/webp,image/gif" data-image-preview-input="newProductPreview">
-                  <img id="newProductPreview" class="admin-image-preview" alt="Product image preview" hidden>
-                  <small>Or paste a public image URL</small><input type="url" name="image" placeholder="https://example.com/product.jpg">
-                </div>
-                <div class="form-group"><label>Description</label><textarea name="description" rows="4" maxlength="12000" placeholder="Product description and key details"></textarea></div>
-                <label class="admin-check-label"><input type="checkbox" name="is_active" checked> Publish this product on the storefront</label>
-                <button type="submit" class="add-product-btn">＋ Save product</button>
-              </form>
-            </section>
-
-            <section class="admin-section admin-inventory-card">
-              <div class="admin-section-heading"><div><span class="admin-eyebrow">STOCK CONTROL</span><h3>Product inventory <span class="admin-count-pill"><%= products.length %></span></h3><p>Search, filter, export and manage products.</p></div><div class="admin-inline-actions"><a class="admin-secondary-action" href="/secret-admin-panel-2026/products/export.csv">↓ Export CSV</a></div></div>
-              <div class="admin-inventory-toolbar">
-                <input type="search" id="inventorySearch" placeholder="Search title, SKU or category…" aria-label="Search inventory">
-                <select id="inventoryCategoryFilter" aria-label="Filter category"><option value="">All categories</option><% categories.forEach(cat => { %><option value="<%= cat.toLowerCase() %>"><%= cat %></option><% }) %></select>
-                <select id="inventorySort" aria-label="Sort products"><option value="newest">Newest first</option><option value="title">Name A–Z</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option><option value="stock-low">Stock: low to high</option></select>
-              </div>
-              <div class="admin-import-export-row">
-                <form action="/secret-admin-panel-2026/products/import-csv" method="POST" enctype="multipart/form-data" class="admin-csv-import-form"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                  <label for="productCsvFile">Import products CSV</label><input id="productCsvFile" type="file" name="csv_file" accept=".csv,text/csv" required><button type="submit" class="admin-small-action">Import CSV</button>
-                </form>
-                <small>CSV columns: title, category, sku, price, regular_price, cost_price, stock_quantity, low_stock_threshold, variant_options, image, description, is_active</small>
-              </div>
-              <form action="/secret-admin-panel-2026/products/bulk-action" method="POST" id="productBulkForm" class="admin-bulk-tools"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                <select name="bulk_action" id="productBulkAction" required><option value="">Bulk action…</option><option value="activate">Publish selected</option><option value="deactivate">Unpublish selected</option><option value="set_stock">Set stock quantity</option><option value="add_stock">Add stock quantity</option><option value="remove_stock">Remove stock quantity</option><option value="set_category">Change category</option><option value="delete">Delete selected</option></select>
-                <input type="number" name="stock_amount" id="bulkStockAmount" min="0" step="1" placeholder="Qty" hidden>
-                <input type="text" name="bulk_category" id="bulkCategory" maxlength="80" placeholder="New category" hidden>
-                <button type="submit" class="admin-small-action">Apply to selected</button><span class="admin-muted" id="selectedProductCount">0 selected</span>
-              </form>
-              <div class="table-responsive admin-products-table-wrap">
-                <table class="data-table admin-products-table" id="productsTable">
-                  <thead><tr><th><input type="checkbox" id="selectAllProducts" aria-label="Select all products"></th><th>Product</th><th>SKU / Category</th><th>Pricing</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
-                  <tbody id="productsTableBody">
-                    <% products.forEach(p => { const stockKnown=!!p.stock_known; const stock=stockKnown?Number(p.stock_quantity):null; const threshold=Number(p.low_stock_threshold ?? settings.low_stock_threshold ?? 5); const low=stockKnown && stock<=threshold; %>
-                      <tr class="inventory-row" data-id="<%= p.id %>" data-title="<%= (p.title||'').toLowerCase() %>" data-sku="<%= (p.sku||'').toLowerCase() %>" data-category="<%= (p.category||'').toLowerCase() %>" data-price="<%= Number(p.price)||0 %>" data-stock="<%= stockKnown?stock:-1 %>" data-created="<%= p.created_at||'' %>">
-                        <td><input type="checkbox" class="product-row-check" name="selected_products" value="<%= p.id %>" form="productBulkForm" aria-label="Select <%= p.title %>"></td>
-                        <td><div class="admin-product-cell"><% if (p.image) { %><img src="<%= p.image %>" alt="" loading="lazy"><% } else { %><span class="admin-product-placeholder">TN</span><% } %><span><strong><%= p.title %></strong><small>#<%= p.id %></small></span></div></td>
-                        <td><strong><%= p.sku || '—' %></strong><small class="admin-cell-sub"><%= p.category || 'Uncategorized' %></small></td>
-                        <td><strong>৳ <%= Number(p.price||0).toLocaleString('en-BD') %></strong><% if (Number(p.regular_price)>Number(p.price)) { %><small class="admin-cell-sub"><s>৳ <%= Number(p.regular_price).toLocaleString('en-BD') %></s></small><% } %><small class="admin-cell-sub">Cost: ৳ <%= Number(p.cost_price||0).toLocaleString('en-BD') %></small></td>
-                        <td><span class="admin-stock-pill <%= !stockKnown?'unknown':stock===0?'out':low?'low':'ok' %>"><%= stockKnown?stock:'Not set' %> <%= stockKnown?'units':'' %></span><small class="admin-cell-sub">Alert at <%= threshold %></small></td>
-                        <td><span class="admin-state-pill <%= p.is_active?'published':'draft' %>"><%= p.is_active?'Published':'Draft' %></span></td>
-                        <td><div class="admin-row-actions"><button type="button" class="edit-btn" onclick="openEditProductById('<%= p.id %>')">Edit</button><button type="button" class="admin-small-action" onclick="openStockAdjustModal('<%= p.id %>')">Stock</button><form action="/secret-admin-panel-2026/products/delete/<%= p.id %>" method="POST" onsubmit="return confirm('Delete this product? This cannot be undone.');"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" class="delete-btn">Delete</button></form></div></td>
-                      </tr>
-                    <% }) %>
-                    <% if (!products.length) { %><tr><td colspan="7"><div class="admin-empty-state">No products yet. Add your first product using the form.</div></td></tr><% } %>
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          </div>
-        </section>
-
-        <section class="admin-section admin-panel-view" id="editSection" data-admin-panel="products" hidden>
-          <div class="admin-section-heading"><div><span class="admin-eyebrow">PRODUCT EDITOR</span><h3>Edit product <span id="editProductIdTitle"></span></h3><p>Update product data without changing its order history.</p></div></div>
-          <form id="editProductForm" method="POST" enctype="multipart/form-data" class="admin-product-form"><input type="hidden" name="is_active_present" value="1"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <div class="form-row"><div class="form-group"><label>Product title *</label><input type="text" id="editTitle" name="title" required maxlength="180"></div><div class="form-group"><label>Category *</label><input type="text" id="editCategory" name="category" list="trendzzCategoryOptions" required maxlength="80"></div></div>
-            <div class="form-row"><div class="form-group"><label>SKU</label><input type="text" id="editSku" name="sku" maxlength="80"></div><div class="form-group"><label>Selling price (৳) *</label><input type="number" id="editPrice" name="price" min="0.01" step="0.01" required></div><div class="form-group"><label>Regular price (৳)</label><input type="number" id="editRegularPrice" name="regular_price" min="0" step="0.01"></div></div>
-            <div class="form-row"><div class="form-group"><label>Cost price (৳)</label><input type="number" id="editCostPrice" name="cost_price" min="0" step="0.01"></div><div class="form-group"><label>Stock quantity</label><input type="number" id="editStockQty" name="stock_quantity" min="0" step="1"></div><div class="form-group"><label>Low-stock threshold</label><input type="number" id="editLowStock" name="low_stock_threshold" min="0" step="1"></div></div>
-            <div class="upload-box"><label>Upload a replacement image (optional)</label><input type="file" name="image_file" accept="image/jpeg,image/png,image/webp,image/gif" data-image-preview-input="editProductPreview"><img id="editProductPreview" class="admin-image-preview" alt="New product image preview" hidden><label>Image URL</label><input type="url" id="editImage" name="image"></div>
-            <div class="form-group"><label>Variants (comma separated)</label><input type="text" id="editVariants" name="variant_options"></div><div class="form-group"><label>Description</label><textarea id="editDesc" name="description" rows="4" maxlength="12000"></textarea></div>
-            <label class="admin-check-label"><input type="checkbox" id="editIsActive" name="is_active" checked> Published on storefront</label>
-            <div class="admin-inline-actions"><button type="submit" class="save-settings-btn">Save product changes</button><button type="button" class="admin-secondary-action" onclick="document.getElementById('editSection').hidden=true">Cancel</button></div>
-          </form>
-        </section>
-
-        <dialog id="stockAdjustDialog" class="admin-dialog">
-          <form id="stockAdjustForm" method="POST"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <div class="admin-section-heading"><div><span class="admin-eyebrow">INVENTORY CONTROL</span><h3>Adjust stock</h3><p id="stockAdjustProductName"></p></div><button type="button" class="admin-dialog-close" onclick="document.getElementById('stockAdjustDialog').close()" aria-label="Close">×</button></div>
-            <label>Adjustment type<select name="adjustment_type" required><option value="add">Add stock</option><option value="remove">Remove stock</option><option value="set">Set exact quantity</option></select></label>
-            <label>Quantity<input type="number" name="quantity" min="0" step="1" required value="1"></label>
-            <label>Reason<input type="text" name="reason" maxlength="500" placeholder="Restock, damage, correction…"></label>
-            <button class="save-settings-btn" type="submit">Save stock adjustment</button>
-          </form>
-        </dialog>
-
-        <section class="admin-section admin-panel-view" id="adminCategoriesPanel" data-admin-panel="categories">
-          <div class="admin-section-heading"><div><span class="admin-eyebrow">CATALOG STRUCTURE</span><h3>Product categories</h3><p>Manage category names used by product listings. Existing products are kept when categories are renamed or reassigned.</p></div></div>
-          <form action="/secret-admin-panel-2026/categories/add" method="POST" class="admin-inline-form"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="text" name="category" maxlength="80" required placeholder="New category name"><button class="admin-small-action" type="submit">＋ Add category</button></form>
-          <div class="table-responsive"><table class="data-table"><thead><tr><th>Category</th><th>Products</th><th>Rename</th><th>Remove / Reassign</th></tr></thead><tbody>
-            <% categories.forEach(cat => { const count=products.filter(p => String(p.category||'Uncategorized')===cat).length; %>
-              <tr><td><strong><%= cat %></strong></td><td><%= count %></td><td><form action="/secret-admin-panel-2026/categories/rename" method="POST" class="admin-inline-form"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="old_category" value="<%= cat %>"><input type="text" name="new_category" maxlength="80" required placeholder="New name"><button type="submit" class="admin-small-action">Rename</button></form></td><td><form action="/secret-admin-panel-2026/categories/reassign-delete" method="POST" class="admin-inline-form" onsubmit="return confirm('Move all products to the replacement category?')"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="category" value="<%= cat %>"><input type="text" name="replacement_category" maxlength="80" value="Uncategorized" required><button class="delete-btn" type="submit">Reassign</button></form></td></tr>
-            <% }) %>
-          </tbody></table></div>
-        </section>
-
-        <section class="admin-section admin-panel-view" id="adminCustomersPanel" data-admin-panel="customers">
-          <div class="admin-section-heading"><div><span class="admin-eyebrow">CUSTOMER RELATIONSHIPS</span><h3>Customers <span class="admin-count-pill"><%= customers.length %></span></h3><p>Customer information is grouped from order records; phone and address details stay inside the protected admin area.</p></div><button type="button" class="export-btn" onclick="exportCustomersCSV()">↓ Export customers CSV</button></div>
-          <div class="admin-table-tools"><input type="search" id="customerSearch" placeholder="Search customer name, phone or email…"><span class="admin-muted">Unique phone numbers with orders</span></div>
-          <div class="table-responsive"><table class="data-table" id="customersTable"><thead><tr><th>Customer</th><th>Phone</th><th>Email</th><th>Orders</th><th>Non-cancelled order value</th><th>Last order</th></tr></thead><tbody>
-            <% customers.forEach(c => { %><tr class="customer-row"><td><strong><%= c.name || 'Customer' %></strong></td><td><a href="tel:<%= c.phone %>"><%= c.phone %></a></td><td><%= c.email || '—' %></td><td><%= c.orderCount %></td><td>৳ <%= Number(c.totalSpend||0).toLocaleString('en-BD') %></td><td><%= c.lastOrderAt ? new Date(c.lastOrderAt).toLocaleString() : '—' %></td></tr><% }) %>
-            <% if (!customers.length) { %><tr><td colspan="6"><div class="admin-empty-state">Customer profiles will appear after the first order.</div></td></tr><% } %>
-          </tbody></table></div>
-        </section>
-
-        <section class="admin-section admin-panel-view" id="adminAnalyticsPanel" data-admin-panel="analytics">
-          <div class="admin-section-heading"><div><span class="admin-eyebrow">STORE PERFORMANCE</span><h3>Analytics & reports</h3><p>Figures are derived from current product and order records. Delivered sales are shown separately from open order value.</p></div></div>
-          <div class="stats-grid admin-analytics-grid">
-            <div class="stat-card"><span class="stat-title">Delivered revenue</span><span class="stat-num">৳ <%= Number(analytics.deliveredRevenue||0).toLocaleString('en-BD') %></span></div>
-            <div class="stat-card"><span class="stat-title">Total order records</span><span class="stat-num"><%= analytics.totalOrders||0 %></span></div>
-            <div class="stat-card"><span class="stat-title">Customers</span><span class="stat-num"><%= analytics.totalCustomers||0 %></span></div>
-            <div class="stat-card"><span class="stat-title">Inventory cost value</span><span class="stat-num">৳ <%= Number(analytics.totalInventoryCost||0).toLocaleString('en-BD') %></span></div>
-          </div>
-          <section class="admin-subpanel"><h4>Delivered sales · last 7 days</h4><div class="admin-sales-chart"><% const maxDaySales=Math.max(1,...(analytics.dailySales||[]).map(d=>Number(d.amount)||0)); (analytics.dailySales||[]).forEach(day=>{ %><div class="admin-sales-bar-group"><div class="admin-sales-bar-value">৳<%= Math.round(day.amount).toLocaleString('en-BD') %></div><div class="admin-sales-bar-track"><span style="height:<%= Math.max(2,Math.round((day.amount/maxDaySales)*100)) %>%"></span></div><small><%= new Date(day.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short'}) %></small></div><% }) %></div></section>
-          <section class="admin-subpanel"><h4>Order status breakdown</h4><div class="admin-status-breakdown"><% Object.entries(analytics.statusCounts||{}).sort((a,b)=>b[1]-a[1]).forEach(([status,count])=>{ %><div><span><%= status %></span><strong><%= count %></strong></div><% }) %><% if (!Object.keys(analytics.statusCounts||{}).length) { %><div class="admin-empty-state">No order data yet.</div><% } %></div></section>
-        </section>
-
-        <section class="admin-panel-view" id="adminHistoryPanel" data-admin-panel="history">
-          <section class="admin-section"><div class="admin-section-heading"><div><span class="admin-eyebrow">STOCK CONTROL</span><h3>Inventory movement history</h3><p>Records are added when initial stock is created, orders reserve stock, or an admin adjusts quantities. Apply the SQL migration to activate persistent history.</p></div></div>
-            <div class="table-responsive"><table class="data-table"><thead><tr><th>Date</th><th>Product</th><th>Movement</th><th>Change</th><th>Previous → New</th><th>Reason / Ref</th></tr></thead><tbody>
-              <% inventoryMovements.forEach(m=>{ %><tr><td><%= m.created_at ? new Date(m.created_at).toLocaleString() : '—' %></td><td><strong><%= m.product_title %></strong><small class="admin-cell-sub">#<%= m.product_id || 'deleted' %></small></td><td><%= m.movement_type %></td><td><strong><%= Number(m.quantity_change)>0?'+':'' %><%= m.quantity_change %></strong></td><td><%= m.previous_quantity %> → <%= m.new_quantity %></td><td><%= m.reason || '—' %> <small><%= m.reference || '' %></small></td></tr><% }) %>
-              <% if (!inventoryMovements.length) { %><tr><td colspan="6"><div class="admin-empty-state">No stock history yet. Apply the V23 migration and future changes will be logged.</div></td></tr><% } %>
-            </tbody></table></div>
-          </section>
-          <section class="admin-section"><div class="admin-section-heading"><div><span class="admin-eyebrow">SECURITY</span><h3>Administrator activity log</h3><p>Recent changes made from this admin panel.</p></div></div>
-            <div class="table-responsive"><table class="data-table"><thead><tr><th>Date</th><th>Action</th><th>Entity</th><th>Details</th><th>IP</th></tr></thead><tbody>
-              <% auditLogs.forEach(a=>{ %><tr><td><%= a.created_at ? new Date(a.created_at).toLocaleString() : '—' %></td><td><strong><%= a.action %></strong></td><td><%= a.entity_type %> <%= a.entity_id %></td><td><%= JSON.stringify(a.details||{}) %></td><td><%= a.ip_address || '—' %></td></tr><% }) %>
-              <% if (!auditLogs.length) { %><tr><td colspan="5"><div class="admin-empty-state">No audit activity has been recorded yet.</div></td></tr><% } %>
-            </tbody></table></div>
-          </section>
-        </section>
-
-        <!-- Sub-admin access is intentionally disabled until role-based permissions are implemented. -->
-        <!-- Master Hero Spotlight, Brand Logo, FAQ & Policies Settings -->
-        <section class="admin-section admin-panel-view" id="adminSettingsPanel" data-admin-panel="settings">
-            <div class="admin-section-heading"><div><span class="admin-eyebrow">CONTENT MANAGEMENT</span><h3>Storefront & policies</h3><p>Update the existing homepage, branding, delivery details and the same four FAQ entries.</p></div></div>
-            <form action="/secret-admin-panel-2026/settings/update" method="POST" enctype="multipart/form-data"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                
-                <details class="admin-settings-group" open><summary>01 · Hero banner & spotlight card</summary>
-                <div class="form-row">
-                    <div class="form-group"><label>Hero Main Headline (EN)</label><input type="text" name="hero_title_en" value="<%= settings.hero_title_en %>"></div>
-                    <div class="form-group"><label>Hero Subtitle (EN)</label><input type="text" name="hero_subtitle_en" value="<%= settings.hero_subtitle_en %>"></div>
+                    <label>📸 Upload Additional / Replacement Images</label>
+                    <input type="file" name="image_files" accept="image/*" multiple>
+                    <label style="margin-top:6px;">Image URL(s)</label>
+                    <input type="text" id="editImage" name="image">
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label>Spotlight Badge Text</label><input type="text" name="hero_badge_text" value="<%= settings.hero_badge_text || '🔥 Trending Spotlight' %>"></div>
-                    <div class="form-group"><label>Spotlight Product Title</label><input type="text" name="hero_featured_title" value="<%= settings.hero_featured_title || '' %>" placeholder="e.g. Dynamic Leaf Table Lamp"></div>
-                    <div class="form-group"><label>Spotlight Price Text</label><input type="text" name="hero_featured_price" value="<%= settings.hero_featured_price || '' %>" placeholder="e.g. ৳ 950"></div>
-                    <div class="form-group"><label>Spotlight Link URL</label><input type="text" name="hero_featured_link" value="<%= settings.hero_featured_link || '#products' %>" placeholder="/product/1 or #products"></div>
+                    <div class="form-group"><label>Variants</label><input type="text" id="editVariants" name="variant_options"></div>
+                    <div class="form-group">
+                        <label>Visibility Status</label>
+                        <select id="editArchived" name="is_archived">
+                            <option value="false">✅ Published</option>
+                            <option value="true">📁 Archived (Hidden)</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="upload-box">
-                    <label>🌟 Upload Hero 3D Spotlight Product Image (Direct File Upload)</label>
-                    <input type="file" name="hero_file" accept="image/*" style="margin-top:6px;">
-                    <small style="display:block; color:#666; margin-top:4px;">OR paste Hero Spotlight Image URL (leave blank to auto-show latest product):</small>
-                    <input type="text" name="hero_image" value="<%= settings.hero_image || '' %>" placeholder="https://..." style="margin-top:4px;">
-                </div>
-
-                </details><details class="admin-settings-group"><summary>02 · Website name & brand logo</summary>
+                <div class="form-group"><label>Description</label><textarea id="editDesc" name="description" rows="3"></textarea></div>
                 <div class="form-row">
-                    <div class="form-group"><label>Brand Name (Part 1)</label><input type="text" name="brand_name_first" value="<%= settings.brand_name_first || 'Trendzz' %>"></div>
-                    <div class="form-group"><label>Brand Name (Part 2 Accent)</label><input type="text" name="brand_name_second" value="<%= settings.brand_name_second || 'Now' %>"></div>
-                    <div class="form-group"><label>Slogan / Tagline</label><input type="text" name="tagline_en" value="<%= settings.tagline_en || 'Stay on trend. Stay in style.' %>"></div>
+                    <div class="form-group"><label>SEO Title</label><input type="text" id="editSeoTitle" name="seo_title"></div>
+                    <div class="form-group"><label>SEO Description</label><input type="text" id="editSeoDesc" name="seo_description"></div>
                 </div>
-
-                <div class="upload-box">
-                    <label>🖼️ Upload Website Logo Directly (PNG/SVG/JPG)</label>
-                    <input type="file" name="logo_file" accept="image/*" style="margin-top:6px;">
-                    <small style="display:block; color:#666; margin-top:4px;">OR paste Logo URL:</small>
-                    <input type="text" name="logo_light" value="<%= settings.logo_light || '' %>" placeholder="https://..." style="margin-top:4px;">
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn-primary-lg" style="flex:1;">💾 Save Product Changes</button>
+                    <button type="button" class="btn-outline-sm" onclick="document.getElementById('editProductModal').style.display='none'">Cancel</button>
                 </div>
-
-                </details><details class="admin-settings-group"><summary>03 · Social media links</summary>
-                <p class="admin-muted">Paste full public profile URLs. Blank fields stay hidden on the storefront.</p>
-                <div class="form-row">
-                    <div class="form-group"><label>Facebook URL</label><input type="url" name="facebook_url" value="<%= settings.facebook_url || '' %>" placeholder="https://facebook.com/yourpage"></div>
-                    <div class="form-group"><label>Instagram URL</label><input type="url" name="instagram_url" value="<%= settings.instagram_url || '' %>" placeholder="https://instagram.com/yourprofile"></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label>TikTok URL</label><input type="url" name="tiktok_url" value="<%= settings.tiktok_url || '' %>" placeholder="https://tiktok.com/@yourprofile"></div>
-                    <div class="form-group"><label>YouTube URL</label><input type="url" name="youtube_url" value="<%= settings.youtube_url || '' %>" placeholder="https://youtube.com/@yourchannel"></div>
-                </div>
-
-                </details><details class="admin-settings-group"><summary>04 · Payment, delivery & promotions</summary>
-                <div class="form-row">
-                    <div class="form-group"><label>📞 WhatsApp Number</label><input type="text" name="whatsapp_number" value="<%= settings.whatsapp_number || '01731763504' %>"></div>
-                    <div class="form-group"><label>📲 bKash Number</label><input type="text" name="bkash_number" value="<%= settings.bkash_number || '01731763504' %>"></div>
-                    <div class="form-group"><label>📲 Nagad Number</label><input type="text" name="nagad_number" value="<%= settings.nagad_number || '01731763504' %>"></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label>🚚 Inside Dhaka (৳)</label><input type="number" name="delivery_inside_dhaka" value="<%= settings.delivery_inside_dhaka || '70' %>"></div>
-                    <div class="form-group"><label>🚚 Outside Dhaka (৳)</label><input type="number" name="delivery_outside_dhaka" value="<%= settings.delivery_outside_dhaka || '130' %>"></div>
-                    <div class="form-group"><label>🎟️ Promo Code</label><input type="text" name="promo_code" value="<%= settings.promo_code || 'TREND50' %>"></div>
-                    <div class="form-group"><label>💰 Promo Discount (৳)</label><input type="number" name="promo_discount" value="<%= settings.promo_discount || '50' %>" min="0"></div>
-                    <div class="form-group"><label>Low-stock alert threshold</label><input type="number" name="low_stock_threshold" value="<%= settings.low_stock_threshold || '5' %>" min="0" step="1"></div>
-                    <div class="form-group"><label>Courier partner display names</label><input type="text" name="courier_partners" value="<%= settings.courier_partners || 'SteadFast,Pathao,RedX' %>" placeholder="SteadFast,Pathao,RedX"></div>
-                </div>
-                <p class="admin-muted">Courier names configure storefront options only. Live courier booking requires provider API credentials and a separate verified integration.</p>
-                <div class="form-row">
-                    <div class="form-group"><label>AI support widget enabled</label><select name="ai_enabled"><option value="false" <%= settings.ai_enabled !== 'true' ? 'selected' : '' %>>Disabled</option><option value="true" <%= settings.ai_enabled === 'true' ? 'selected' : '' %>>Enabled (requires OPENAI_API_KEY and OPENAI_MODEL)</option></select><small class="admin-muted">AI credentials status: <strong><%= assistantConfigured ? 'Configured in server environment' : 'Not configured in Render yet' %></strong></small></div>
-                    <div class="form-group"><label>AI welcome message</label><input type="text" name="ai_welcome_message" value="<%= settings.ai_welcome_message || '' %>" maxlength="500"></div>
-                </div>
-                <div class="form-group"><label>AI handoff message</label><input type="text" name="ai_handoff_message" value="<%= settings.ai_handoff_message || '' %>" maxlength="500"></div>
-
-                </details><details class="admin-settings-group"><summary>05 · Existing FAQ questions & answers</summary>
-                <div class="form-row">
-                    <div class="form-group"><label>FAQ 1 Question</label><input type="text" name="faq_1_q" value="<%= settings.faq_1_q %>"></div>
-                    <div class="form-group"><label>FAQ 1 Answer</label><input type="text" name="faq_1_a" value="<%= settings.faq_1_a %>"></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label>FAQ 2 Question</label><input type="text" name="faq_2_q" value="<%= settings.faq_2_q %>"></div>
-                    <div class="form-group"><label>FAQ 2 Answer</label><input type="text" name="faq_2_a" value="<%= settings.faq_2_a %>"></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label>FAQ 3 Question</label><input type="text" name="faq_3_q" value="<%= settings.faq_3_q %>"></div>
-                    <div class="form-group"><label>FAQ 3 Answer</label><input type="text" name="faq_3_a" value="<%= settings.faq_3_a %>"></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group"><label>FAQ 4 Question</label><input type="text" name="faq_4_q" value="<%= settings.faq_4_q %>"></div>
-                    <div class="form-group"><label>FAQ 4 Answer</label><input type="text" name="faq_4_a" value="<%= settings.faq_4_a %>"></div>
-                </div>
-
-                </details><details class="admin-settings-group"><summary>06 · Store policies</summary>
-                <div class="form-group"><label>🔒 Privacy Policy</label><textarea name="privacy_policy" rows="2"><%= settings.privacy_policy %></textarea></div>
-                <div class="form-group"><label>🔄 Return & Replacement Policy</label><textarea name="return_policy" rows="2"><%= settings.return_policy %></textarea></div>
-                <div class="form-group"><label>📜 Terms & Conditions</label><textarea name="terms_conditions" rows="2"><%= settings.terms_conditions %></textarea></div>
-
-                </details>
-                <button type="submit" class="save-settings-btn">💾 Save all store settings</button>
             </form>
-        </section>
-        <section class="admin-section password-box admin-panel-view" id="adminSecurityPanel" data-admin-panel="security">
-            <h3>🔐 Admin Password</h3>
-            <p>For security, set or rotate <code>ADMIN_PASSWORD</code> in your Render environment variables, then redeploy. Do not store administrator passwords in the database.</p>
-            <div class="admin-security-grid"><div><strong>Session protection</strong><span>Signed, HTTP-only session cookie. HTTPS secure mode is enabled in production.</span></div><div><strong>Form protection</strong><span>Admin POST actions require a session-bound CSRF token.</span></div><div><strong>Login protection</strong><span>Admin login is rate-limited. Use a unique 16+ character password.</span></div><div><strong>Secrets</strong><span>Keep Supabase service-role key, session secret, AI and provider API keys in Render Environment only.</span></div><div><strong>Data safety</strong><span>Back up Supabase before schema updates. The V23 migration is additive and does not delete orders or products.</span></div></div>
-        </section>
-    </main>
-      </div>
+        </div>
+    </div>
+
+    <!-- Order Details & Audit Trail Modal -->
+    <div id="orderDetailModal" class="modal glass-modal-backdrop">
+        <div class="modal-content glass-modal" style="max-width:600px;">
+            <span class="close" onclick="document.getElementById('orderDetailModal').style.display='none'">&times;</span>
+            <h3 id="odModalTitle" style="margin-top:0; color:#1e293b;">Order Details</h3>
+            <div id="odModalBody" style="font-size:14px; line-height:1.6;"></div>
+        </div>
     </div>
 
     <script>
-        const allProductsMap = <%- JSON.stringify(products.reduce((acc, item) => { acc[item.id] = item; return acc; }, {})).replace(/</g, '\\u003c') %>;
-        const allOrdersMap = <%- JSON.stringify(orders.reduce((acc, item) => { acc[item.id] = item; return acc; }, {})).replace(/</g, '\\u003c') %>;
-
-
-        const adminViewMeta = {
-            overview: { title: 'Overview', heading: 'Store overview', description: 'A live view of your orders, sales and product inventory.' },
-            orders: { title: 'Orders', heading: 'Customer orders', description: 'Review customer details, manage fulfilment and update delivery status.' },
-            products: { title: 'Products & Stock', heading: 'Products & inventory', description: 'Manage products, pricing, variants, stock and CSV operations.' },
-            categories: { title: 'Categories', heading: 'Product categories', description: 'Organise category names and safely reassign products.' },
-            customers: { title: 'Customers', heading: 'Customer directory', description: 'Review customer order history summaries and export customer records.' },
-            analytics: { title: 'Analytics', heading: 'Store performance', description: 'Review delivered revenue, order trends and inventory value.' },
-            history: { title: 'Stock & Audit History', heading: 'Operational history', description: 'Review stock movements and administrator actions.' },
-            settings: { title: 'Storefront & Policies', heading: 'Storefront settings', description: 'Manage homepage content, brand identity, delivery details and existing FAQ entries.' },
-            security: { title: 'Security', heading: 'Admin security', description: 'Review session protection and manage deployment secrets safely.' }
-        };
-        function showAdminView(view) {
-            const selected = adminViewMeta[view] ? view : 'overview';
-            document.querySelectorAll('[data-admin-panel]').forEach(panel => {
-                panel.hidden = panel.dataset.adminPanel !== selected;
-            });
-            document.querySelectorAll('[data-admin-view]').forEach(button => {
-                const active = button.dataset.adminView === selected;
-                button.classList.toggle('active', active);
-                button.setAttribute('aria-current', active ? 'page' : 'false');
-            });
-            const meta = adminViewMeta[selected];
-            document.getElementById('adminHeaderTitle').textContent = meta.title;
-            document.getElementById('adminPageTitle').textContent = meta.heading;
-            document.getElementById('adminPageDescription').textContent = meta.description;
-            const editSection = document.getElementById('editSection');
-            if (editSection && selected !== 'products') editSection.hidden = true;
-            document.getElementById('adminSidebar').classList.remove('is-open');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            history.replaceState(null, '', `#${selected}`);
+        const CSRF_TOKEN = <%- safeJson(csrfToken || '') %>;
+        function esc(s) {
+            return String(s === undefined || s === null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
-        document.querySelectorAll('[data-admin-view]').forEach(button => button.addEventListener('click', () => showAdminView(button.dataset.adminView)));
-        document.querySelectorAll('[data-admin-jump]').forEach(button => button.addEventListener('click', () => showAdminView(button.dataset.adminJump)));
-        document.getElementById('adminMobileMenu')?.addEventListener('click', () => document.getElementById('adminSidebar').classList.toggle('is-open'));
-        const initialAdminView = location.hash.replace('#', '');
-        showAdminView(adminViewMeta[initialAdminView] ? initialAdminView : 'overview');
-
-        document.getElementById('orderSearch')?.addEventListener('input', function () {
-            const query = this.value.trim().toLowerCase();
-            document.querySelectorAll('.order-row').forEach(row => {
-                row.dataset.searchMatch = row.innerText.toLowerCase().includes(query) ? 'yes' : 'no';
-                const activeTab = document.querySelector('.tab-btn.active')?.dataset.filterCategory || 'all';
-                const statusMatch = activeTab === 'all' || row.dataset.status === activeTab;
-                row.style.display = (!query || row.dataset.searchMatch === 'yes') && statusMatch ? '' : 'none';
+        // Every admin form gets the CSRF token, and every admin fetch() sends it as a header.
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('form[method="POST"], form[method="post"]').forEach(function (f) {
+                if (f.querySelector('input[name="_csrf"]')) return;
+                var i = document.createElement('input');
+                i.type = 'hidden'; i.name = '_csrf'; i.value = CSRF_TOKEN;
+                f.appendChild(i);
             });
         });
-        function toggleSelectAll(master) {
-            const checkboxes = document.querySelectorAll('.order-chk');
-            checkboxes.forEach(chk => {
-                const row = chk.closest('tr');
-                if (row.style.display !== 'none') {
-                    chk.checked = master.checked;
+        (function () {
+            var nativeFetch = window.fetch;
+            window.fetch = function (url, opts) {
+                if (typeof url === 'string' && url.indexOf('/secret-admin-panel-2026') === 0) {
+                    opts = opts || {};
+                    opts.headers = Object.assign({}, opts.headers || {}, { 'x-csrf-token': CSRF_TOKEN });
                 }
+                return nativeFetch.call(this, url, opts);
+            };
+        })();
+        const allProductsMap =<%- safeJson(products.reduce((acc, item) => { acc[item.id] = item; return acc; }, {})) %>;
+        const allOrdersMap = <%- safeJson(orders.reduce((acc, item) => { acc[item.id] = item; return acc; }, {})) %>;
+        const allOrdersArray = <%- safeJson(orders) %>;
+
+        function switchAdminPane(paneId, btn) {
+            document.querySelectorAll('.admin-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.s-nav-item').forEach(b => b.classList.remove('active'));
+            const target = document.getElementById(paneId);
+            if (target) target.classList.add('active');
+            if (btn) {
+                btn.classList.add('active');
+                document.getElementById('activePaneTitle').innerText = btn.querySelector('.s-label').innerText;
+            }
+            if (window.innerWidth <= 900) {
+                document.getElementById('saasSidebar').classList.remove('mobile-open');
+            }
+        }
+
+        function toggleSidebarCollapse() {
+            if (window.innerWidth <= 900) {
+                document.getElementById('saasSidebar').classList.toggle('mobile-open');
+            } else {
+                document.getElementById('saasLayout').classList.toggle('sidebar-collapsed');
+            }
+        }
+
+        function toggleMobileSidebar() {
+            document.getElementById('saasSidebar').classList.remove('mobile-open');
+        }
+
+        // Unsaved Changes Detector
+        document.querySelectorAll('.tracked-form').forEach(form => {
+            form.addEventListener('input', () => {
+                document.getElementById('unsavedBanner').style.display = 'flex';
+            });
+            form.addEventListener('submit', () => {
+                document.getElementById('unsavedBanner').style.display = 'none';
+            });
+        });
+
+        function discardUnsavedChanges() {
+            document.querySelectorAll('.tracked-form').forEach(f => f.reset());
+            document.getElementById('unsavedBanner').style.display = 'none';
+        }
+
+        function previewUploadedFiles(input, containerId) {
+            const box = document.getElementById(containerId);
+            box.innerHTML = '';
+            if (!input.files) return;
+            Array.from(input.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'preview-thumb-sm';
+                    box.appendChild(img);
+                };
+                reader.readAsDataURL(file);
             });
         }
 
-        function filterOrderTab(category, btn) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.querySelectorAll('.tab-btn').forEach(b => { b.dataset.filterCategory = b === btn ? category : (b.dataset.filterCategory || ''); });
+        function togglePhoneReveal(btn) {
+            const codeEl = btn.parentElement.querySelector('.phone-display');
+            const isMasked = codeEl.innerText.includes('*');
+            codeEl.innerText = isMasked ? codeEl.getAttribute('data-raw') : codeEl.getAttribute('data-masked');
+        }
 
-            const rows = document.querySelectorAll('.order-row');
-            rows.forEach(row => {
-                const status = row.getAttribute('data-status');
-                const query = (document.getElementById('orderSearch')?.value || '').trim().toLowerCase();
-                const searchMatch = !query || row.innerText.toLowerCase().includes(query);
-                row.style.display = (category === 'all' || status === category) && searchMatch ? '' : 'none';
+        function filterDashboardByRange(days) {
+            if (days === 'all') {
+                document.getElementById('kpiOrders').innerText = allOrdersArray.length;
+                const rev = allOrdersArray.filter(o => o.status !== 'Cancelled' && o.status !== 'Return').reduce((s, o) => s + (Number(o.price)||0), 0);
+                document.getElementById('kpiRevenue').innerText = '৳ ' + rev;
+                return;
+            }
+            const cutoff = Date.now() - (parseInt(days, 10) * 24 * 60 * 60 * 1000);
+            const filtered = allOrdersArray.filter(o => o.created_at && new Date(o.created_at).getTime() >= cutoff);
+            document.getElementById('kpiOrders').innerText = filtered.length;
+            const rev = filtered.filter(o => o.status !== 'Cancelled' && o.status !== 'Return').reduce((s, o) => s + (Number(o.price)||0), 0);
+            document.getElementById('kpiRevenue').innerText = '৳ ' + rev;
+        }
+
+        function filterOrderRows() {
+            const q = (document.getElementById('orderSearchInput').value || '').toLowerCase().trim();
+            const st = document.getElementById('orderStatusFilter').value;
+            const pay = document.getElementById('orderPaymentFilter').value;
+            const dt = document.getElementById('orderDateFilter').value;
+
+            document.querySelectorAll('.order-tr').forEach(row => {
+                const matchQ = !q || row.getAttribute('data-search').includes(q);
+                const matchSt = st === 'all' || row.getAttribute('data-status') === st;
+                const matchPay = pay === 'all' || row.getAttribute('data-pay') === pay;
+                const matchDt = !dt || row.getAttribute('data-date') === dt;
+                row.style.display = (matchQ && matchSt && matchPay && matchDt) ? '' : 'none';
             });
         }
 
-        function openEditProductById(id) {
+        function toggleSelectAllOrders(master) {
+            document.querySelectorAll('.order-chk').forEach(chk => {
+                const tr = chk.closest('tr');
+                if (tr && tr.style.display !== 'none') chk.checked = master.checked;
+            });
+        }
+
+        function openOrderDetailModal(id) {
+            const o = allOrdersMap[id];
+            if (!o) return;
+            document.getElementById('odModalTitle').innerText = `📦 Order #${esc(o.id)} — Full Details & Audit Trail`;
+            let historyHtml = '';
+            if (o.audit_history && o.audit_history.length > 0) {
+                historyHtml = '<ul style="padding-left:18px; margin-top:8px;">' + o.audit_history.map(h => `<li><strong>${esc(h.status)}</strong> by ${esc(h.actor)} <small>(${new Date(h.time).toLocaleString()})</small> ${h.note ? '— ' + esc(h.note) : ''}</li>`).join('') + '</ul>';
+            } else {
+                historyHtml = '<p style="color:#64748b;">No status changes logged yet.</p>';
+            }
+            document.getElementById('odModalBody').innerHTML = `
+                <div style="background:#f8fafc; padding:14px; border-radius:10px; border:1px solid #e2e8f0; margin-bottom:14px;">
+                    <p style="margin:4px 0;"><strong>Customer Name:</strong> ${esc(o.customer_name)}</p>
+                    <p style="margin:4px 0;"><strong>Phone Number:</strong> ${esc(o.phone)}</p>
+                    <p style="margin:4px 0;"><strong>Items Ordered:</strong> ${esc(o.product_title)} (Qty: ${esc(o.quantity)})</p>
+                    <p style="margin:4px 0;"><strong>Total Payable:</strong> ৳ ${esc(o.price)}</p>
+                    <p style="margin:4px 0;"><strong>Full Address & Meta:</strong> ${esc(o.address)}</p>
+                    <p style="margin:4px 0;"><strong>Consignment ID:</strong> ${esc(o.consignment_id) || 'Not assigned'}</p>
+                </div>
+                <h4 style="margin:0 0 6px 0;">📜 Order Audit History</h4>
+                ${historyHtml}
+            `;
+            document.getElementById('orderDetailModal').style.display = 'block';
+        }
+
+        function openEditProductModal(id) {
             const p = allProductsMap[id];
-            if (!p) return alert('Product data not found!');
-            document.getElementById('editSection').hidden = false;
+            if (!p) return;
             document.getElementById('editProductForm').action = '/secret-admin-panel-2026/products/edit/' + p.id;
-            document.getElementById('editProductIdTitle').innerText = '#' + p.id + ' - ' + (p.title || '');
+            document.getElementById('editProductIdTitle').innerText = '#' + p.id + ' ' + p.title;
             document.getElementById('editTitle').value = p.title || '';
-            document.getElementById('editCategory').value = p.category || 'Trending';
-            document.getElementById('editPrice').value = p.price || '';
-            document.getElementById('editRegularPrice').value = p.regular_price || '';
-            document.getElementById('editCostPrice').value = p.cost_price || '';
-            document.getElementById('editStockQty').value = p.stock_known ? p.stock_quantity : '';
-            document.getElementById('editImage').value = p.image || '';
-            document.getElementById('editVariants').value = p.variant_options || '';
-            document.getElementById('editDesc').value = p.description || '';
             document.getElementById('editSku').value = p.sku || '';
-            document.getElementById('editLowStock').value = p.low_stock_threshold ?? 5;
-            document.getElementById('editIsActive').checked = p.is_active !== false;
-            if (p.image) { document.getElementById('editProductPreview').src = p.image; document.getElementById('editProductPreview').hidden = false; }
-            document.getElementById('editSection').hidden = false;
-            document.getElementById('editSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            document.getElementById('editCategory').value = p.category || 'Trending';
+            document.getElementById('editSubcategory').value = p.subcategory || '';
+            document.getElementById('editPrice').value = p.price || 0;
+            document.getElementById('editRegularPrice').value = p.regular_price || 0;
+            document.getElementById('editCostPrice').value = p.cost_price || 0;
+            document.getElementById('editStockQty').value = p.stock_quantity ?? 50;
+            document.getElementById('editImage').value = (p.gallery_images && p.gallery_images.length > 0) ? p.gallery_images.join(', ') : (p.image || '');
+            document.getElementById('editVariants').value = p.variant_options || '';
+            document.getElementById('editArchived').value = p.is_archived ? 'true' : 'false';
+            document.getElementById('editDesc').value = p.description || '';
+            document.getElementById('editSeoTitle').value = p.seo_title || '';
+            document.getElementById('editSeoDesc').value = p.seo_description || '';
+            document.getElementById('editProductModal').style.display = 'block';
         }
 
-        function openStockAdjustModal(id) {
-            const product = allProductsMap[id];
-            if (!product) return;
-            document.getElementById('stockAdjustForm').action = '/secret-admin-panel-2026/inventory/adjust/' + encodeURIComponent(id);
-            document.getElementById('stockAdjustProductName').textContent = (product.title || 'Product') + ' · Current stock: ' + (product.stock_known ? product.stock_quantity : 'Not set');
-            document.getElementById('stockAdjustDialog').showModal();
+        async function extractOgMetadata() {
+            const url = document.getElementById('ogInspectUrl').value.trim();
+            if (!url) return alert('Enter a URL first');
+            const box = document.getElementById('ogPreviewResult');
+            box.style.display = 'block';
+            box.innerHTML = 'Extracting Open Graph tags...';
+            try {
+                const res = await fetch('/secret-admin-panel-2026/social/extract-og', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target_url: url })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    box.innerHTML = `
+                        ${data.og.image && /^https?:\/\//i.test(data.og.image) ? `<img src="${esc(data.og.image)}" style="width:100%; max-height:150px; object-fit:cover; border-radius:8px; margin-bottom:8px;">` : ''}
+                        <strong style="display:block;">${esc(data.og.title) || 'No OG Title'}</strong>
+                        <small style="color:#475569; display:block; margin-top:4px;">${esc(data.og.description) || 'No OG Description'}</small>
+                    `;
+                } else {
+                    box.innerHTML = `<span style="color:#dc2626;">${esc(data.message)}</span>`;
+                }
+            } catch (e) {
+                box.innerHTML = 'Error extracting metadata.';
+            }
         }
 
-        function updateSelectedProductsCount() {
-            const count = document.querySelectorAll('.product-row-check:checked').length;
-            const label = document.getElementById('selectedProductCount');
-            if (label) label.textContent = count + ' selected';
-        }
-        document.getElementById('selectAllProducts')?.addEventListener('change', function () {
-            document.querySelectorAll('.product-row-check').forEach(box => { if (box.closest('tr').style.display !== 'none') box.checked = this.checked; });
-            updateSelectedProductsCount();
-        });
-        document.querySelectorAll('.product-row-check').forEach(box => box.addEventListener('change', updateSelectedProductsCount));
-        document.getElementById('productBulkAction')?.addEventListener('change', function () {
-            document.getElementById('bulkStockAmount').hidden = !['set_stock','add_stock','remove_stock'].includes(this.value);
-            document.getElementById('bulkCategory').hidden = this.value !== 'set_category';
-        });
-        document.getElementById('productBulkForm')?.addEventListener('submit', function (event) {
-            const count = document.querySelectorAll('.product-row-check:checked').length;
-            if (!count) { event.preventDefault(); alert('Select at least one product.'); return; }
-            if (this.bulk_action.value === 'delete' && !confirm('Delete ' + count + ' selected product(s)? This cannot be undone.')) event.preventDefault();
-        });
-        function applyInventoryFilters() {
-            const query = (document.getElementById('inventorySearch')?.value || '').trim().toLowerCase();
-            const category = (document.getElementById('inventoryCategoryFilter')?.value || '').toLowerCase();
-            const rows = [...document.querySelectorAll('.inventory-row')];
-            rows.forEach(row => {
-                const matchesQuery = !query || [row.dataset.title,row.dataset.sku,row.dataset.category].join(' ').includes(query);
-                const matchesCategory = !category || row.dataset.category === category;
-                row.style.display = matchesQuery && matchesCategory ? '' : 'none';
+        function exportProductsCSV() {
+            const rows = [['id', 'title', 'sku', 'category', 'price', 'regular_price', 'cost_price', 'stock_quantity', 'image']];
+            Object.values(allProductsMap).forEach(p => {
+                rows.push([p.id, `"${(p.title||'').replace(/"/g, '""')}"`, p.sku, p.category, p.price, p.regular_price, p.cost_price, p.stock_quantity, `"${p.image||''}"`]);
             });
-            const sort = document.getElementById('inventorySort')?.value || 'newest';
-            const tbody = document.getElementById('productsTableBody');
-            rows.sort((a,b) => {
-                if (sort === 'title') return a.dataset.title.localeCompare(b.dataset.title);
-                if (sort === 'price-low') return Number(a.dataset.price)-Number(b.dataset.price);
-                if (sort === 'price-high') return Number(b.dataset.price)-Number(a.dataset.price);
-                if (sort === 'stock-low') return Number(a.dataset.stock)-Number(b.dataset.stock);
-                return new Date(b.dataset.created || 0)-new Date(a.dataset.created || 0);
-            }).forEach(row => tbody.appendChild(row));
-        }
-        ['inventorySearch','inventoryCategoryFilter','inventorySort'].forEach(id => document.getElementById(id)?.addEventListener(id==='inventorySearch'?'input':'change', applyInventoryFilters));
-        document.getElementById('customerSearch')?.addEventListener('input', function () {
-            const query=this.value.trim().toLowerCase();
-            document.querySelectorAll('.customer-row').forEach(row => row.style.display=row.innerText.toLowerCase().includes(query)?'':'none');
-        });
-        document.querySelectorAll('[data-image-preview-input]').forEach(input => input.addEventListener('change', function () {
-            const target=document.getElementById(this.dataset.imagePreviewInput); const file=this.files&&this.files[0];
-            if (!target || !file) { if(target) target.hidden=true; return; }
-            if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type) || file.size>5*1024*1024) { alert('Choose a JPG, PNG, WebP or GIF image under 5 MB.'); this.value=''; target.hidden=true; return; }
-            target.src=URL.createObjectURL(file); target.hidden=false;
-        }));
-        function exportCustomersCSV() {
-            const table=document.getElementById('customersTable'); if(!table)return;
-            const rows=[...table.querySelectorAll('tr')].map(row=>[...row.querySelectorAll('th,td')].map(cell=>{let v=cell.innerText.replace(/[\r\n]+/g,' ');if(/^[=+@\-\t\r]/.test(v))v='\''+v;return '"'+v.replace(/"/g,'""')+'"';}).join(','));
-            const link=document.createElement('a'); link.download='trendzznow-customers.csv'; link.href=URL.createObjectURL(new Blob(['\uFEFF'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'})); link.click(); URL.revokeObjectURL(link.href);
+            const csv = rows.map(r => r.join(',')).join('\n');
+            const link = document.createElement('a');
+            link.download = 'trendzznow_products_catalog.csv';
+            link.href = window.URL.createObjectURL(new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' }));
+            link.click();
         }
 
-        function escapePrintText(value) {
-            return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+        function processProductCSVImport() {
+            const fileInput = document.getElementById('csvFileInput');
+            if (!fileInput.files || !fileInput.files[0]) return alert('Select a CSV file first');
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const lines = e.target.result.split(/\r?\n/).filter(Boolean);
+                if (lines.length < 2) return alert('CSV has no data rows');
+                const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                const payload = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = lines[i].split(',');
+                    const obj = {};
+                    headers.forEach((h, idx) => { obj[h] = (cols[idx] || '').replace(/^"|"$/g, '').trim(); });
+                    if (obj.title) payload.push(obj);
+                }
+                const res = await fetch('/secret-admin-panel-2026/products/import-csv', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ csv_rows: JSON.stringify(payload) })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    alert(`Successfully imported ${result.imported} products!`);
+                    window.location.reload();
+                } else {
+                    alert('Import error: ' + result.message);
+                }
+            };
+            reader.readAsText(fileInput.files[0]);
         }
+
         function printShippingLabel(id) {
             const d = allOrdersMap[id];
             if (!d) return;
             const win = window.open('', '_blank', 'width=500,height=600');
-            if (!win) return alert('Allow pop-ups to print this label.');
-            win.document.write(`<html><body style="font-family:Arial;padding:25px;border:3px solid #000;"><h2 style="text-align:center;margin-top:0;">SHIPPING LABEL</h2><hr><p><strong>Order ID:</strong> #${escapePrintText(d.id)}</p><p><strong>Customer Name:</strong> ${escapePrintText(d.customer_name)}</p><p><strong>Phone:</strong> ${escapePrintText(d.phone)}</p><p><strong>Delivery Address:</strong> ${escapePrintText(d.address)}</p><hr><p><strong>Product:</strong> ${escapePrintText(d.product_title)}</p><h3>COD Amount: ৳${escapePrintText(d.price)}</h3><p style="text-align:center;font-size:12px;margin-top:30px;">TrendzzNow Courier Dispatch Label</p><script>window.print();<\/script></body></html>`);
+            win.document.write(`<html><body style="font-family:Arial;padding:25px;border:3px solid #000;"><h2 style="text-align:center;margin-top:0;">SHIPPING LABEL</h2><hr><p><strong>Order ID:</strong> #${esc(d.id)} ${d.consignment_id ? ' | Consignment: ' + esc(d.consignment_id) : ''}</p><p><strong>Customer Name:</strong> ${esc(d.customer_name)}</p><p><strong>Phone:</strong> ${esc(d.phone)}</p><p><strong>Delivery Address:</strong> ${esc(d.address)}</p><hr><p><strong>Product:</strong> ${esc(d.product_title)}</p><h3>COD Amount: ৳${esc(d.price)}</h3><p style="text-align:center;font-size:12px;margin-top:30px;">TrendzzNow Official Courier Dispatch Label</p><script>window.print();<\/script></body></html>`);
             win.document.close();
         }
 
@@ -646,15 +1286,8 @@
             const d = allOrdersMap[id];
             if (!d) return;
             const win = window.open('', '_blank', 'width=650,height=600');
-            if (!win) return alert('Allow pop-ups to print this invoice.');
-            win.document.write(`<html><body style="font-family:Arial;padding:20px;"><div style="border:2px dashed #222;padding:20px;"><h2>TrendzzNow Invoice #${escapePrintText(d.id)}</h2><p><strong>Name:</strong> ${escapePrintText(d.customer_name)}</p><p><strong>Phone:</strong> ${escapePrintText(d.phone)}</p><p><strong>Address:</strong> ${escapePrintText(d.address)}</p><p><strong>Product:</strong> ${escapePrintText(d.product_title)}</p><h3>Total COD: ৳${escapePrintText(d.price)}</h3></div><script>window.print();<\/script></body></html>`);
+            win.document.write(`<html><body style="font-family:Arial;padding:20px;"><div style="border:2px dashed #222;padding:20px;"><h2>TrendzzNow Invoice #${esc(d.id)}</h2><p><strong>Name:</strong> ${esc(d.customer_name)}</p><p><strong>Phone:</strong> ${esc(d.phone)}</p><p><strong>Address:</strong> ${esc(d.address)}</p><p><strong>Product:</strong> ${esc(d.product_title)}</p><h3>Total Payable: ৳${esc(d.price)}</h3></div><script>window.print();<\/script></body></html>`);
             win.document.close();
-        }
-
-        function copyCustomerById(id) {
-            const d = allOrdersMap[id];
-            if (!d) return;
-            navigator.clipboard.writeText(`Name: ${d.customer_name}\nPhone: ${d.phone}\nAddress: ${d.address}\nProduct: ${d.product_title}\nTotal: ৳${d.price}`).then(() => alert('Copied!'));
         }
 
         function exportOrdersCSV() {
@@ -662,19 +1295,14 @@
             let csv = [];
             for (let i = 0; i < table.rows.length; i++) {
                 let row = [], cols = table.rows[i].querySelectorAll('td, th');
-                for (let j = 0; j < cols.length - 1; j++) {
-                    let value = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, ' ');
-                    if (/^[=+@\-\t\r]/.test(value)) value = "'" + value;
-                    row.push('"' + value.replace(/"/g, '""') + '"');
-                }
+                for (let j = 1; j < cols.length - 1; j++) row.push('"' + cols[j].innerText.replace(/(\r\n|\n|\r)/gm, " ") + '"');
                 csv.push(row.join(','));
             }
             let link = document.createElement('a');
-            link.download = 'trendzznow_enterprise_orders.csv';
+            link.download = 'trendzznow_orders.csv';
             link.href = window.URL.createObjectURL(new Blob(["\uFEFF" + csv.join("\n")], { type: 'text/csv;charset=utf-8;' }));
             link.click();
         }
     </script>
-    <script src="/admin-upgrade.js" defer></script>
 </body>
 </html>

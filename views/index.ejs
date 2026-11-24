@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= settings.site_title || 'TrendzzNow - Stay on trend. Stay in style.' %></title>
-    <link rel="canonical" href="https://www.trendzznow.com/">
+    <link rel="canonical" href="https://trendzznow.com/">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#1F1B5C">
     <meta property="og:title" content="<%= settings.site_title || 'TrendzzNow - Stay on trend. Stay in style.' %>">
     <meta property="og:description" content="<%= settings.hero_subtitle_en || 'Stay on trend. Stay in style. Just trending products delivered to your door.' %>">
-    <meta property="og:image" content="<%= settings.hero_image || settings.logo_light || 'https://www.trendzznow.com/images/banner.jpg' %>">
-    <meta property="og:url" content="https://www.trendzznow.com">
+    <meta property="og:image" content="<%= settings.hero_image || settings.logo_light || 'https://trendzznow.com/images/banner.jpg' %>">
+    <meta property="og:url" content="https://trendzznow.com">
     <meta property="og:type" content="website">
     <link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="/upgrade.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
     <% if (settings.facebook_pixel) { %>
     <script>
@@ -34,73 +35,111 @@
         <span class="bn-text" style="display:none;"><%= settings.banner_text_bn || '⚡ শুধুমাত্র সেরা ট্রেন্ডিং প্রোডাক্ট | সারা বাংলাদেশে ক্যাশ অন ডেলিভারি!' %></span>
     </div>
 
-    <!-- Frosted Glass Sticky Navbar with Top-Left Menu Drawer Button -->
+    <% 
+        let categories = ['All'];
+        const subCategoryMap = {};
+        products.forEach(p => {
+            const c = p.category || 'Trending';
+            if (!categories.includes(c)) categories.push(c);
+            if (p.subcategory) {
+                if (!subCategoryMap[c]) subCategoryMap[c] = [];
+                if (!subCategoryMap[c].includes(p.subcategory)) subCategoryMap[c].push(p.subcategory);
+            }
+        });
+    %>
+
+    <!-- Professional Sticky Header (No Admin Links Exposed) -->
     <header class="navbar glass-nav">
         <div class="nav-container">
-            <div style="display: flex; align-items: center; gap: 14px;">
-                <!-- Top-Left Menu Drawer Hamburger Button -->
-                <button type="button" class="menu-drawer-btn" onclick="toggleMenuDrawer()" aria-label="Menu">
+            <div class="nav-left-group">
+                <button type="button" class="menu-drawer-btn" onclick="toggleMenuDrawer()" aria-label="Open Navigation Menu">
                     <span></span><span></span><span></span>
                 </button>
 
                 <a href="/" class="logo-area">
                     <% if (settings.logo_light) { %>
                         <img src="<%= settings.logo_light %>" alt="<%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %>" class="brand-logo">
-                        <div class="brand-badge" style="margin-left:10px;">
-                            <span class="brand-name" style="font-size:21px;"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
-                            <small class="brand-sub"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></small>
-                        </div>
                     <% } else { %>
                         <div class="brand-logo-icon">⚡</div>
-                        <div class="brand-badge" style="margin-left:8px;">
-                            <span class="brand-name"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
-                            <small class="brand-sub">
-                                <span class="en-text"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></span>
-                                <span class="bn-text" style="display:none;"><%= settings.tagline_bn || 'ট্রেন্ডে থাকুন, স্টাইলে থাকুন' %></span>
-                            </small>
-                        </div>
                     <% } %>
+                    <div class="brand-badge">
+                        <span class="brand-name"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
+                        <small class="brand-sub">
+                            <span class="en-text"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></span>
+                            <span class="bn-text" style="display:none;"><%= settings.tagline_bn || 'ট্রেন্ডে থাকুন, স্টাইলে থাকুন' %></span>
+                        </small>
+                    </div>
                 </a>
             </div>
 
             <div class="search-bar-wrap">
-                <input type="text" id="searchInput" placeholder="Search trending items..." onkeyup="filterProducts()">
+                <input type="text" id="searchInput" placeholder="Search products, SKU, or category..." oninput="applyCatalogFilters()" aria-label="Search Products">
                 <span class="search-icon">🔍</span>
             </div>
 
             <nav class="nav-links">
-                <a href="/" class="en-text">Home</a><a href="/" class="bn-text" style="display:none;">হোম</a>
-                <a href="#products" class="en-text">Trending</a><a href="#products" class="bn-text" style="display:none;">ট্রেন্ডিং</a>
-                <a href="#" onclick="openTrackingModal(); return false;" class="en-text">📦 Track</a><a href="#" onclick="openTrackingModal(); return false;" class="bn-text" style="display:none;">📦 ট্র্যাক</a>
-                <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="wa-nav-btn">💬 WhatsApp</a>
-                <button class="lang-toggle-btn" onclick="toggleLanguage()"><span id="langLabel">বাংলা</span></button>
+                <a href="#products" class="desktop-only-link en-text">Shop</a>
+                <a href="#products" class="desktop-only-link bn-text" style="display:none;">শপ</a>
+                <a href="#faq" class="desktop-only-link en-text">FAQ</a>
+                <a href="#faq" class="desktop-only-link bn-text" style="display:none;">প্রশ্নোত্তর</a>
+                <button type="button" class="track-header-btn" onclick="openTrackingModal()">
+                    📦 <span class="en-text">Track</span><span class="bn-text" style="display:none;">ট্র্যাক</span>
+                </button>
+                <button type="button" class="cart-trigger-btn" onclick="toggleCartDrawer()" aria-label="Shopping Cart">
+                    🛒 <span class="cart-badge-count" id="cartCountBadge">0</span>
+                </button>
+                <button type="button" class="lang-toggle-btn" onclick="toggleLanguage()"><span id="langLabel">বাংলা</span></button>
             </nav>
         </div>
     </header>
 
-    <!-- Slide-out Professional Menu Drawer (Top-Left) -->
+    <!-- Slide-out Navigation Drawer (Top-Left) -->
     <div id="menuDrawerOverlay" class="drawer-overlay" onclick="toggleMenuDrawer()"></div>
-    <div id="menuDrawer" class="menu-drawer">
+    <aside id="menuDrawer" class="menu-drawer" aria-label="Mobile Navigation">
         <div class="drawer-header">
-            <span class="brand-name" style="font-size:22px;"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
-            <button type="button" class="drawer-close" onclick="toggleMenuDrawer()">&times;</button>
+            <span class="brand-name" style="font-size:21px;"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
+            <button type="button" class="drawer-close" onclick="toggleMenuDrawer()" aria-label="Close Menu">&times;</button>
         </div>
         <div class="drawer-body">
-            <div class="drawer-section-title">Navigation</div>
+            <div class="drawer-section-title">Store Navigation</div>
             <a href="/" onclick="toggleMenuDrawer()">🏠 Home / হোম</a>
-            <a href="#products" onclick="toggleMenuDrawer()">🔥 Trending Products / ট্রেন্ডিং পণ্য</a>
-            <a href="#" onclick="openTrackingModal(); toggleMenuDrawer(); return false;">📦 Track Order / অর্ডার ট্র্যাক</a>
-            <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" onclick="toggleMenuDrawer()">💬 WhatsApp Support / সাপোর্ট</a>
+            <a href="#products" onclick="toggleMenuDrawer()">🔥 All Products / সকল পণ্য</a>
+            <a href="#" onclick="openTrackingModal(); toggleMenuDrawer(); return false;">📦 Track Your Order / অর্ডার ট্র্যাক</a>
+            <a href="#" onclick="toggleCartDrawer(); toggleMenuDrawer(); return false;">🛒 View Cart / শপিং কার্ট</a>
 
-            <div class="drawer-section-title" style="margin-top:20px;">Customer Policies</div>
+            <div class="drawer-section-title" style="margin-top:18px;">Product Categories</div>
+            <% categories.forEach(cat => { %>
+                <a href="#products" onclick="selectCategoryFromDrawer('<%= cat %>'); return false;">📂 <%= cat %></a>
+            <% }) %>
+
+            <div class="drawer-section-title" style="margin-top:18px;">Customer Support & Policies</div>
+            <a href="#faq" onclick="toggleMenuDrawer()">❓ FAQ / সাধারণ জিজ্ঞাসা</a>
             <a href="#" onclick="openPolicyModal('privacy'); toggleMenuDrawer(); return false;">🔒 Privacy Policy</a>
             <a href="#" onclick="openPolicyModal('return'); toggleMenuDrawer(); return false;">🔄 Return & Replacement Policy</a>
             <a href="#" onclick="openPolicyModal('terms'); toggleMenuDrawer(); return false;">📜 Terms & Conditions</a>
-            <a href="#faq" onclick="toggleMenuDrawer()">❓ FAQ / সাধারণ জিজ্ঞাসা</a>
+            <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" onclick="toggleMenuDrawer()" style="color:#128C7E;">💬 WhatsApp Hotline (<%= settings.whatsapp_number || '01731763504' %>)</a>
         </div>
-    </div>
+    </aside>
 
-    <!-- Aurora Mesh Glassmorphism Split Hero Section -->
+    <!-- Slide-out Shopping Cart Drawer (Right) -->
+    <div id="cartDrawerOverlay" class="drawer-overlay" onclick="toggleCartDrawer()"></div>
+    <aside id="cartDrawer" class="cart-drawer" aria-label="Shopping Cart">
+        <div class="drawer-header">
+            <h3 style="margin:0; font-size:18px; color:#1F1B5C;">🛒 Your Shopping Cart</h3>
+            <button type="button" class="drawer-close" onclick="toggleCartDrawer()" aria-label="Close Cart">&times;</button>
+        </div>
+        <div id="cartItemsContainer" class="cart-items-list"></div>
+        <div class="cart-drawer-footer">
+            <div class="cart-subtotal-row">
+                <span>Subtotal:</span>
+                <strong id="cartDrawerSubtotal">৳ 0</strong>
+            </div>
+            <button type="button" class="submit-order-btn shimmer-btn" onclick="proceedCartToCheckout()">⚡ Proceed to Checkout</button>
+            <button type="button" class="clear-cart-btn" onclick="clearCart()">Clear Cart</button>
+        </div>
+    </aside>
+
+    <!-- Aurora Mesh Split Hero Section (Stacks Vertically on Mobile) -->
     <section class="hero-aurora">
         <div class="aurora-orb orb-1"></div>
         <div class="aurora-orb orb-2"></div>
@@ -113,20 +152,19 @@
                 <p class="bn-text" style="display:none;"><%= settings.hero_subtitle_bn || 'ট্রেন্ডে থাকুন, স্টাইলে থাকুন। বাছাইকৃত সেরা ভাইরাল গ্যাজেট ও আধুনিক পণ্য পান ক্যাশ অন ডেলিভারিতে।' %></p>
                 
                 <div class="hero-cta-row">
-                    <a href="#products" class="glow-cta-btn en-text">🔥 Explore Trending &darr;</a>
-                    <a href="#products" class="glow-cta-btn bn-text" style="display:none;">🔥 ট্রেন্ডিং কালেকশন &darr;</a>
-                    <a href="#" onclick="openTrackingModal(); return false;" class="glass-sec-btn en-text">📦 Track Order</a>
-                    <a href="#" onclick="openTrackingModal(); return false;" class="glass-sec-btn bn-text" style="display:none;">📦 অর্ডার ট্র্যাক</a>
+                    <a href="#products" class="glow-cta-btn en-text">🔥 Explore Collection &darr;</a>
+                    <a href="#products" class="glow-cta-btn bn-text" style="display:none;">🔥 কালেকশন দেখুন &darr;</a>
+                    <button type="button" onclick="openTrackingModal()" class="glass-sec-btn en-text">📦 Track Order</button>
+                    <button type="button" onclick="openTrackingModal()" class="glass-sec-btn bn-text" style="display:none;">📦 অর্ডার ট্র্যাক</button>
                 </div>
 
                 <div class="hero-glass-stats">
                     <div class="g-stat"><strong>100%</strong><span>Open-Box COD</span></div>
-                    <div class="g-stat"><strong>WhatsApp</strong><span>Direct Support</span></div>
-                    <div class="g-stat"><strong>Nationwide</strong><span>Delivery Coverage</span></div>
+                    <div class="g-stat"><strong>24–48h</strong><span>Fast Dispatch</span></div>
+                    <div class="g-stat"><strong>৳<%= settings.delivery_inside_dhaka || 70 %></strong><span>Inside Dhaka</span></div>
                 </div>
             </div>
 
-            <!-- Interactive 3D Floating Hero Showcase Card -->
             <div class="hero-right">
                 <% 
                     const spotlightImg = settings.hero_image || (products.length > 0 && products[0].image ? products[0].image : '');
@@ -134,7 +172,7 @@
                     const spotlightPrice = settings.hero_featured_price || (products.length > 0 ? '৳ ' + products[0].price : 'Hot Deal');
                     const spotlightUrl = settings.hero_featured_link || (products.length > 0 ? '/product/' + products[0].id : '#products');
                 %>
-                <div class="hero-3d-showcase tilt-card" data-tilt-max="14">
+                <div class="hero-3d-showcase tilt-card" data-tilt-max="12">
                     <div class="tilt-glare"></div>
                     <span class="spotlight-tag"><%= settings.hero_badge_text || '🔥 Trending Spotlight' %></span>
                     <a href="<%= spotlightUrl %>" class="spotlight-img-box">
@@ -143,7 +181,7 @@
                         <% } else { %>
                             <div class="spotlight-placeholder">
                                 <span style="font-size:48px;">⚡</span>
-                                <p>TrendzzNow Exclusive</p>
+                                <p>TrendzzNow Featured</p>
                             </div>
                         <% } %>
                     </a>
@@ -159,146 +197,151 @@
         </div>
     </section>
 
-    <!-- Bento Trust Strip -->
-    <section class="bento-trust-strip">
-        <div class="container bento-grid">
-            <div class="bento-box glass-card">
-                <span class="bento-icon">🛡️</span>
-                <div>
-                    <strong class="en-text">Check Before Paying</strong>
-                    <strong class="bn-text" style="display:none;">দেখে পেমেন্ট করুন</strong>
-                    <small>100% Cash on Delivery</small>
-                </div>
-            </div>
-            <div class="bento-box glass-card">
-                <span class="bento-icon">🚀</span>
-                <div>
-                    <strong class="en-text">Superfast Dispatch</strong>
-                    <strong class="bn-text" style="display:none;">দ্রুত ডেলিভারি</strong>
-                    <small>SteadFast, Pathao & REDX</small>
-                </div>
-            </div>
-            <div class="bento-box glass-card">
-                <span class="bento-icon">📲</span>
-                <div>
-                    <strong class="en-text">Instant SMS Tracking</strong>
-                    <strong class="bn-text" style="display:none;">অটো SMS ট্র্যাকিং</strong>
-                    <small>Live Updates on Phone</small>
-                </div>
-            </div>
-            <div class="bento-box glass-card">
-                <span class="bento-icon">💬</span>
-                <div>
-                    <strong class="en-text">24/7 Direct Support</strong>
-                    <strong class="bn-text" style="display:none;">সরাসরি সাপোর্ট</strong>
-                    <small><%= settings.whatsapp_number || '01731763504' %></small>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Professional Product Category Filtering Tabs -->
+    <!-- Main Product Discovery & Responsive Catalog -->
     <main class="container" id="products">
         <div class="section-header">
-            <span class="sub-pill">🔥 HOT RIGHT NOW</span>
-            <h2 class="en-text">Trending Products</h2>
-            <h2 class="bn-text" style="display:none;">সেরা ট্রেন্ডিং পণ্যসমূহ</h2>
-            <p class="en-text">Hover to inspect in 3D • Select category below to filter instantly</p>
-            <p class="bn-text" style="display:none;">কার্সর রেখে 3D ভিউ দেখুন এবং ক্যাটাগরি অনুযায়ী ফিল্টার করুন</p>
+            <span class="sub-pill">🛍️ VERIFIED CATALOG</span>
+            <h2 class="en-text">Trending & Popular Products</h2>
+            <h2 class="bn-text" style="display:none;">আমাদের ট্রেন্ডিং ও জনপ্রিয় পণ্যসমূহ</h2>
+            <p class="en-text">Filter by category, price range, or sort order • Add to Cart or Order Now with Cash on Delivery</p>
+            <p class="bn-text" style="display:none;">ক্যাটাগরি বা দাম অনুযায়ী ফিল্টার করুন • কার্টে যোগ করুন অথবা সরাসরি ক্যাশ অন ডেলিভারিতে অর্ডার করুন</p>
         </div>
 
-        <% 
-            let categories = ['All'];
-            products.forEach(p => {
-                if (p.category && !categories.includes(p.category)) {
-                    categories.push(p.category);
-                }
-            });
-        %>
-        <% if (categories.length > 1) { %>
-            <div class="category-tabs-bar">
+        <!-- Category & Subcategory Filter Bar + Sort & Max Price Controls -->
+        <div class="discovery-toolbar">
+            <div class="category-tabs-bar" id="categoryTabs">
                 <% categories.forEach((cat, idx) => { %>
-                    <button type="button" class="cat-tab-btn <%= idx === 0 ? 'active' : '' %>" data-category-filter="<%= cat %>"><%= cat %></button>
+                    <button type="button" class="cat-tab-btn <%= idx === 0 ? 'active' : '' %>" data-cat="<%= cat %>" onclick="filterByCategory('<%= cat %>', this)"><%= cat %></button>
                 <% }) %>
             </div>
-        <% } %>
 
-        <div class="product-toolbar" aria-label="Product tools">
-            <div class="product-results-count" id="productResultsCount"><%= products.length %> products</div>
-            <label class="product-sort-control">Sort by
-                <select id="productSort" aria-label="Sort products">
-                    <option value="featured">Featured</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
-                    <option value="name">Name: A to Z</option>
-                </select>
-            </label>
+            <div class="filter-controls-row">
+                <div class="filter-item">
+                    <label for="sortSelect" class="en-text">Sort By:</label>
+                    <label for="sortSelect" class="bn-text" style="display:none;">সাজান:</label>
+                    <select id="sortSelect" onchange="applyCatalogFilters()">
+                        <option value="newest">Newest Arrivals</option>
+                        <option value="popular">Most Popular (Real Sales)</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                    </select>
+                </div>
+
+                <div class="filter-item">
+                    <label for="priceRangeInput">Max Price: <strong id="priceRangeLabel">All</strong></label>
+                    <input type="range" id="priceRangeInput" min="100" max="10000" step="50" value="10000" oninput="updatePriceFilterLabel(this.value)">
+                </div>
+
+                <div class="filter-item">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                        <input type="checkbox" id="inStockOnlyChk" onchange="applyCatalogFilters()">
+                        <span class="en-text">In Stock Only</span>
+                        <span class="bn-text" style="display:none;">শুধু স্টকে থাকা পণ্য</span>
+                    </label>
+                </div>
+            </div>
         </div>
+
+        <!-- Responsive Product Grid (1 col mobile, 2 col tablet, 3-4 col desktop) -->
         <div class="product-grid" id="productGrid">
             <% if (products.length > 0) { %>
                 <% products.forEach((p, idx) => { 
                     const hasDiscount = p.regular_price && p.regular_price > p.price;
                     const discountPct = hasDiscount ? Math.round(((p.regular_price - p.price) / p.regular_price) * 100) : 0;
-                    const prodCat = p.category || 'All';
+                    const prodCat = p.category || 'Trending';
+                    const realOrdersCount = productSalesCount[p.title] || 0;
+                    const inStock = p.stock_quantity > 0;
                 %>
-                    <div class="product-card tilt-card" data-tilt-max="0" data-category="<%= prodCat %>" data-title="<%= (p.title || '').toLowerCase() %>" data-price="<%= Number(p.price) || 0 %>" data-product-id="<%= p.id %>">
+                    <article class="product-card tilt-card" 
+                        data-tilt-max="8" 
+                        data-id="<%= p.id %>"
+                        data-category="<%= prodCat %>" 
+                        data-subcategory="<%= p.subcategory || '' %>"
+                        data-title="<%= (p.title || '').toLowerCase() %>"
+                        data-sku="<%= (p.sku || '').toLowerCase() %>"
+                        data-price="<%= p.price %>"
+                        data-sales="<%= realOrdersCount %>"
+                        data-stock="<%= p.stock_quantity %>">
                         <div class="tilt-glare"></div>
-                        <a href="/product/<%= p.id %>" class="product-img-wrap" style="display:block; text-decoration:none;">
-                            <% if (p.image) { %>
-                                <img src="<%= p.image %>" alt="<%= p.title %>" class="product-img" loading="lazy">
-                            <% } else { %>
-                                <div class="no-img">No Image</div>
-                            <% } %>
+
+                        <div class="product-img-wrap">
+                            <a href="/product/<%= p.id %>" style="display:block; width:100%; height:100%;">
+                                <% if (p.image) { %>
+                                    <img src="<%= p.image %>" alt="<%= p.title %>" class="product-img" loading="lazy">
+                                <% } else { %>
+                                    <div class="no-img">No Image</div>
+                                <% } %>
+                            </a>
                             <span class="cod-tag glass-badge">🛡️ COD</span>
                             <% if (discountPct > 0) { %>
                                 <span class="discount-badge">🔥 -<%= discountPct %>%</span>
                             <% } %>
-                            <% if (p.stock_known) { %><span class="availability-badge <%= Number(p.stock_quantity) > 0 ? 'is-available' : 'is-unavailable' %>"><%= Number(p.stock_quantity) > 0 ? 'In Stock' : 'Out of Stock' %></span><% } %>
-                        </a>
+                            <% if (realOrdersCount > 0) { %>
+                                <span class="trending-sales-pill">⚡ <%= realOrdersCount %> Sold</span>
+                            <% } %>
+                            <button type="button" class="card-wish-btn" data-wish="<%= p.id %>" onclick="toggleWish(<%= p.id %>, this)" title="Save to wishlist" aria-label="Save to wishlist">♡</button>
+                            <button type="button" class="card-share-btn" onclick="shareProduct('<%= p.id %>', '<%= (p.title || '').replace(/'/g, '') %>')" title="Share or Copy Link" aria-label="Share Product">🔗</button>
+                        </div>
+
                         <div class="product-info">
+                            <div class="card-meta-top">
+                                <span class="cat-pill-mini"><%= prodCat %><%= p.subcategory ? ' • ' + p.subcategory : '' %></span>
+                                <span class="stock-pill-mini <%= inStock ? 'in-stk' : 'out-stk' %>">
+                                    <%= inStock ? `✓ In Stock (${p.stock_quantity})` : 'Out of Stock' %>
+                                </span>
+                            </div>
+
                             <a href="/product/<%= p.id %>" style="text-decoration:none;">
                                 <h3 class="product-title"><%= p.title %></h3>
                             </a>
-                            <p class="product-desc"><%= p.description ? p.description.substring(0, 72) + (p.description.length > 72 ? '...' : '') : 'View product details, available variants and ordering information.' %></p>
+                            <% const rs = (typeof ratingStats !== 'undefined' && ratingStats) ? ratingStats[String(p.id)] : null; %>
+                            <% if (rs) { %><a href="/product/<%= p.id %>#reviews" class="card-rating" style="text-decoration:none;">★ <%= rs.avg.toFixed(1) %> <small>(<%= rs.count %>)</small></a><% } %>
+
+                            <p class="product-desc"><%= p.description ? p.description.substring(0, 80) + (p.description.length > 80 ? '...' : '') : 'Authentic quality product available with Cash on Delivery.' %></p>
+
                             <% if (p.variant_options) { %>
-                                <div class="variant-display"><small>🎨 <%= p.variant_options %></small></div>
+                                <div class="variant-display"><small>🎨 Options: <%= p.variant_options %></small></div>
                             <% } %>
-                            <div class="price-action">
+
+                            <div class="price-row-block">
                                 <div>
                                     <% if (hasDiscount) { %>
                                         <span class="reg-price">৳ <%= p.regular_price %></span>
                                     <% } %>
                                     <span class="price">৳ <%= p.price %></span>
                                 </div>
-                                <div style="display:flex; gap:6px;">
-                                    <a href="/product/<%= p.id %>" class="details-btn">
-                                        <span class="en-text">View</span><span class="bn-text" style="display:none;">দেখুন</span>
-                                    </a>
-                                    <button type="button" class="share-product-btn" data-product-title="<%= p.title %>" onclick="shareProduct('<%= p.id %>', this.dataset.productTitle)" aria-label="Share <%= p.title %>">↗</button>
-                                    <button type="button" class="buy-btn shimmer-btn" onclick="openCheckoutById('<%= p.id %>')" <%= p.stock_known && Number(p.stock_quantity) <= 0 ? 'disabled' : '' %>>
-                                        🛒 <span class="en-text">Order Now</span><span class="bn-text" style="display:none;">অর্ডার</span>
-                                    </button>
-                                </div>
+                                <small class="sku-label">SKU: <%= p.sku %></small>
                             </div>
-                            <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>?text=<%= encodeURIComponent('Hello TrendzzNow, I want to order: ' + p.title + ' (Price: ৳' + p.price + ')') %>" target="_blank" class="wa-card-btn">
-                                📱 <span class="en-text">Order via WhatsApp</span><span class="bn-text" style="display:none;">WhatsApp অর্ডার</span>
+
+                            <div class="card-actions-grid">
+                                <a href="/product/<%= p.id %>" class="details-btn">
+                                    <span class="en-text">Details</span><span class="bn-text" style="display:none;">বিস্তারিত</span>
+                                </a>
+                                <button type="button" class="add-cart-btn" <%= !inStock ? 'disabled' : '' %> onclick="addToCart('<%= p.id %>')">
+                                    + <span class="en-text">Cart</span><span class="bn-text" style="display:none;">কার্ট</span>
+                                </button>
+                                <button type="button" class="buy-btn shimmer-btn" <%= !inStock ? 'disabled' : '' %> onclick="openCheckoutById('<%= p.id %>')">
+                                    🛒 <span class="en-text">Order Now</span><span class="bn-text" style="display:none;">অর্ডার</span>
+                                </button>
+                            </div>
+
+                            <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>?text=<%= encodeURIComponent('Hello TrendzzNow, I want to order: ' + p.title + ' (SKU: ' + p.sku + ', Price: ৳' + p.price + ') - https://trendzznow.com/product/' + p.id) %>" target="_blank" class="wa-card-btn">
+                                💬 <span class="en-text">Order via WhatsApp</span><span class="bn-text" style="display:none;">WhatsApp-এ অর্ডার</span>
                             </a>
                         </div>
-                    </div>
+                    </article>
                 <% }) %>
             <% } else { %>
                 <div class="empty-state">
-                    <h3 class="en-text">No trending products added yet</h3>
-                    <h3 class="bn-text" style="display:none;">এখনো কোনো ট্রেন্ডিং প্রোডাক্ট যোগ করা হয়নি</h3>
-                    <p class="en-text">New products are being prepared. Please check back soon.</p>
-                    <p class="bn-text" style="display:none;">নতুন পণ্য যুক্ত করার কাজ চলছে। অনুগ্রহ করে পরে আবার দেখুন।</p>
+                    <h3 class="en-text">No products currently listed</h3>
+                    <h3 class="bn-text" style="display:none;">বর্তমানে কোনো প্রোডাক্ট তালিকাভুক্ত নেই</h3>
+                    <p class="en-text">Please check back shortly for our new arrivals.</p>
                 </div>
             <% } %>
         </div>
-        <div class="product-no-results" id="productNoResults" hidden>No products match your search. Try another keyword or category.</div>
     </main>
 
-    <!-- FAQ Section (Placed right above footer as requested) -->
+    <!-- Single Preserved FAQ Section Immediately Above the Footer -->
     <section class="faq-section" id="faq">
         <div class="container" style="max-width: 860px;">
             <div class="section-header">
@@ -310,7 +353,7 @@
 
             <div class="faq-list">
                 <div class="faq-item active">
-                    <button class="faq-question" onclick="toggleFaq(this)">
+                    <button type="button" class="faq-question" onclick="toggleFaq(this)">
                         <span>1. <%= settings.faq_1_q %></span>
                         <span class="faq-arrow">▼</span>
                     </button>
@@ -318,7 +361,7 @@
                 </div>
 
                 <div class="faq-item">
-                    <button class="faq-question" onclick="toggleFaq(this)">
+                    <button type="button" class="faq-question" onclick="toggleFaq(this)">
                         <span>2. <%= settings.faq_2_q %></span>
                         <span class="faq-arrow">▼</span>
                     </button>
@@ -326,7 +369,7 @@
                 </div>
 
                 <div class="faq-item">
-                    <button class="faq-question" onclick="toggleFaq(this)">
+                    <button type="button" class="faq-question" onclick="toggleFaq(this)">
                         <span>3. <%= settings.faq_3_q %></span>
                         <span class="faq-arrow">▼</span>
                     </button>
@@ -334,7 +377,7 @@
                 </div>
 
                 <div class="faq-item">
-                    <button class="faq-question" onclick="toggleFaq(this)">
+                    <button type="button" class="faq-question" onclick="toggleFaq(this)">
                         <span>4. <%= settings.faq_4_q %></span>
                         <span class="faq-arrow">▼</span>
                     </button>
@@ -344,79 +387,87 @@
         </div>
     </section>
 
-    <!-- Footer with Delivery Partners & Payment Logos Placement at the Very Bottom -->
+    <!-- Professionally Organized Footer (Includes Delivery, Courier, Return, Payment, Social & Support) -->
     <footer class="footer">
-        <div class="container footer-grid">
-            <div>
+        <div class="container footer-grid-4">
+            <div class="footer-col">
                 <h3><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></h3>
-                <p><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></p>
-                <p>🌐 www.trendzznow.com</p>
-                <div class="footer-social-links" aria-label="Social media">
-                    <% if (/^https?:\/\//i.test(settings.facebook_url || '')) { %><a href="<%= settings.facebook_url %>" target="_blank" rel="noopener noreferrer" aria-label="Facebook">f</a><% } %>
-                    <% if (/^https?:\/\//i.test(settings.instagram_url || '')) { %><a href="<%= settings.instagram_url %>" target="_blank" rel="noopener noreferrer" aria-label="Instagram">◎</a><% } %>
-                    <% if (/^https?:\/\//i.test(settings.tiktok_url || '')) { %><a href="<%= settings.tiktok_url %>" target="_blank" rel="noopener noreferrer" aria-label="TikTok">♪</a><% } %>
-                    <% if (/^https?:\/\//i.test(settings.youtube_url || '')) { %><a href="<%= settings.youtube_url %>" target="_blank" rel="noopener noreferrer" aria-label="YouTube">▶</a><% } %>
+                <p class="footer-tagline"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></p>
+                <p class="footer-desc"><%= settings.footer_about_en || 'Official e-commerce destination for viral gadgets, home decor, and lifestyle essentials across Bangladesh.' %></p>
+                <div class="social-links-row">
+                    <% if (settings.social_facebook) { %>
+                        <a href="<%= settings.social_facebook %>" target="_blank" rel="noopener" class="social-pill">📘 Facebook</a>
+                    <% } %>
+                    <% if (settings.social_instagram) { %>
+                        <a href="<%= settings.social_instagram %>" target="_blank" rel="noopener" class="social-pill">📸 Instagram</a>
+                    <% } %>
+                    <% if (settings.social_youtube) { %>
+                        <a href="<%= settings.social_youtube %>" target="_blank" rel="noopener" class="social-pill">▶️ YouTube</a>
+                    <% } %>
+                    <% if (settings.social_tiktok) { %>
+                        <a href="<%= settings.social_tiktok %>" target="_blank" rel="noopener" class="social-pill">🎵 TikTok</a>
+                    <% } %>
                 </div>
             </div>
-            <div>
-                <h4>Policies & Quick Links</h4>
+
+            <div class="footer-col">
+                <h4>Customer Policies</h4>
                 <ul class="footer-policy-links">
-                    <li><a href="#" onclick="openPolicyModal('privacy'); return false;">🔒 Privacy Policy</a></li>
-                    <li><a href="#" onclick="openPolicyModal('return'); return false;">🔄 Return & Replacement Policy</a></li>
-                    <li><a href="#" onclick="openPolicyModal('terms'); return false;">📜 Terms & Conditions</a></li>
-                    <li><a href="#faq">❓ Frequently Asked Questions (FAQ)</a></li>
+                    <li><a href="/privacy-policy">🔒 Privacy Policy</a></li>
+                    <li><a href="/return-policy">🔄 7-Day Return & Replacement</a></li>
+                    <li><a href="/terms">📜 Terms & Conditions</a></li>
+                    <li><a href="/shipping-policy">🚚 Shipping & Delivery</a></li>
+                    <li><a href="/about">ℹ️ About Us</a></li>
+                    <li><a href="/contact">📞 Contact Us</a></li>
+                    <li><a href="#faq">❓ Frequently Asked Questions</a></li>
+                    <li><a href="#" onclick="openTrackingModal(); return false;">📦 Live Order Tracking</a></li>
                 </ul>
             </div>
-            <div>
-                <h4>Support & Payment</h4>
-                <p>📞 WhatsApp / Call: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p>
-                <p>💳 bKash / Nagad: <%= settings.bkash_number || '01731763504' %></p>
-                <p>🚚 Delivery: Inside Dhaka ৳<%= settings.delivery_inside_dhaka || 70 %> | Outside ৳<%= settings.delivery_outside_dhaka || 130 %></p>
-            </div>
-        </div>
 
-        <!-- Footer Delivery & Courier Partner Logo Showcase Strip -->
-        <div class="container" style="border-top: 1px solid rgba(255,255,255,0.12); margin-top: 30px; padding-top: 25px;">
-            <div class="partners-wrapper" style="justify-content: center;">
-                <div class="partner-group">
-                    <span class="partner-label en-text" style="color:#aaa;">🚚 Official Delivery Partners:</span>
-                    <div class="partner-badges">
-                        <div class="courier-logo-card sf-card"><span class="c-icon">🚚</span><div><strong>SteadFast</strong><small>Courier</small></div></div>
-                        <div class="courier-logo-card pathao-card"><span class="c-icon">🛵</span><div><strong>Pathao</strong><small>Parcel</small></div></div>
-                        <div class="courier-logo-card redx-card"><span class="c-icon">📦</span><div><strong>REDX</strong><small>Logistics</small></div></div>
-                    </div>
+            <div class="footer-col">
+                <h4>Delivery & Courier Partners</h4>
+                <p class="footer-info-line">🚚 <strong>Inside Dhaka:</strong> ৳<%= settings.delivery_inside_dhaka || 70 %> (24–48 Hours)</p>
+                <p class="footer-info-line">🚚 <strong>Outside Dhaka:</strong> ৳<%= settings.delivery_outside_dhaka || 130 %> (2–4 Days)</p>
+                <p class="footer-info-line">🛡️ <strong>Open-Box COD:</strong> Inspect parcel in front of rider before paying.</p>
+                <div class="footer-badge-strip">
+                    <span class="f-courier-badge">🚚 SteadFast</span>
+                    <span class="f-courier-badge">🛵 Pathao</span>
+                    <span class="f-courier-badge">📦 REDX</span>
                 </div>
-                <div class="partner-group">
-                    <span class="partner-label en-text" style="color:#aaa;">💳 Accepted Payment Methods:</span>
-                    <div class="partner-badges">
-                        <div class="pay-logo-card cod-card">💵 Cash on Delivery</div>
-                        <div class="pay-logo-card bkash-card">📱 bKash</div>
-                        <div class="pay-logo-card nagad-card">📲 Nagad</div>
-                    </div>
+            </div>
+
+            <div class="footer-col">
+                <h4>Payment & 24/7 Support</h4>
+                <p class="footer-info-line">📞 <strong>Hotline / WhatsApp:</strong> <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" style="color:#ffb400; text-decoration:none;"><%= settings.whatsapp_number || '01731763504' %></a></p>
+                <p class="footer-info-line">📲 <strong>bKash / Nagad:</strong> <%= settings.bkash_number || '01731763504' %></p>
+                <div class="footer-badge-strip" style="margin-top:10px;">
+                    <span class="f-pay-badge cod">💵 Cash on Delivery</span>
+                    <span class="f-pay-badge bkash">📱 bKash</span>
+                    <span class="f-pay-badge nagad">📲 Nagad</span>
                 </div>
             </div>
         </div>
 
         <div class="footer-bottom">
-            <p>&copy; 2026 <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %> (trendzznow.com). All rights reserved.</p>
+            <p><%= settings.footer_copyright || '© 2026 TrendzzNow (trendzznow.com). All rights reserved.' %></p>
         </div>
     </footer>
 
-    <!-- Glassmorphism Checkout Modal -->
+    <!-- Checkout Modal (Supports Single Item or Full Cart) -->
     <div id="checkoutModal" class="modal glass-modal-backdrop">
         <div class="modal-content glass-modal">
             <span class="close" onclick="closeCheckout()">&times;</span>
             <div class="modal-header">
                 <h2 class="en-text">Confirm Your Order</h2>
                 <h2 class="bn-text" style="display:none;">অর্ডার কনফার্ম করুন</h2>
-                <p id="modalProductTitle" class="selected-product-banner"></p>
+                <div id="modalProductTitle" class="selected-product-banner"></div>
             </div>
             <form id="orderForm" onsubmit="submitOrder(event)">
                 <input type="hidden" id="orderProductId" name="product_id">
                 <input type="hidden" id="orderProductTitle" name="product_title">
                 <input type="hidden" id="orderProductPrice" name="price">
-                <input type="hidden" id="orderDeliveryCharge" name="delivery_charge" value="<%= settings.delivery_inside_dhaka || 70 %>">
-                <input type="hidden" id="orderDiscountApplied" name="discount_applied" value="0">
+                <input type="hidden" id="orderCartItems" name="cart_items">
+                <input type="hidden" id="orderPromoCode" name="promo_code">
 
                 <div id="variantGroup" class="form-group" style="display:none;">
                     <label>Select Variant / Color *</label>
@@ -425,22 +476,22 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Your Name *</label>
-                        <input type="text" name="customer_name" required placeholder="Full Name">
+                        <label>Your Full Name *</label>
+                        <input type="text" name="customer_name" required placeholder="Enter your name">
                     </div>
                     <div class="form-group">
-                        <label>Mobile Number (for SMS Tracking) *</label>
+                        <label>Mobile Number (11 Digits) *</label>
                         <input type="tel" id="phoneInput" name="phone" required placeholder="017xxxxxxxx" minlength="11" maxlength="15">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Email Address (Optional - for Invoice & Live Tracking)</label>
+                    <label>Email Address (Optional - for Invoice & Tracking Link)</label>
                     <input type="email" name="customer_email" placeholder="example@gmail.com">
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group">
+                    <div class="form-group" id="singleQtyGroup">
                         <label>Quantity</label>
                         <input type="number" id="orderQty" name="quantity" value="1" min="1" max="50" onchange="updateTotal()">
                     </div>
@@ -474,14 +525,14 @@
 
                 <div id="digitalPaymentBox" class="payment-info-box" style="display: none;">
                     <p id="paymentInstructionText" style="margin: 0 0 8px 0; font-size: 13px;"></p>
-                    <input type="text" id="trxIdInput" name="trx_id" placeholder="Transaction ID or last 4 digits">
+                    <input type="text" id="trxIdInput" name="trx_id" placeholder="Enter Transaction ID or last 4 digits">
                 </div>
 
                 <div class="form-group">
-                    <label>Promo Code (Optional)</label>
+                    <label>Coupon / Promo Code (Optional)</label>
                     <div style="display:flex; gap:8px;">
-                        <input type="text" id="promoInput" name="promo_code" placeholder="e.g. TREND50" style="flex:1;">
-                        <button type="button" onclick="applyPromoCode()" style="background:#1F1B5C; color:#fff; border:none; padding:0 16px; border-radius:7px; cursor:pointer; font-weight:600;">Apply</button>
+                        <input type="text" id="promoInput" placeholder="Enter code" style="flex:1;">
+                        <button type="button" onclick="applyPromoCode()" style="background:#1F1B5C; color:#fff; border:none; padding:0 16px; border-radius:8px; cursor:pointer; font-weight:700;">Apply</button>
                     </div>
                     <small id="promoMessage" style="display:none; margin-top:4px; font-weight:600;"></small>
                 </div>
@@ -492,9 +543,9 @@
                 </div>
 
                 <div class="order-summary-box">
-                    <div class="summary-line"><span>Product Total:</span> <span id="sumProductPrice">৳ 0</span></div>
+                    <div class="summary-line"><span>Subtotal:</span> <span id="sumProductPrice">৳ 0</span></div>
                     <div class="summary-line"><span>Delivery Charge:</span> <span id="sumDeliveryCharge">৳ <%= settings.delivery_inside_dhaka || 70 %></span></div>
-                    <div class="summary-line" id="discountRow" style="display:none; color:#00b894; font-weight:600;"><span>Discount:</span> <span id="sumDiscount">-৳ 0</span></div>
+                    <div class="summary-line" id="discountRow" style="display:none; color:#00b894; font-weight:700;"><span>Discount:</span> <span id="sumDiscount">-৳ 0</span></div>
                     <div class="summary-line total-line"><span>Total Payable:</span> <span id="sumTotalBill">৳ 0</span></div>
                 </div>
 
@@ -503,17 +554,24 @@
         </div>
     </div>
 
-    <!-- Order Tracking Modal -->
+    <!-- Verified Order Tracking Modal -->
     <div id="trackingModal" class="modal glass-modal-backdrop">
         <div class="modal-content glass-modal">
             <span class="close" onclick="closeTrackingModal()">&times;</span>
-            <h2>📦 Track Your Order</h2>
-            <div class="form-group">
-                <input type="text" id="trackOrderId" inputmode="numeric" placeholder="Order ID (e.g. 1234)" style="margin-bottom: 10px;">
-                <input type="tel" id="trackPhone" placeholder="Phone number used at checkout" style="margin-bottom: 10px;">
-                <button type="button" class="submit-order-btn" onclick="fetchOrderStatus()">🔍 Track Order</button>
+            <h2 style="margin-top:0; color:#1F1B5C;">📦 Track Your Order</h2>
+            <p style="font-size:13px; color:#555; margin-bottom:14px;">Enter the mobile number used during checkout to verify and view live delivery status.</p>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Mobile Number *</label>
+                    <input type="tel" id="trackPhone" placeholder="017xxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label>Order ID (Optional)</label>
+                    <input type="text" id="trackOrderId" placeholder="e.g. 12">
+                </div>
             </div>
-            <div id="trackingResultContainer" style="margin-top: 15px; max-height: 250px; overflow-y: auto;"></div>
+            <button type="button" class="submit-order-btn" onclick="fetchOrdersByPhone()">🔍 Track Order Status</button>
+            <div id="trackingResultContainer" style="margin-top: 16px; max-height: 280px; overflow-y: auto;"></div>
         </div>
     </div>
 
@@ -526,65 +584,250 @@
         </div>
     </div>
 
-    <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="floating-wa">
-        <span>💬 WhatsApp Chat</span>
-    </a>
+    <!-- AI Customer Assistant Widget + Floating WhatsApp -->
+    <% if (settings.ai_enabled !== 'false') { %>
+    <div id="aiChatBox" class="ai-chat-widget" style="display:none;">
+        <div class="ai-chat-header">
+            <div>
+                <strong>🤖 TrendzzNow Assistant</strong>
+                <small style="display:block; font-size:11px; opacity:0.85;">Instant Support (EN / বাংলা)</small>
+            </div>
+            <button type="button" onclick="toggleAiChat()" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">&times;</button>
+        </div>
+        <div id="aiChatMessages" class="ai-chat-messages">
+            <div class="ai-msg bot"><%= settings.ai_welcome_en || 'Hi! Welcome to TrendzzNow 👋 How can I help you today?' %></div>
+        </div>
+        <form onsubmit="sendAiMessage(event)" class="ai-chat-input-row">
+            <input type="text" id="aiInputText" placeholder="Ask about delivery, products..." required>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+    <% } %>
+
+    <div class="floating-actions-stack">
+        <% if (settings.ai_enabled !== 'false') { %>
+            <button type="button" class="floating-ai-btn" onclick="toggleAiChat()" title="AI Support Assistant">🤖 Ask AI</button>
+        <% } %>
+        <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="floating-wa">
+            <span>💬 WhatsApp</span>
+        </a>
+    </div>
 
     <div class="mobile-bottom-bar glass-nav">
-        <a href="#products" class="m-bar-btn m-shop">🔥 Trending</a>
+        <a href="#products" class="m-bar-btn m-shop">🔥 Shop</a>
+        <a href="#" onclick="toggleCartDrawer(); return false;" class="m-bar-btn">🛒 Cart (<span id="mobileCartCount">0</span>)</a>
         <a href="#" onclick="openTrackingModal(); return false;" class="m-bar-btn m-track">📦 Track</a>
         <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="m-bar-btn m-wa">💬 WhatsApp</a>
     </div>
 
+    <div id="toastNotice" class="toast-notice"></div>
+
     <script>
-        const storeProductsMap = <%- JSON.stringify(products.reduce((acc, item) => { acc[item.id] = { id: item.id, title: item.title, price: item.price, category: item.category || 'All', variant_options: item.variant_options || '' }; return acc; }, {})) %>;
+        function esc(s) { return String(s === undefined || s === null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+        const storeProductsMap = <%- safeJson(products.reduce((acc, item) => { acc[item.id] = { id: item.id, title: item.title, price: item.price, image: item.image, sku: item.sku, stock: item.stock_quantity, category: item.category || 'Trending', variant_options: item.variant_options || '' }; return acc; }, {})) %>;
         let currentBasePrice = 0;
         let currentDiscount = 0;
+        let activeCategory = 'All';
+        let isCartCheckout = false;
+        let cart = JSON.parse(localStorage.getItem('trendzz_cart_v22') || '[]');
         let currentLang = localStorage.getItem('trendzz_lang') || 'en';
         const bkashNum = "<%= settings.bkash_number || '01731763504' %>";
         const nagadNum = "<%= settings.nagad_number || '01731763504' %>";
         const validPromoCode = ("<%= settings.promo_code || 'TREND50' %>").trim().toUpperCase();
         const validPromoDiscount = parseFloat("<%= settings.promo_discount || '50' %>") || 0;
 
-        // Slide-out Menu Drawer Toggle
+        function showToast(msg) {
+            const t = document.getElementById('toastNotice');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2800);
+        }
+
         function toggleMenuDrawer() {
             document.getElementById('menuDrawer').classList.toggle('open');
             document.getElementById('menuDrawerOverlay').classList.toggle('open');
         }
 
-        // Category + search filters are applied together so one control never resets the other.
-        let activeProductCategory = 'All';
-        function applyProductFilters() {
-            const query = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
-            const cards = Array.from(document.querySelectorAll('.product-card'));
-            let visible = 0;
-            cards.forEach(card => {
-                const matchesCategory = activeProductCategory === 'All' || card.dataset.category === activeProductCategory;
-                const matchesQuery = (card.dataset.title || '').includes(query);
-                const show = matchesCategory && matchesQuery;
-                card.style.display = show ? 'flex' : 'none';
-                if (show) visible += 1;
-            });
-            const count = document.getElementById('productResultsCount');
-            if (count) count.textContent = `${visible} ${visible === 1 ? 'product' : 'products'}`;
-            const empty = document.getElementById('productNoResults');
-            if (empty) empty.hidden = visible !== 0;
-        }
-        document.querySelectorAll('.cat-tab-btn').forEach(button => {
-            button.addEventListener('click', () => filterByCategory(button.dataset.categoryFilter, button));
-        });
-        function filterByCategory(cat, btn) {
-            activeProductCategory = cat;
-            document.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
-            if (btn) btn.classList.add('active');
-            applyProductFilters();
+        function toggleCartDrawer() {
+            document.getElementById('cartDrawer').classList.toggle('open');
+            document.getElementById('cartDrawerOverlay').classList.toggle('open');
+            renderCart();
         }
 
-        // 3D Tilt Engine
+        function saveCart() {
+            localStorage.setItem('trendzz_cart_v22', JSON.stringify(cart));
+            const count = cart.reduce((sum, i) => sum + i.quantity, 0);
+            document.getElementById('cartCountBadge').innerText = count;
+            const mCount = document.getElementById('mobileCartCount');
+            if (mCount) mCount.innerText = count;
+        }
+
+        function addToCart(id) {
+            const p = storeProductsMap[id];
+            if (!p) return;
+            const existing = cart.find(i => String(i.id) === String(id));
+            if (existing) {
+                if (existing.quantity < p.stock) existing.quantity += 1;
+            } else {
+                cart.push({ id: p.id, title: p.title, price: p.price, image: p.image, quantity: 1, variant: p.variant_options ? p.variant_options.split(',')[0].trim() : '' });
+            }
+            saveCart();
+            renderCart();
+            showToast(`🛒 "${p.title}" added to cart!`);
+        }
+
+        function updateCartQty(idx, delta) {
+            if (!cart[idx]) return;
+            cart[idx].quantity += delta;
+            if (cart[idx].quantity <= 0) cart.splice(idx, 1);
+            saveCart();
+            renderCart();
+        }
+
+        function clearCart() {
+            cart = [];
+            saveCart();
+            renderCart();
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cartItemsContainer');
+            const subEl = document.getElementById('cartDrawerSubtotal');
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#666; padding:30px 10px;">Your cart is empty.</p>';
+                subEl.innerText = '৳ 0';
+                return;
+            }
+            let subtotal = 0;
+            let html = '';
+            cart.forEach((item, idx) => {
+                const lineTotal = item.price * item.quantity;
+                subtotal += lineTotal;
+                html += `
+                    <div class="cart-item-row">
+                        <div class="cart-item-info">
+                            <strong>${esc(item.title)}</strong>
+                            <small>৳ ${item.price} × ${item.quantity} = <strong>৳ ${lineTotal}</strong></small>
+                        </div>
+                        <div class="cart-qty-controls">
+                            <button type="button" onclick="updateCartQty(${idx}, -1)">-</button>
+                            <span>${item.quantity}</span>
+                            <button type="button" onclick="updateCartQty(${idx}, 1)">+</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            subEl.innerText = '৳ ' + subtotal;
+        }
+        saveCart();
+
+        function proceedCartToCheckout() {
+            if (cart.length === 0) return alert('Your cart is empty!');
+            toggleCartDrawer();
+            isCartCheckout = true;
+            const subtotal = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+            currentBasePrice = subtotal;
+            currentDiscount = 0;
+            document.getElementById('orderPromoCode').value = '';
+            document.getElementById('promoInput').value = '';
+            document.getElementById('promoMessage').style.display = 'none';
+            document.getElementById('discountRow').style.display = 'none';
+
+            const summaryTitle = cart.map(i => `${i.title} (x${i.quantity})`).join(', ');
+            document.getElementById('modalProductTitle').innerText = `Cart Items (${cart.length}): ${summaryTitle}`;
+            document.getElementById('orderProductId').value = '';
+            document.getElementById('orderProductTitle').value = summaryTitle;
+            document.getElementById('orderProductPrice').value = subtotal;
+            document.getElementById('orderCartItems').value = JSON.stringify(cart);
+            document.getElementById('singleQtyGroup').style.display = 'none';
+            document.getElementById('variantGroup').style.display = 'none';
+            updateTotal();
+            document.getElementById('checkoutModal').style.display = 'block';
+        }
+
+        function selectCategoryFromDrawer(cat) {
+            toggleMenuDrawer();
+            const btn = document.querySelector(`.cat-tab-btn[data-cat="${cat}"]`);
+            if (btn) filterByCategory(cat, btn);
+        }
+
+        function filterByCategory(cat, btn) {
+            activeCategory = cat;
+            document.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            applyCatalogFilters();
+        }
+
+        function updatePriceFilterLabel(val) {
+            document.getElementById('priceRangeLabel').innerText = Number(val) >= 10000 ? 'All' : '৳ ' + val;
+            applyCatalogFilters();
+        }
+
+        function applyCatalogFilters() {
+            const query = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+            const maxPrice = parseFloat(document.getElementById('priceRangeInput').value) || 10000;
+            const inStockOnly = document.getElementById('inStockOnlyChk').checked;
+            const sortMode = document.getElementById('sortSelect').value;
+
+            const grid = document.getElementById('productGrid');
+            const cards = Array.from(grid.querySelectorAll('.product-card'));
+
+            cards.forEach(card => {
+                const cCat = card.getAttribute('data-category');
+                const cTitle = card.getAttribute('data-title') || '';
+                const cSku = card.getAttribute('data-sku') || '';
+                const cPrice = parseFloat(card.getAttribute('data-price')) || 0;
+                const cStock = parseInt(card.getAttribute('data-stock'), 10) || 0;
+
+                const matchCat = (activeCategory === 'All' || cCat === activeCategory);
+                const matchQuery = !query || cTitle.includes(query) || cSku.includes(query) || cCat.toLowerCase().includes(query);
+                const matchPrice = maxPrice >= 10000 || cPrice <= maxPrice;
+                const matchStock = !inStockOnly || cStock > 0;
+
+                card.style.display = (matchCat && matchQuery && matchPrice && matchStock) ? 'flex' : 'none';
+            });
+
+            cards.sort((a, b) => {
+                const pa = parseFloat(a.getAttribute('data-price')) || 0;
+                const pb = parseFloat(b.getAttribute('data-price')) || 0;
+                const sa = parseInt(a.getAttribute('data-sales'), 10) || 0;
+                const sb = parseInt(b.getAttribute('data-sales'), 10) || 0;
+                const ida = parseInt(a.getAttribute('data-id'), 10) || 0;
+                const idb = parseInt(b.getAttribute('data-id'), 10) || 0;
+                if (sortMode === 'price_asc') return pa - pb;
+                if (sortMode === 'price_desc') return pb - pa;
+                if (sortMode === 'popular') return sb - sa;
+                return idb - ida;
+            });
+
+            cards.forEach(c => grid.appendChild(c));
+        }
+
+        async function shareProduct(id, title) {
+            const shareUrl = `https://trendzznow.com/product/${id}`;
+            fetch('/api/share-track', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ product_id: id, platform: navigator.share ? 'web_share' : 'copy_link' })
+            }).catch(() => {});
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title: `${title} | TrendzzNow`, url: shareUrl });
+                    return;
+                } catch (e) {}
+            }
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showToast('🔗 Product link copied to clipboard!');
+            });
+        }
+
         function init3DTilt() {
+            if (window.innerWidth < 768) return;
             const cards = document.querySelectorAll('.tilt-card');
             cards.forEach(card => {
-                const maxTilt = parseFloat(card.getAttribute('data-tilt-max')) || 10;
+                const maxTilt = parseFloat(card.getAttribute('data-tilt-max')) || 8;
                 const glare = card.querySelector('.tilt-glare');
 
                 card.addEventListener('mousemove', (e) => {
@@ -597,30 +840,28 @@
                     const rotateX = ((y - centerY) / centerY) * -maxTilt;
                     const rotateY = ((x - centerX) / centerX) * maxTilt;
 
-                    card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.03, 1.03, 1.03)`;
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.02, 1.02, 1.02)`;
 
                     if (glare) {
                         const glareX = (x / rect.width) * 100;
                         const glareY = (y / rect.height) * 100;
                         glare.style.opacity = '1';
-                        glare.style.background = `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.32), transparent 65%)`;
+                        glare.style.background = `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(255,255,255,0.28), transparent 65%)`;
                     }
                 });
 
                 card.addEventListener('mouseleave', () => {
                     card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
-                    if (glare) {
-                        glare.style.opacity = '0';
-                    }
+                    if (glare) glare.style.opacity = '0';
                 });
             });
         }
         init3DTilt();
 
         const policiesData = {
-            privacy: { title: "🔒 Privacy Policy", body: <%- JSON.stringify(settings.privacy_policy || '') %> },
-            return: { title: "🔄 Return & Replacement Policy", body: <%- JSON.stringify(settings.return_policy || '') %> },
-            terms: { title: "📜 Terms & Conditions", body: <%- JSON.stringify(settings.terms_conditions || '') %> }
+            privacy: { title: "🔒 Privacy Policy", body: <%- safeJson(settings.privacy_policy || '') %> },
+            return: { title: "🔄 Return & Replacement Policy", body: <%- safeJson(settings.return_policy || '') %> },
+            terms: { title: "📜 Terms & Conditions", body: <%- safeJson(settings.terms_conditions || '') %> }
         };
 
         function openPolicyModal(type) {
@@ -652,70 +893,24 @@
         function toggleLanguage() { applyLanguage(currentLang === 'en' ? 'bn' : 'en'); }
         applyLanguage(currentLang);
 
-        function filterProducts() { applyProductFilters(); }
-
-        function sortProducts() {
-            const grid = document.getElementById('productGrid');
-            const sortBy = document.getElementById('productSort')?.value || 'featured';
-            if (!grid) return;
-            const cards = Array.from(grid.querySelectorAll('.product-card'));
-            cards.sort((a, b) => {
-                if (sortBy === 'price-low') return Number(a.dataset.price) - Number(b.dataset.price);
-                if (sortBy === 'price-high') return Number(b.dataset.price) - Number(a.dataset.price);
-                if (sortBy === 'name') return (a.dataset.title || '').localeCompare(b.dataset.title || '');
-                return Number(b.dataset.productId) - Number(a.dataset.productId);
-            });
-            cards.forEach(card => grid.appendChild(card));
-            applyProductFilters();
-        }
-
-        async function shareProduct(id, title) {
-            const url = `${window.location.origin}/product/${encodeURIComponent(id)}`;
-            try {
-                if (navigator.share) {
-                    await navigator.share({ title: title || 'TrendzzNow product', text: `Check out ${title || 'this product'} on TrendzzNow`, url });
-                } else if (navigator.clipboard?.writeText) {
-                    await navigator.clipboard.writeText(url);
-                    showStoreToast('Product link copied');
-                } else {
-                    window.prompt('Copy this product link:', url);
-                }
-            } catch (error) {
-                if (error && error.name !== 'AbortError') showStoreToast('Could not share this link. Please try again.');
-            }
-        }
-        function showStoreToast(message) {
-            let toast = document.getElementById('storeToast');
-            if (!toast) {
-                toast = document.createElement('div');
-                toast.id = 'storeToast';
-                toast.className = 'store-toast';
-                document.body.appendChild(toast);
-            }
-            toast.textContent = message;
-            toast.classList.add('show');
-            window.clearTimeout(window.__trendzzToastTimer);
-            window.__trendzzToastTimer = window.setTimeout(() => toast.classList.remove('show'), 2200);
-        }
-
-        document.getElementById('productSort')?.addEventListener('change', sortProducts);
-        applyProductFilters();
-
         function openCheckoutById(id) {
             const prod = storeProductsMap[id];
             if (!prod) return;
-            openCheckout(prod.title, prod.price, prod.variant_options, prod.id);
+            isCartCheckout = false;
+            document.getElementById('orderCartItems').value = '';
+            document.getElementById('orderProductId').value = prod.id;
+            document.getElementById('singleQtyGroup').style.display = 'block';
+            openCheckout(prod.title, prod.price, prod.variant_options);
         }
 
-        function openCheckout(title, price, variants, productId) {
+        function openCheckout(title, price, variants) {
             currentBasePrice = parseFloat(price) || 0;
             currentDiscount = 0;
-            document.getElementById('orderDiscountApplied').value = 0;
+            document.getElementById('orderPromoCode').value = '';
             document.getElementById('promoInput').value = '';
             document.getElementById('promoMessage').style.display = 'none';
             document.getElementById('discountRow').style.display = 'none';
             document.getElementById('modalProductTitle').innerText = 'Product: ' + title + ' (৳ ' + currentBasePrice + ')';
-            document.getElementById('orderProductId').value = productId;
             document.getElementById('orderProductTitle').value = title;
             document.getElementById('orderProductPrice').value = currentBasePrice;
             document.getElementById('orderQty').value = 1;
@@ -747,7 +942,7 @@
             const msgEl = document.getElementById('promoMessage');
             if (input && input === validPromoCode) {
                 currentDiscount = validPromoDiscount;
-                document.getElementById('orderDiscountApplied').value = currentDiscount;
+                document.getElementById('orderPromoCode').value = input;
                 document.getElementById('discountRow').style.display = 'flex';
                 document.getElementById('sumDiscount').innerText = '-৳ ' + currentDiscount;
                 msgEl.style.display = 'block';
@@ -756,7 +951,7 @@
                 updateTotal();
             } else {
                 currentDiscount = 0;
-                document.getElementById('orderDiscountApplied').value = 0;
+                document.getElementById('orderPromoCode').value = '';
                 document.getElementById('discountRow').style.display = 'none';
                 msgEl.style.display = 'block';
                 msgEl.style.color = '#d63031';
@@ -766,12 +961,11 @@
         }
 
         function updateTotal() {
-            const qty = parseInt(document.getElementById('orderQty').value) || 1;
+            const qty = isCartCheckout ? 1 : (parseInt(document.getElementById('orderQty').value, 10) || 1);
             const areaSelect = document.getElementById('deliveryArea');
             const deliveryCharge = parseFloat(areaSelect.options[areaSelect.selectedIndex].getAttribute('data-charge')) || 0;
             const productTotal = currentBasePrice * qty;
             const grandTotal = Math.max(0, productTotal + deliveryCharge - currentDiscount);
-            document.getElementById('orderDeliveryCharge').value = deliveryCharge;
             document.getElementById('sumProductPrice').innerText = '৳ ' + productTotal;
             document.getElementById('sumDeliveryCharge').innerText = '৳ ' + deliveryCharge;
             document.getElementById('sumTotalBill').innerText = '৳ ' + grandTotal;
@@ -811,7 +1005,8 @@
                 });
                 const result = await res.json();
                 if (result.success) {
-                    alert('🎉 Thank you! Order #' + result.orderId + ' placed successfully! You will receive tracking updates via SMS/Email.');
+                    if (isCartCheckout) clearCart();
+                    alert('🎉 Thank you! Order #' + result.orderId + ' (৳' + result.totalAmount + ') placed successfully!');
                     closeCheckout();
                     e.target.reset();
                     togglePaymentDetails();
@@ -829,39 +1024,66 @@
         function openTrackingModal() { document.getElementById('trackingModal').style.display = 'block'; }
         function closeTrackingModal() { document.getElementById('trackingModal').style.display = 'none'; }
 
-        async function fetchOrderStatus() {
+        async function fetchOrdersByPhone() {
             const phone = document.getElementById('trackPhone').value.trim();
             const orderId = document.getElementById('trackOrderId').value.trim();
             const container = document.getElementById('trackingResultContainer');
-            if (!phone || !orderId) return alert('Enter both your order ID and phone number.');
-            container.innerHTML = '<p>Searching...</p>';
+            if (!phone) return alert('Please enter your mobile number');
+            container.innerHTML = '<p>Verifying & searching orders...</p>';
             try {
-                const res = await fetch('/order/track?phone=' + encodeURIComponent(phone) + '&order_id=' + encodeURIComponent(orderId));
+                const res = await fetch(`/order/track?phone=${encodeURIComponent(phone)}&order_id=${encodeURIComponent(orderId)}`);
                 const data = await res.json();
                 if (data.success && data.orders.length > 0) {
-                    const escapeHtml = (value) => String(value ?? '').replace(/[&<>\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]));
-                    let html = '<table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="background:#f1f3f5;"><th style="padding:6px;border:1px solid #ddd;">ID & Date</th><th style="padding:6px;border:1px solid #ddd;">Product</th><th style="padding:6px;border:1px solid #ddd;">Status</th></tr>';
+                    let html = '<table style="width:100%; border-collapse:collapse; font-size:13px;"><tr style="background:#f1f3f5;"><th style="padding:8px;border:1px solid #ddd;">Order ID</th><th style="padding:8px;border:1px solid #ddd;">Product</th><th style="padding:8px;border:1px solid #ddd;">Status & Tracking</th></tr>';
                     data.orders.forEach(o => {
-                        html += `<tr><td style="padding:6px;border:1px solid #ddd;"><strong>#${o.id}</strong><br>${o.created_at ? new Date(o.created_at).toLocaleDateString() : '-'}</td><td style="padding:6px;border:1px solid #ddd;">${escapeHtml(o.product_title)}<br><strong>৳${escapeHtml(o.price)}</strong></td><td style="padding:6px;border:1px solid #ddd;"><strong>${escapeHtml(o.status || 'Pending')}</strong></td></tr>`;
+                        const cId = o.consignment_id ? `<br><small style="color:#0984e3;">Tracking: ${esc(o.consignment_id)}</small>` : '';
+                        html += `<tr><td style="padding:8px;border:1px solid #ddd;"><strong>#${o.id}</strong><br><small>${o.created_at ? new Date(o.created_at).toLocaleDateString() : '-'}</small></td><td style="padding:8px;border:1px solid #ddd;">${esc(o.product_title)}<br><strong>৳${o.price}</strong></td><td style="padding:8px;border:1px solid #ddd;"><span style="background:#eef2ff;color:#1F1B5C;padding:3px 8px;border-radius:12px;font-weight:700;">${esc(o.status || 'Pending')}</span>${cId}</td></tr>`;
                     });
                     html += '</table>';
                     container.innerHTML = html;
                 } else {
-                    container.innerHTML = '<p style="color:#d63031;">No orders found.</p>';
+                    container.innerHTML = '<p style="color:#d63031;">No matching orders found for this mobile number.</p>';
                 }
             } catch (err) {
                 container.innerHTML = '<p style="color:#d63031;">Error fetching orders.</p>';
             }
         }
 
+        function toggleAiChat() {
+            const box = document.getElementById('aiChatBox');
+            if (!box) return;
+            box.style.display = box.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        async function sendAiMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('aiInputText');
+            const msg = input.value.trim();
+            if (!msg) return;
+            const list = document.getElementById('aiChatMessages');
+            list.innerHTML += `<div class="ai-msg user">${esc(msg)}</div>`;
+            input.value = '';
+            list.scrollTop = list.scrollHeight;
+            try {
+                const res = await fetch('/api/ai-support', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg, lang: currentLang })
+                });
+                const data = await res.json();
+                list.innerHTML += `<div class="ai-msg bot">${esc(data.reply)}</div>`;
+                list.scrollTop = list.scrollHeight;
+            } catch (err) {
+                list.innerHTML += `<div class="ai-msg bot">Please contact our WhatsApp support at 01731763504.</div>`;
+            }
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         const autoTrackPhone = urlParams.get('track');
-        const autoTrackOrderId = urlParams.get('order');
-        if (autoTrackPhone && autoTrackOrderId) {
+        if (autoTrackPhone) {
             document.getElementById('trackPhone').value = autoTrackPhone;
-            document.getElementById('trackOrderId').value = autoTrackOrderId;
             openTrackingModal();
-            fetchOrderStatus();
+            fetchOrdersByPhone();
         }
 
         window.onclick = function(e) {
@@ -870,18 +1092,41 @@
             if (e.target === document.getElementById('policyModal')) closePolicyModal();
         }
     </script>
-    <% if (assistantEnabled) { %>
-      <link rel="stylesheet" href="/assistant.css">
-      <div id="tnAssistant" class="tn-assistant-root" data-welcome="<%= settings.ai_welcome_message || 'Hello! How can I help?' %>" data-handoff="<%= settings.ai_handoff_message || 'Please contact our support team.' %>" data-whatsapp="<%= settings.whatsapp_number || '' %>">
-        <section class="tn-assistant-panel" data-assistant-panel hidden aria-label="TrendzzNow AI customer support">
-          <header class="tn-assistant-head"><span><strong>TrendzzNow Assistant</strong><small>Product and store support · AI assistant</small></span><button type="button" class="tn-assistant-close" data-assistant-close aria-label="Close chat">×</button></header>
-          <div class="tn-assistant-messages" data-assistant-messages aria-live="polite"></div>
-          <form class="tn-assistant-form"><input name="message" type="text" maxlength="1200" autocomplete="off" placeholder="Ask about products or delivery…" required><button type="submit">Send</button></form>
-        </section>
-        <button type="button" class="tn-assistant-toggle" data-assistant-toggle aria-label="Open AI customer support" aria-expanded="false">✦</button>
-      </div>
-      <script src="/assistant.js" defer></script>
-    <% } %>
-    <script src="/upgrade.js" defer></script>
+    <button type="button" id="wishFab" class="wish-fab" onclick="toggleWishFilter()" style="display:none;">♥ Wishlist <span id="wishCount">0</span></button>
+    <script>
+        (function () {
+            var KEY = 'trendzz_wishlist';
+            function load() { try { var a = JSON.parse(localStorage.getItem(KEY) || '[]'); return Array.isArray(a) ? a.map(String) : []; } catch (e) { return []; } }
+            function save(a) { try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (e) {} }
+            var onlyWish = false;
+            function paint() {
+                var list = load();
+                document.querySelectorAll('.card-wish-btn').forEach(function (b) {
+                    var on = list.indexOf(String(b.getAttribute('data-wish'))) > -1;
+                    b.textContent = on ? '♥' : '♡';
+                    b.classList.toggle('active', on);
+                });
+                document.querySelectorAll('.product-card').forEach(function (c) {
+                    var hide = onlyWish && list.indexOf(String(c.getAttribute('data-id'))) === -1;
+                    c.classList.toggle('wish-hidden', hide);
+                });
+                var fab = document.getElementById('wishFab');
+                if (fab) {
+                    document.getElementById('wishCount').textContent = list.length;
+                    fab.style.display = list.length || onlyWish ? 'flex' : 'none';
+                    fab.classList.toggle('active', onlyWish);
+                }
+            }
+            window.toggleWish = function (id, btn) {
+                var list = load(); var k = String(id); var i = list.indexOf(k);
+                if (i > -1) list.splice(i, 1); else list.push(k);
+                save(list);
+                if (!list.length) onlyWish = false;
+                paint();
+            };
+            window.toggleWishFilter = function () { onlyWish = !onlyWish; paint(); };
+            document.addEventListener('DOMContentLoaded', paint);
+        })();
+    </script>
 </body>
 </html>

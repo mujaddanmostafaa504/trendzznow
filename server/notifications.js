@@ -1,7 +1,9 @@
 const nodemailer = require('nodemailer');
 
-function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>\"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;' }[ch]));
+function esc(v) {
+  return String(v === undefined || v === null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function formatBDPhone(phone) {
@@ -25,8 +27,7 @@ async function sendOrderSMS({ phone, customerName, orderId, totalAmount, status,
     return { success: false, reason: 'Missing SMS credentials' };
   }
 
-  const baseUrl = (process.env.APP_BASE_URL || 'https://trendzznow.com').replace(/\/$/, '');
-  const trackUrl = `${baseUrl}/?track=${encodeURIComponent((phone || '').trim())}&order=${encodeURIComponent(orderId)}`;
+  const trackUrl = `https://trendzznow.com/?track=${encodeURIComponent((phone || '').trim())}`;
   let message = '';
 
   if (status === 'Pending') {
@@ -63,18 +64,11 @@ async function sendOrderEmail({ email, customerName, phone, orderId, productTitl
       }
     });
 
-    const baseUrl = (process.env.APP_BASE_URL || 'https://trendzznow.com').replace(/\/$/, '');
-    const trackUrl = `${baseUrl}/?track=${encodeURIComponent((phone || '').trim())}&order=${encodeURIComponent(orderId)}`;
+    const trackUrl = `https://trendzznow.com/?track=${encodeURIComponent((phone || '').trim())}`;
     const subject = status === 'Pending'
       ? `✅ Order Confirmed #${orderId} - TrendzzNow`
       : `📦 Order #${orderId} Status Update: ${status} - TrendzzNow`;
 
-    const safeCustomerName = escapeHtml(customerName);
-    const safeStatus = escapeHtml(status);
-    const safeProductTitle = escapeHtml(productTitle);
-    const safeTotalAmount = escapeHtml(totalAmount);
-    const safeAddress = escapeHtml(address);
-    const safeSupportPhone = escapeHtml(supportPhone);
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; max-width: 560px; margin: auto; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">
         <div style="background: linear-gradient(90deg, #1F1B5C, #9c1448); color: #fff; padding: 20px; text-align: center;">
@@ -82,17 +76,17 @@ async function sendOrderEmail({ email, customerName, phone, orderId, productTitl
           <p style="margin: 5px 0 0 0; font-size: 13px;">Stay on trend. Stay in style.</p>
         </div>
         <div style="padding: 24px; color: #222;">
-          <h3 style="color: #1F1B5C; margin-top: 0;">Hello ${safeCustomerName},</h3>
-          <p>Your order <strong>#${orderId}</strong> status is currently: <span style="background:#fdf2f6; color:#9c1448; padding:4px 10px; border-radius:4px; font-weight:bold;">${safeStatus}</span></p>
+          <h3 style="color: #1F1B5C; margin-top: 0;">Hello ${esc(customerName)},</h3>
+          <p>Your order <strong>#${esc(orderId)}</strong> status is currently: <span style="background:#fdf2f6; color:#9c1448; padding:4px 10px; border-radius:4px; font-weight:bold;">${esc(status)}</span></p>
           <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 16px 0; font-size: 14px;">
-            <p style="margin: 4px 0;"><strong>Product:</strong> ${safeProductTitle}</p>
-            <p style="margin: 4px 0;"><strong>Total Payable:</strong> ৳ ${safeTotalAmount}</p>
-            <p style="margin: 4px 0;"><strong>Delivery Address:</strong> ${safeAddress}</p>
+            <p style="margin: 4px 0;"><strong>Product:</strong> ${esc(productTitle)}</p>
+            <p style="margin: 4px 0;"><strong>Total Payable:</strong> ৳ ${esc(totalAmount)}</p>
+            <p style="margin: 4px 0;"><strong>Delivery Address:</strong> ${esc(address)}</p>
           </div>
           <div style="text-align: center; margin: 24px 0;">
             <a href="${trackUrl}" style="background: #9c1448; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">📦 Track Your Order Live</a>
           </div>
-          <p style="font-size: 12.5px; color: #666;">Need help? Call or WhatsApp us anytime at <strong>${safeSupportPhone}</strong>.</p>
+          <p style="font-size: 12.5px; color: #666;">Need help? Call or WhatsApp us anytime at <strong>${esc(supportPhone)}</strong>.</p>
         </div>
       </div>
     `;

@@ -1,0 +1,16 @@
+    <footer class="footer">
+        <div class="container footer-grid-4">
+            <div><h3><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></h3><p>🌐 www.trendzznow.com</p></div>
+            <div>
+                <h4>Information</h4>
+                <ul class="footer-policy-links">
+                    <% (locals.PAGE_LINKS || []).forEach(function (l) { %>
+                        <li><a href="/<%= l.slug %>"><%= l.title %></a></li>
+                    <% }) %>
+                </ul>
+            </div>
+            <div><h4>Support</h4><p>📞 WhatsApp: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p></div>
+        </div>
+    </footer>
+</body>
+</html>

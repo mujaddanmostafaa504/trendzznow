@@ -3,16 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= product.title %> | <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></title>
-    <link rel="canonical" href="https://www.trendzznow.com/product/<%= product.id %>">
-    <meta property="og:title" content="<%= product.title %> - ৳<%= product.price %> | TrendzzNow">
-    <meta property="og:description" content="<%= product.description || 'Stay on trend. Stay in style.' %>">
-    <meta property="og:image" content="<%= product.image || settings.logo_light || 'https://www.trendzznow.com/images/banner.jpg' %>">
-    <meta property="og:url" content="https://www.trendzznow.com/product/<%= product.id %>">
+    <title><%= product.seo_title || product.title %> | <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></title>
+    <link rel="canonical" href="https://trendzznow.com/product/<%= product.id %>">
+    <meta property="og:title" content="<%= product.seo_title || product.title %> - ৳<%= product.price %> | TrendzzNow">
+    <meta property="og:description" content="<%= product.seo_description || product.description || 'Stay on trend. Stay in style.' %>">
+    <meta property="og:image" content="<%= product.image || settings.logo_light || 'https://trendzznow.com/images/banner.jpg' %>">
+    <meta property="og:url" content="https://trendzznow.com/product/<%= product.id %>">
     <meta property="og:type" content="product">
     <link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="/upgrade.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#1F1B5C">
+    <%
+        const rvList = (typeof reviews !== 'undefined' && reviews) ? reviews : [];
+        const rvCount = rvList.length;
+        const rvAvg = rvCount ? Math.round((rvList.reduce((a, r) => a + (Number(r.rating) || 0), 0) / rvCount) * 10) / 10 : 0;
+        const ld = {
+            '@context': 'https://schema.org', '@type': 'Product', name: product.title,
+            image: [product.image].filter(Boolean), description: product.description || product.title,
+            sku: product.sku || String(product.id),
+            offers: { '@type': 'Offer', priceCurrency: 'BDT', price: String(product.price), availability: product.stock_quantity > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock', url: 'https://trendzznow.com/product/' + product.id }
+        };
+        if (rvCount) ld.aggregateRating = { '@type': 'AggregateRating', ratingValue: String(rvAvg), reviewCount: String(rvCount) };
+    %>
+    <script type="application/ld+json"><%- safeJson(ld) %></script>
 </head>
 <body>
     <div class="banner-notice">
@@ -27,14 +41,13 @@
                 <% } else { %>
                     <div class="brand-logo-icon">⚡</div>
                 <% } %>
-                <div class="brand-badge" style="margin-left:8px;">
+                <div class="brand-badge">
                     <span class="brand-name"><%= settings.brand_name_first || 'Trendzz' %><span class="accent"><%= settings.brand_name_second || 'Now' %></span></span>
                     <small class="brand-sub"><%= settings.tagline_en || 'Stay on trend. Stay in style.' %></small>
                 </div>
             </a>
             <nav class="nav-links">
-                <a href="/">Home</a>
-                <a href="/#products">Trending</a>
+                <a href="/">← Back to Shop</a>
                 <a href="/#faq">FAQ</a>
                 <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>" target="_blank" class="wa-nav-btn">💬 WhatsApp</a>
             </nav>
@@ -43,38 +56,60 @@
 
     <main class="container product-detail-container">
         <div class="product-detail-grid">
-            <div class="product-detail-img-wrap tilt-card" data-tilt-max="8">
-                <div class="tilt-glare"></div>
-                <% if (product.image) { %>
-                    <img src="<%= product.image %>" alt="<%= product.title %>" class="detail-main-img">
-                <% } else { %>
-                    <div class="no-img" style="height: 400px;">No Image Available</div>
+            <div>
+                <div class="product-detail-img-wrap">
+                    <% if (product.image) { %>
+                        <img src="<%= product.image %>" id="mainProductImg" alt="<%= product.title %>" class="detail-main-img">
+                    <% } else { %>
+                        <div class="no-img" style="height: 400px;">No Image Available</div>
+                    <% } %>
+                    <span class="cod-badge-large">🛡️ 100% Cash on Delivery — Open-Box Check Before Paying</span>
+                </div>
+
+                <% 
+                    const allImgs = [product.image, ...(product.gallery_images || [])].filter((v, i, a) => v && a.indexOf(v) === i);
+                %>
+                <% if (allImgs.length > 1) { %>
+                    <div class="gallery-thumbs-row">
+                        <% allImgs.forEach((imgUrl, idx) => { %>
+                            <img src="<%= imgUrl %>" alt="Thumbnail <%= idx+1 %>" class="gallery-thumb <%= idx === 0 ? 'active' : '' %>" onclick="switchGalleryImg('<%= imgUrl %>', this)">
+                        <% }) %>
+                    </div>
                 <% } %>
-                <span class="cod-badge-large">🛡️ 100% Cash on Delivery — Check Before Paying</span>
             </div>
 
             <div class="product-detail-info">
-                <div class="detail-heading-row"><h1 class="detail-title"><%= product.title %></h1><button type="button" class="share-product-btn" onclick="shareCurrentProduct()" aria-label="Share this product">↗ Share</button></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                    <span class="cat-pill-mini"><%= product.category || 'Trending' %><%= product.subcategory ? ' • ' + product.subcategory : '' %></span>
+                    <span style="font-size:12.5px; color:#666; font-weight:700;">SKU: <%= product.sku %></span>
+                </div>
+
+                <h1 class="detail-title"><%= product.title %></h1>
+
                 <div class="detail-price-box">
                     <% if (product.regular_price && product.regular_price > product.price) { %>
                         <span class="detail-reg-price">৳ <%= product.regular_price %></span>
                     <% } %>
                     <span class="detail-price">৳ <%= product.price %></span>
-                    <% if (product.stock_known) { %><span class="stock-badge <%= Number(product.stock_quantity) > 0 ? 'is-available' : 'is-unavailable' %>"><%= Number(product.stock_quantity) > 0 ? '✓ In Stock' : 'Out of Stock' %></span><% } %>
+                    <span class="stock-badge"><%= product.stock_quantity > 0 ? `✓ In Stock (${product.stock_quantity})` : 'Out of Stock' %></span>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap;">
+                    <button type="button" onclick="shareCurrentProduct()" class="share-pill-btn">🔗 Share / Copy Product Link</button>
+                    <a href="https://wa.me/88<%= (settings.whatsapp_number || '01731763504').replace(/^\+?88/, '') %>?text=<%= encodeURIComponent('Hello TrendzzNow, I want to order: ' + product.title + ' (SKU: ' + product.sku + ', Price: ৳' + product.price + ') - https://trendzznow.com/product/' + product.id) %>" target="_blank" class="wa-pill-btn">💬 Ask / Order on WhatsApp</a>
                 </div>
 
                 <div class="detail-desc-box">
-                    <h3>Product Highlights:</h3>
-                    <p style="white-space: pre-line;"><%= product.description || 'Trending viral lifestyle product sourced for TrendzzNow.' %></p>
+                    <h3 style="font-size:16px; margin-bottom:6px; color:#1F1B5C;">Product Specifications & Overview:</h3>
+                    <p style="white-space: pre-line; line-height:1.65; color:#333; font-size:14.5px;"><%= product.description || 'Authentic quality product available with fast Cash on Delivery across Bangladesh.' %></p>
                 </div>
 
                 <div class="quick-order-box">
-                    <h3>⚡ Place Your Order Now (Cash on Delivery)</h3>
+                    <h3 style="margin-top:0; color:#1F1B5C;">⚡ Direct Cash on Delivery Order</h3>
                     <form id="directOrderForm" onsubmit="submitDirectOrder(event)">
                         <input type="hidden" name="product_id" value="<%= product.id %>">
                         <input type="hidden" name="product_title" value="<%= product.title %>">
                         <input type="hidden" name="price" value="<%= product.price %>">
-                        <input type="hidden" id="detailDeliveryCharge" name="delivery_charge" value="<%= settings.delivery_inside_dhaka || 70 %>">
 
                         <% if (product.variant_options) { %>
                             <div class="form-group">
@@ -93,7 +128,7 @@
                                 <input type="text" name="customer_name" required placeholder="Full Name">
                             </div>
                             <div class="form-group">
-                                <label>Mobile Number (for SMS Tracking) *</label>
+                                <label>Mobile Number (11 Digits) *</label>
                                 <input type="tel" name="phone" required placeholder="017xxxxxxxx" minlength="11" maxlength="15">
                             </div>
                         </div>
@@ -106,7 +141,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Quantity</label>
-                                <input type="number" id="detailQty" name="quantity" value="1" min="1" max="50" onchange="updateDetailTotal()">
+                                <input type="number" id="detailQty" name="quantity" value="1" min="1" max="<%= Math.max(1, product.stock_quantity) %>" onchange="updateDetailTotal()">
                             </div>
                             <div class="form-group">
                                 <label>Delivery Area *</label>
@@ -128,43 +163,72 @@
                             <div class="summary-line total-line"><span>Total Payable:</span> <span id="detailSumTotal">৳ <%= (parseFloat(product.price) || 0) + (parseFloat(settings.delivery_inside_dhaka) || 70) %></span></div>
                         </div>
 
-                        <button type="submit" id="detailSubmitBtn" class="submit-order-btn shimmer-btn" <%= product.stock_known && Number(product.stock_quantity) <= 0 ? 'disabled' : '' %>>✅ Confirm Order (Cash on Delivery)</button>
+                        <button type="submit" id="detailSubmitBtn" class="submit-order-btn shimmer-btn" <%= product.stock_quantity <= 0 ? 'disabled' : '' %>>✅ Confirm Order (Cash on Delivery)</button>
                     </form>
                 </div>
             </div>
         </div>
+
+        <section class="reviews-section" id="reviews">
+            <h2 class="reviews-title">⭐ Customer Reviews
+                <% if (rvCount) { %><span class="reviews-avg"><%= rvAvg.toFixed(1) %> / 5 · <%= rvCount %> review<%= rvCount > 1 ? 's' : '' %></span><% } %>
+            </h2>
+            <% if (!rvCount) { %><p class="reviews-empty">No reviews yet. Be the first to share your experience.</p><% } %>
+            <% rvList.forEach(function (r) { %>
+                <div class="review-card">
+                    <div class="review-head">
+                        <strong><%= r.name %></strong>
+                        <% if (r.verified) { %><span class="verified-pill">✔ Verified Buyer</span><% } %>
+                        <span class="review-stars" aria-label="<%= r.rating %> out of 5"><%= '★'.repeat(Number(r.rating) || 0) %><span class="star-off"><%= '★'.repeat(5 - (Number(r.rating) || 0)) %></span></span>
+                    </div>
+                    <p class="review-body"><%= r.comment %></p>
+                </div>
+            <% }) %>
+
+            <form id="reviewForm" class="review-form" autocomplete="off">
+                <h3>Write a review</h3>
+                <div class="star-input" role="radiogroup" aria-label="Rating">
+                    <% for (let i = 5; i >= 1; i--) { %>
+                        <input type="radio" name="rating" id="rv-star-<%= i %>" value="<%= i %>"><label for="rv-star-<%= i %>" title="<%= i %> stars">★</label>
+                    <% } %>
+                </div>
+                <input type="text" name="name" maxlength="40" placeholder="Your name" required>
+                <input type="tel" name="phone" maxlength="14" placeholder="Mobile number (optional, to show Verified Buyer)">
+                <textarea name="comment" maxlength="500" rows="3" placeholder="How was the product?" required></textarea>
+                <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute; left:-9999px;" aria-hidden="true">
+                <button type="submit" class="review-submit">Submit review</button>
+                <p id="reviewMsg" class="review-msg"></p>
+            </form>
+        </section>
     </main>
 
     <footer class="footer">
-        <div class="container footer-grid">
-            <div><h3><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></h3><p>🌐 www.trendzznow.com</p>
-              <div class="footer-social-links" aria-label="Social media">
-                <% if (/^https?:\/\//i.test(settings.facebook_url || '')) { %><a href="<%= settings.facebook_url %>" target="_blank" rel="noopener noreferrer" aria-label="Facebook">f</a><% } %>
-                <% if (/^https?:\/\//i.test(settings.instagram_url || '')) { %><a href="<%= settings.instagram_url %>" target="_blank" rel="noopener noreferrer" aria-label="Instagram">◎</a><% } %>
-                <% if (/^https?:\/\//i.test(settings.tiktok_url || '')) { %><a href="<%= settings.tiktok_url %>" target="_blank" rel="noopener noreferrer" aria-label="TikTok">♪</a><% } %>
-                <% if (/^https?:\/\//i.test(settings.youtube_url || '')) { %><a href="<%= settings.youtube_url %>" target="_blank" rel="noopener noreferrer" aria-label="YouTube">▶</a><% } %>
-              </div>
-            </div>
-            <div><h4>Support & Delivery</h4><p>📞 WhatsApp: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p><p>🚚 Inside Dhaka ৳<%= settings.delivery_inside_dhaka || 70 %> · Outside Dhaka ৳<%= settings.delivery_outside_dhaka || 130 %></p><p>SteadFast · Pathao · REDX</p><p>Cash on Delivery · bKash · Nagad</p></div>
+        <div class="container footer-grid-4">
+            <div><h3><%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></h3><p>🌐 www.trendzznow.com</p></div>
+            <div><h4>Support</h4><p>📞 WhatsApp: <strong><%= settings.whatsapp_number || '01731763504' %></strong></p></div>
         </div>
     </footer>
 
     <script>
         const unitPrice = parseFloat('<%= product.price %>') || 0;
-        async function shareCurrentProduct() {
-            const shareData = { title: document.title, text: 'Check out this product on TrendzzNow', url: window.location.href };
-            try {
-                if (navigator.share) await navigator.share(shareData);
-                else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(window.location.href); alert('Product link copied.'); }
-                else window.prompt('Copy product link:', window.location.href);
-            } catch (error) { if (error && error.name !== 'AbortError') alert('Unable to share this product right now.'); }
+        function switchGalleryImg(url, el) {
+            document.getElementById('mainProductImg').src = url;
+            document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+        }
+        function shareCurrentProduct() {
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({ title: document.title, url }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(url).then(() => alert('🔗 Product link copied!'));
+            }
         }
         function updateDetailTotal() {
-            const qty = parseInt(document.getElementById('detailQty').value) || 1;
+            const qty = parseInt(document.getElementById('detailQty').value, 10) || 1;
             const areaSelect = document.getElementById('detailDeliveryArea');
             const dCharge = parseFloat(areaSelect.options[areaSelect.selectedIndex].getAttribute('data-charge')) || 0;
             const prodTotal = unitPrice * qty;
-            document.getElementById('detailDeliveryCharge').value = dCharge;
             document.getElementById('detailSumProduct').innerText = '৳ ' + prodTotal;
             document.getElementById('detailSumDelivery').innerText = '৳ ' + dCharge;
             document.getElementById('detailSumTotal').innerText = '৳ ' + (prodTotal + dCharge);
@@ -183,7 +247,7 @@
                 });
                 const result = await res.json();
                 if (result.success) {
-                    alert('🎉 Thank you! Order #' + result.orderId + ' placed successfully! You will receive tracking updates via SMS/Email.');
+                    alert('🎉 Thank you! Order #' + result.orderId + ' (৳' + result.totalAmount + ') placed successfully!');
                     e.target.reset();
                     updateDetailTotal();
                 } else {
@@ -197,18 +261,26 @@
             }
         }
     </script>
-    <% if (assistantEnabled) { %>
-      <link rel="stylesheet" href="/assistant.css">
-      <div id="tnAssistant" class="tn-assistant-root" data-welcome="<%= settings.ai_welcome_message || 'Hello! How can I help?' %>" data-handoff="<%= settings.ai_handoff_message || 'Please contact our support team.' %>" data-whatsapp="<%= settings.whatsapp_number || '' %>">
-        <section class="tn-assistant-panel" data-assistant-panel hidden aria-label="TrendzzNow AI customer support">
-          <header class="tn-assistant-head"><span><strong>TrendzzNow Assistant</strong><small>Product and store support · AI assistant</small></span><button type="button" class="tn-assistant-close" data-assistant-close aria-label="Close chat">×</button></header>
-          <div class="tn-assistant-messages" data-assistant-messages aria-live="polite"></div>
-          <form class="tn-assistant-form"><input name="message" type="text" maxlength="1200" autocomplete="off" placeholder="Ask about products or delivery…" required><button type="submit">Send</button></form>
-        </section>
-        <button type="button" class="tn-assistant-toggle" data-assistant-toggle aria-label="Open AI customer support" aria-expanded="false">✦</button>
-      </div>
-      <script src="/assistant.js" defer></script>
-    <% } %>
-    <script src="/upgrade.js" defer></script>
+    <script>
+        (function () {
+            var form = document.getElementById('reviewForm');
+            if (!form) return;
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var msg = document.getElementById('reviewMsg');
+                var data = {};
+                new FormData(form).forEach(function (v, k) { data[k] = v; });
+                msg.style.color = '#334155'; msg.textContent = 'Sending...';
+                fetch('/product/<%= product.id %>/review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+                    .then(function (r) { return r.json(); })
+                    .then(function (j) {
+                        msg.style.color = j.success ? '#15803d' : '#b91c1c';
+                        msg.textContent = j.message || (j.success ? 'Thank you!' : 'Could not send.');
+                        if (j.success) form.reset();
+                    })
+                    .catch(function () { msg.style.color = '#b91c1c'; msg.textContent = 'Network error. Please try again.'; });
+            });
+        })();
+    </script>
 </body>
 </html>

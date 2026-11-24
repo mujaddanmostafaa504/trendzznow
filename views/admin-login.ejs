@@ -3,34 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Admin Login - TrendzzNow</title>
+    <title>Enterprise Admin Authentication — TrendzzNow</title>
     <link rel="stylesheet" href="/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="login-body">
     <div class="login-card glass-modal">
         <div class="login-header">
             <span class="brand-name" style="color:#9c1448; font-size:28px;">Trendzz<span style="color:#1F1B5C;">Now</span></span>
-            <h3>Secure Control Panel</h3>
-            <p>Enter your credentials to access management</p>
+            <h3 style="margin:8px 0 4px 0; color:#1e293b;">Enterprise Administration</h3>
+            <p style="margin:0; font-size:13.5px; color:#64748b;">Authorized personnel only • Role-based session security</p>
         </div>
 
         <% if (error) { %>
             <div class="error-msg">⚠️ <%= error %></div>
         <% } %>
 
-        <form action="/secret-admin-panel-2026/login" method="POST"><input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <form action="/secret-admin-panel-2026/login" method="POST">
             <div class="form-group">
-                <label>Admin Password</label>
-                <input type="password" name="password" placeholder="Enter your configured admin password" required autofocus>
+                <label style="font-size:14px;">Administrator / Staff Password</label>
+                <input type="password" name="password" placeholder="Enter your access key" required autofocus style="font-size:15px; padding:12px;">
             </div>
-            <button type="submit" class="login-btn">🔐 Authenticate</button>
+            <button type="submit" class="login-btn" style="font-size:15px; padding:13px;">🔐 Sign In to Workspace</button>
         </form>
 
-        <div class="login-hint">Admin access is controlled by the ADMIN_PASSWORD environment variable. Never use a default password.</div>
-
-        <p style="text-align: center; margin-top: 18px;">
-            <a href="/" style="color: #9c1448; font-weight: 600; text-decoration: none;">&larr; Return to Website</a>
+        <p style="text-align: center; margin-top: 20px; font-size:13.5px;">
+            <a href="/" style="color: #64748b; font-weight: 600; text-decoration: none;">&larr; Return to Live Storefront</a>
         </p>
     </div>
 </body>

@@ -1,0 +1,13 @@
+<%- include('partials/site-top', { settings: settings, title: (typeof serverError !== 'undefined' && serverError) ? 'Something went wrong' : 'Page not found', noindex: true }) %>
+    <main class="container" style="max-width:640px; padding:64px 16px; text-align:center;">
+        <div style="font-size:64px;">🛍️</div>
+        <% if (typeof serverError !== 'undefined' && serverError) { %>
+            <h1 style="color:#1F1B5C;">Something went wrong</h1>
+            <p style="color:#64748b;">We could not load this page right now. Please try again in a moment.</p>
+        <% } else { %>
+            <h1 style="color:#1F1B5C;">Page not found</h1>
+            <p style="color:#64748b;">The page you are looking for does not exist or the product is no longer available.</p>
+        <% } %>
+        <p><a href="/" class="btn-primary-sm" style="display:inline-block; padding:12px 22px; border-radius:10px; text-decoration:none;">Go to the shop</a></p>
+    </main>
+<%- include('partials/site-bottom', { settings: settings }) %>
