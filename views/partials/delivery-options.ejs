@@ -1,0 +1,5 @@
+<option value="Inside Dhaka" data-charge="<%= settings.delivery_inside_dhaka || 70 %>">Inside Dhaka (৳ <%= settings.delivery_inside_dhaka || 70 %>, <%= settings.delivery_eta_inside || '24 to 48 hours' %>)</option>
+<% if (settings.delivery_mid_charge !== undefined && String(settings.delivery_mid_charge).trim() !== '') { %>
+<option value="Dhaka Suburbs" data-charge="<%= settings.delivery_mid_charge %>"><%= settings.delivery_mid_label || 'Dhaka Suburbs' %> (৳ <%= settings.delivery_mid_charge %>, <%= settings.delivery_eta_mid || '2 to 3 days' %>)</option>
+<% } %>
+<option value="Outside Dhaka" data-charge="<%= settings.delivery_outside_dhaka || 130 %>">Outside Dhaka (৳ <%= settings.delivery_outside_dhaka || 130 %>, <%= settings.delivery_eta_outside || '2 to 4 days' %>)</option>

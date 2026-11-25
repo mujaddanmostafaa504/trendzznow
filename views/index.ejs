@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= settings.site_title || 'TrendzzNow - Stay on trend. Stay in style.' %></title>
+    <meta name="description" content="<%= (settings.meta_description || settings.hero_subtitle_en || 'Stay on trend. Stay in style. Just trending products delivered to your door.').slice(0, 160) %>">
+    <meta name="twitter:card" content="summary_large_image">
+    <%- include('partials/seo-extra', { settings: settings }) %>
+    <script type="application/ld+json"><%- safeJson({ '@context': 'https://schema.org', '@graph': [
+        { '@type': 'Organization', name: (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now'), url: 'https://trendzznow.com/', logo: settings.logo_light || undefined, sameAs: [settings.social_facebook, settings.social_instagram, settings.social_tiktok].filter(Boolean) },
+        { '@type': 'WebSite', name: (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now'), url: 'https://trendzznow.com/' }
+    ] }) %></script>
     <link rel="canonical" href="https://trendzznow.com/">
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="theme-color" content="#1F1B5C">
@@ -13,6 +20,7 @@
     <meta property="og:url" content="https://trendzznow.com">
     <meta property="og:type" content="website">
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/theme.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
     <% if (settings.facebook_pixel) { %>
     <script>
@@ -170,7 +178,7 @@
                     const spotlightImg = settings.hero_image || (products.length > 0 && products[0].image ? products[0].image : '');
                     const spotlightTitle = settings.hero_featured_title || (products.length > 0 ? products[0].title : 'Trending Spotlight');
                     const spotlightPrice = settings.hero_featured_price || (products.length > 0 ? '৳ ' + products[0].price : 'Hot Deal');
-                    const spotlightUrl = settings.hero_featured_link || (products.length > 0 ? '/product/' + products[0].id : '#products');
+                    const spotlightUrl = settings.hero_featured_link || (products.length > 0 ? products[0].url : '#products');
                 %>
                 <div class="hero-3d-showcase tilt-card" data-tilt-max="12">
                     <div class="tilt-glare"></div>
@@ -194,6 +202,14 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
+    <section class="trust-strip" aria-label="Why shop with us">
+        <div class="trust-strip-inner">
+            <div class="trust-item"><div class="trust-ico">💵</div><div><strong><span class="en-text">Cash on Delivery</span><span class="bn-text">ক্যাশ অন ডেলিভারি</span></strong><span class="t-sub"><span class="en-text">Open the parcel before you pay</span><span class="bn-text">পার্সেল দেখে টাকা দিন</span></span></div></div>
+            <div class="trust-item"><div class="trust-ico">🚚</div><div><strong><span class="en-text">Fast Delivery</span><span class="bn-text">দ্রুত ডেলিভারি</span></strong><span class="t-sub"><span class="en-text">24 to 48 hours inside Dhaka</span><span class="bn-text">ঢাকায় ২৪ থেকে ৪৮ ঘণ্টা</span></span></div></div>
+            <div class="trust-item"><div class="trust-ico">🔄</div><div><strong><span class="en-text">7 Day Replacement</span><span class="bn-text">৭ দিনে রিপ্লেসমেন্ট</span></strong><span class="t-sub"><span class="en-text">Damaged or wrong item? We fix it</span><span class="bn-text">ভুল বা নষ্ট পণ্য বদলে দিই</span></span></div></div>
+            <div class="trust-item"><div class="trust-ico">💬</div><div><strong><span class="en-text">WhatsApp Support</span><span class="bn-text">হোয়াটসঅ্যাপ সাপোর্ট</span></strong><span class="t-sub"><span class="en-text">Real people, quick replies</span><span class="bn-text">দ্রুত উত্তর পাবেন</span></span></div></div>
         </div>
     </section>
 
@@ -265,7 +281,7 @@
                         <div class="tilt-glare"></div>
 
                         <div class="product-img-wrap">
-                            <a href="/product/<%= p.id %>" style="display:block; width:100%; height:100%;">
+                            <a href="<%= p.url %>" style="display:block; width:100%; height:100%;">
                                 <% if (p.image) { %>
                                     <img src="<%= p.image %>" alt="<%= p.title %>" class="product-img" loading="lazy">
                                 <% } else { %>
@@ -291,11 +307,11 @@
                                 </span>
                             </div>
 
-                            <a href="/product/<%= p.id %>" style="text-decoration:none;">
+                            <a href="<%= p.url %>" style="text-decoration:none;">
                                 <h3 class="product-title"><%= p.title %></h3>
                             </a>
                             <% const rs = (typeof ratingStats !== 'undefined' && ratingStats) ? ratingStats[String(p.id)] : null; %>
-                            <% if (rs) { %><a href="/product/<%= p.id %>#reviews" class="card-rating" style="text-decoration:none;">★ <%= rs.avg.toFixed(1) %> <small>(<%= rs.count %>)</small></a><% } %>
+                            <% if (rs) { %><a href="<%= p.url %>#reviews" class="card-rating" style="text-decoration:none;">★ <%= rs.avg.toFixed(1) %> <small>(<%= rs.count %>)</small></a><% } %>
 
                             <p class="product-desc"><%= p.description ? p.description.substring(0, 80) + (p.description.length > 80 ? '...' : '') : 'Authentic quality product available with Cash on Delivery.' %></p>
 
@@ -314,7 +330,7 @@
                             </div>
 
                             <div class="card-actions-grid">
-                                <a href="/product/<%= p.id %>" class="details-btn">
+                                <a href="<%= p.url %>" class="details-btn">
                                     <span class="en-text">Details</span><span class="bn-text" style="display:none;">বিস্তারিত</span>
                                 </a>
                                 <button type="button" class="add-cart-btn" <%= !inStock ? 'disabled' : '' %> onclick="addToCart('<%= p.id %>')">
@@ -426,8 +442,8 @@
 
             <div class="footer-col">
                 <h4>Delivery & Courier Partners</h4>
-                <p class="footer-info-line">🚚 <strong>Inside Dhaka:</strong> ৳<%= settings.delivery_inside_dhaka || 70 %> (24–48 Hours)</p>
-                <p class="footer-info-line">🚚 <strong>Outside Dhaka:</strong> ৳<%= settings.delivery_outside_dhaka || 130 %> (2–4 Days)</p>
+                <p class="footer-info-line">🚚 <strong>Inside Dhaka:</strong> ৳<%= settings.delivery_inside_dhaka || 70 %> (<%= settings.delivery_eta_inside || '24–48 hours' %>)</p>
+                <p class="footer-info-line">🚚 <strong>Outside Dhaka:</strong> ৳<%= settings.delivery_outside_dhaka || 130 %> (<%= settings.delivery_eta_outside || '2–4 days' %>)</p>
                 <p class="footer-info-line">🛡️ <strong>Open-Box COD:</strong> Inspect parcel in front of rider before paying.</p>
                 <div class="footer-badge-strip">
                     <span class="f-courier-badge">🚚 SteadFast</span>
@@ -498,8 +514,7 @@
                     <div class="form-group">
                         <label>Delivery Area *</label>
                         <select id="deliveryArea" name="delivery_area" onchange="updateTotal()">
-                            <option value="Inside Dhaka" data-charge="<%= settings.delivery_inside_dhaka || 70 %>">Inside Dhaka (৳ <%= settings.delivery_inside_dhaka || 70 %>)</option>
-                            <option value="Outside Dhaka" data-charge="<%= settings.delivery_outside_dhaka || 130 %>">Outside Dhaka (৳ <%= settings.delivery_outside_dhaka || 130 %>)</option>
+                            <%- include('partials/delivery-options', { settings }) %>
                         </select>
                     </div>
                 </div>
@@ -624,11 +639,13 @@
 
     <script>
         function esc(s) { return String(s === undefined || s === null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
-        const storeProductsMap = <%- safeJson(products.reduce((acc, item) => { acc[item.id] = { id: item.id, title: item.title, price: item.price, image: item.image, sku: item.sku, stock: item.stock_quantity, category: item.category || 'Trending', variant_options: item.variant_options || '' }; return acc; }, {})) %>;
+        const storeProductsMap = <%- safeJson(products.reduce((acc, item) => { acc[item.id] = { id: item.id, title: item.title, price: item.price, image: item.image, sku: item.sku, stock: item.stock_quantity, category: item.category || 'Trending', variant_options: item.variant_options || '', free_delivery: !!item.free_delivery }; return acc; }, {})) %>;
         let currentBasePrice = 0;
         let currentDiscount = 0;
         let activeCategory = 'All';
         let isCartCheckout = false;
+        let currentFreeDelivery = false;
+        const FREE_SHIP_MIN = parseFloat("<%= settings.free_shipping_threshold || 0 %>") || 0;
         let cart = JSON.parse(localStorage.getItem('trendzz_cart_v22') || '[]');
         let currentLang = localStorage.getItem('trendzz_lang') || 'en';
         const bkashNum = "<%= settings.bkash_number || '01731763504' %>";
@@ -727,8 +744,9 @@
             toggleCartDrawer();
             isCartCheckout = true;
             const subtotal = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+            currentFreeDelivery = cart.every(i => storeProductsMap[i.id] && storeProductsMap[i.id].free_delivery);
             currentBasePrice = subtotal;
-            currentDiscount = 0;
+            currentDiscount = 0; appliedCoupon = null;
             document.getElementById('orderPromoCode').value = '';
             document.getElementById('promoInput').value = '';
             document.getElementById('promoMessage').style.display = 'none';
@@ -897,6 +915,7 @@
             const prod = storeProductsMap[id];
             if (!prod) return;
             isCartCheckout = false;
+            currentFreeDelivery = !!prod.free_delivery;
             document.getElementById('orderCartItems').value = '';
             document.getElementById('orderProductId').value = prod.id;
             document.getElementById('singleQtyGroup').style.display = 'block';
@@ -905,7 +924,7 @@
 
         function openCheckout(title, price, variants) {
             currentBasePrice = parseFloat(price) || 0;
-            currentDiscount = 0;
+            currentDiscount = 0; appliedCoupon = null;
             document.getElementById('orderPromoCode').value = '';
             document.getElementById('promoInput').value = '';
             document.getElementById('promoMessage').style.display = 'none';
@@ -937,34 +956,49 @@
 
         function closeCheckout() { document.getElementById('checkoutModal').style.display = 'none'; }
 
-        function applyPromoCode() {
+        let appliedCoupon = null;
+        function couponAmount(sub) {
+            if (!appliedCoupon || sub < appliedCoupon.min_order) return 0;
+            const raw = appliedCoupon.type === 'percent' ? Math.round(sub * appliedCoupon.value / 100) : appliedCoupon.value;
+            return Math.min(Math.max(0, raw), sub);
+        }
+        async function applyPromoCode() {
             const input = document.getElementById('promoInput').value.trim().toUpperCase();
             const msgEl = document.getElementById('promoMessage');
-            if (input && input === validPromoCode) {
-                currentDiscount = validPromoDiscount;
-                document.getElementById('orderPromoCode').value = input;
+            const qty = isCartCheckout ? 1 : (parseInt(document.getElementById('orderQty').value, 10) || 1);
+            msgEl.style.display = 'block';
+            msgEl.style.color = '#64748b';
+            msgEl.innerText = 'Checking...';
+            let r = { valid: false, message: 'Could not check the coupon. Try again.' };
+            try {
+                const res = await fetch('/api/coupon/validate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: input, subtotal: currentBasePrice * qty }) });
+                r = await res.json();
+            } catch (e) {}
+            if (r.valid) {
+                appliedCoupon = r;
+                document.getElementById('orderPromoCode').value = r.code;
                 document.getElementById('discountRow').style.display = 'flex';
-                document.getElementById('sumDiscount').innerText = '-৳ ' + currentDiscount;
-                msgEl.style.display = 'block';
                 msgEl.style.color = '#00b894';
-                msgEl.innerText = '🎉 Promo applied! ৳' + currentDiscount + ' discount added.';
-                updateTotal();
+                msgEl.innerText = 'Coupon applied: ' + (r.type === 'percent' ? r.value + '% off' : '৳' + r.value + ' off');
             } else {
-                currentDiscount = 0;
+                appliedCoupon = null;
+                currentDiscount = 0; appliedCoupon = null;
                 document.getElementById('orderPromoCode').value = '';
                 document.getElementById('discountRow').style.display = 'none';
-                msgEl.style.display = 'block';
                 msgEl.style.color = '#d63031';
-                msgEl.innerText = '❌ Invalid promo code.';
-                updateTotal();
+                msgEl.innerText = r.message || 'Invalid coupon code.';
             }
+            updateTotal();
         }
 
         function updateTotal() {
             const qty = isCartCheckout ? 1 : (parseInt(document.getElementById('orderQty').value, 10) || 1);
             const areaSelect = document.getElementById('deliveryArea');
-            const deliveryCharge = parseFloat(areaSelect.options[areaSelect.selectedIndex].getAttribute('data-charge')) || 0;
             const productTotal = currentBasePrice * qty;
+            let deliveryCharge = parseFloat(areaSelect.options[areaSelect.selectedIndex].getAttribute('data-charge')) || 0;
+            if (currentFreeDelivery || (FREE_SHIP_MIN > 0 && productTotal >= FREE_SHIP_MIN)) deliveryCharge = 0;
+            currentDiscount = couponAmount(productTotal);
+            document.getElementById('sumDiscount').innerText = '-৳ ' + currentDiscount;
             const grandTotal = Math.max(0, productTotal + deliveryCharge - currentDiscount);
             document.getElementById('sumProductPrice').innerText = '৳ ' + productTotal;
             document.getElementById('sumDeliveryCharge').innerText = '৳ ' + deliveryCharge;

@@ -219,6 +219,11 @@ const BD_PHONE_RE = /^(?:\+?88)?01[3-9]\d{8}$/;
 
 const PROTECTED_SETTING_KEYS = ['admin_password', 'sub_admins', 'system_audit_logs', 'stock_history_logs', 'ai_conversations', 'share_analytics'];
 
+function slugify(str) {
+  return String(str || '').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+}
+
 function normalizeProduct(p) {
   if (!p) return p;
   let gallery = [];
@@ -231,8 +236,13 @@ function normalizeProduct(p) {
     }
   }
   const primaryImg = p.image || p.image_url || p.img || (gallery[0] || '');
+  const slugBase = slugify(p.title || p.name);
   return {
     ...p,
+    slug: slugBase,
+    url: '/product/' + p.id + (slugBase ? '-' + slugBase : ''),
+    seo_title_set: !!(p.seo_title && String(p.seo_title).trim()),
+    seo_description_set: !!(p.seo_description && String(p.seo_description).trim()),
     title: p.title || p.name || 'Product',
     name: p.name || p.title || 'Product',
     sku: p.sku || `TN-${p.id || '001'}`,
@@ -245,6 +255,7 @@ function normalizeProduct(p) {
     cost_price: p.cost_price !== undefined && p.cost_price !== null ? Number(p.cost_price) : 0,
     stock_quantity: p.stock_quantity !== undefined && p.stock_quantity !== null ? parseInt(p.stock_quantity, 10) : 50,
     is_archived: Boolean(p.is_archived) || p.is_active === false,
+    free_delivery: p.free_delivery === true || p.free_delivery === 'true',
     description: p.description || p.desc || p.details || '',
     seo_title: p.seo_title || p.title || p.name || '',
     seo_description: p.seo_description || p.description || '',
@@ -496,19 +507,20 @@ app.get('/healthz', (req, res) => res.status(200).send('OK'));
 
 app.get('/robots.txt', (req, res) => {
   res.type('text/plain');
-  res.send("User-agent: *\nAllow: /\nDisallow: /secret-admin-panel-2026\nSitemap: https://trendzznow.com/sitemap.xml");
+  res.send("User-agent: *\nAllow: /\nDisallow: /secret-admin-panel-2026\nDisallow: /order/\nDisallow: /api/\nSitemap: https://trendzznow.com/sitemap.xml");
 });
 
 app.get('/sitemap.xml', async (req, res) => {
   try {
-    const { data: products } = await supabase.from('products').select('id').order('id', { ascending: false });
-    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+    const { data: products } = await supabase.from('products').select('*').order('id', { ascending: false });
+    const esc = (v) => escapeHtml(v);
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n';
     xml += '  <url><loc>https://trendzznow.com/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>\n';
-    if (products && products.length > 0) {
-      products.forEach(p => {
-        xml += `  <url><loc>https://trendzznow.com/product/${p.id}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>\n`;
-      });
-    }
+    (products || []).map(normalizeProduct).filter(p => !p.is_archived).forEach(p => {
+      const last = p.created_at ? `<lastmod>${new Date(p.created_at).toISOString().slice(0, 10)}</lastmod>` : '';
+      const img = p.image && /^https?:\/\//i.test(p.image) ? `<image:image><image:loc>${esc(p.image)}</image:loc><image:title>${esc(p.title)}</image:title></image:image>` : '';
+      xml += `  <url><loc>https://trendzznow.com${esc(p.url)}</loc>${last}<changefreq>weekly</changefreq><priority>0.8</priority>${img}</url>\n`;
+    });
     features.pageSlugs.forEach(slug => {
       xml += `  <url><loc>https://trendzznow.com/${slug}</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>\n`;
     });
@@ -524,6 +536,10 @@ app.get('/sitemap.xml', async (req, res) => {
 const features = require('./features')(app, {
   supabase, getSettings, sanitizeStr, rateLimited, requireAdmin, csrfProtect,
   normalizeProduct, appendAuditLog, BD_PHONE_RE
+});
+const commerce = require('./commerce')(app, {
+  supabase, getSettings, sanitizeStr, rateLimited, requireAdmin, csrfProtect,
+  appendAuditLog, universalInsert, universalUpdate
 });
 
 // ================= STOREFRONT ROUTES =================
@@ -553,13 +569,17 @@ app.get('/', async (req, res) => {
   }
 });
 
-app.get('/product/:id', async (req, res) => {
-  const productId = req.params.id;
+app.get('/product/:idslug', async (req, res) => {
+  const idMatch = String(req.params.idslug).match(/^(\d{1,12})(?:-.*)?$/);
+  if (!idMatch) return res.status(404).render('404', { settings: await getSettings() });
+  const productId = idMatch[1];
   try {
     const { data: rawProduct, error } = await supabase.from('products').select('*').eq('id', productId).single();
     if (error || !rawProduct) return res.status(404).render('404', { settings: await getSettings() });
     const product = normalizeProduct(rawProduct);
     if (product.is_archived) return res.status(404).render('404', { settings: await getSettings() });
+    // One canonical address per product: /product/12-leaf-lamp. Old /product/12 links redirect permanently.
+    if ('/product/' + req.params.idslug !== product.url) return res.redirect(301, product.url);
     const settings = await getSettings();
     const { data: relatedRaw } = await supabase.from('products').select('*').neq('id', productId).limit(4);
     const relatedProducts = (relatedRaw || []).map(normalizeProduct).filter(p => !p.is_archived);
@@ -697,6 +717,10 @@ app.post('/order/place', async (req, res) => {
     return res.status(429).json({ success: false, message: 'Too many orders from this number. Please try again later or contact us on WhatsApp.' });
   }
 
+  if (await commerce.isBlockedPhone(cleanPhone)) {
+    return res.status(403).json({ success: false, message: 'Sorry, we cannot take this order online. Please contact us on WhatsApp.' });
+  }
+
   const reservedStock = []; // { id, qty } already deducted, used for rollback if the order insert fails
   try {
     const settings = await getSettings();
@@ -786,21 +810,36 @@ app.post('/order/place', async (req, res) => {
       }
     }
 
-    // Backend Delivery Charge & Promo Validation
-    const isOutside = (delivery_area || '').toLowerCase().includes('outside');
-    let dCharge = isOutside
+    // Backend delivery charge and coupon validation (the browser total is only a preview)
+    const areaText = String(delivery_area || '').toLowerCase();
+    const midOn = settings.delivery_mid_charge !== undefined && String(settings.delivery_mid_charge).trim() !== '';
+    let dCharge = areaText.includes('outside')
       ? (parseFloat(settings.delivery_outside_dhaka) || 130)
-      : (parseFloat(settings.delivery_inside_dhaka) || 70);
+      : (areaText.includes('suburb') && midOn)
+        ? (parseFloat(settings.delivery_mid_charge) || 0)
+        : (parseFloat(settings.delivery_inside_dhaka) || 70);
 
     const freeThreshold = parseFloat(settings.free_shipping_threshold) || 0;
     if (freeThreshold > 0 && computedSubtotal >= freeThreshold) {
       dCharge = 0;
     }
+    // Free delivery when every item in the order is marked free delivery
+    if (lines.length > 0 && lines.every(l => l.matched.free_delivery)) {
+      dCharge = 0;
+    }
 
     let discountVal = 0;
-    const validPromo = (settings.promo_code || 'TREND50').trim().toUpperCase();
-    if (promo_code && promo_code.trim().toUpperCase() === validPromo) {
-      discountVal = Math.min(Math.max(0, parseFloat(settings.promo_discount) || 0), computedSubtotal);
+    let claimedCoupon = null;
+    if (promo_code && String(promo_code).trim()) {
+      const cr = await commerce.resolveCoupon(promo_code, computedSubtotal);
+      if (cr.ok) {
+        if (cr.coupon && !(await commerce.claimCoupon(cr.coupon))) {
+          await releaseStock(reservedStock);
+          return res.status(400).json({ success: false, message: 'This coupon has just been fully used. Please remove it and try again.' });
+        }
+        claimedCoupon = cr.coupon;
+        discountVal = cr.discount;
+      }
     }
 
     const taxPct = parseFloat(settings.tax_percentage) || 0;
@@ -864,6 +903,7 @@ app.post('/order/place', async (req, res) => {
     const { data: insertedRows, error } = await universalInsert('orders', orderPayload, fallbacks);
     if (error) {
       await releaseStock(reservedStock); // order was not saved, give the stock back
+      await commerce.releaseCoupon(claimedCoupon);
       return res.status(500).json({ success: false, message: 'Could not place your order right now. Please try again or contact us on WhatsApp.' });
     }
 
@@ -1037,7 +1077,13 @@ app.get('/secret-admin-panel-2026/dashboard', requireAdmin, async (req, res) => 
     }
 
     const { data: rawReviews } = await supabase.from('reviews').select('*').order('id', { ascending: false }).limit(200);
+    const { data: rawCoupons } = await supabase.from('coupons').select('*').order('id', { ascending: false }).limit(100);
+    const { data: rawBlocked } = await supabase.from('blocked_phones').select('*').limit(500);
     res.render('admin-dashboard', { 
+      couponsList: rawCoupons || [],
+      blockedList: rawBlocked || [],
+      phoneRisk: commerce.phoneRisk(orders),
+      topSellers: commerce.topSellers(products, orders),
       products, 
       orders, 
       reviewsList: rawReviews || [],
@@ -1056,7 +1102,7 @@ app.get('/secret-admin-panel-2026/dashboard', requireAdmin, async (req, res) => 
     });
   } catch (err) {
     res.render('admin-dashboard', { 
-      products: [], orders: [], reviewsList: [], customersList: [], settings: defaultSettings, 
+      products: [], orders: [], reviewsList: [], couponsList: [], blockedList: [], phoneRisk: {}, topSellers: [], customersList: [], settings: defaultSettings, 
       adminRole: 'SuperAdmin', adminName: 'Admin', auditLogs: [], stockLogs: [], subAdmins: [], aiConversations: [], shareAnalytics: {}, dailyRevenue: {},
       analytics: { totalRevenue: 0, pendingCount: 0, confirmedCount: 0, deliveredCount: 0, returnCount: 0, netProfit: 0, totalCustomers: 0 }, 
       msg: null 
@@ -1103,6 +1149,7 @@ app.post('/secret-admin-panel-2026/products/add', requireAdmin, upload.array('im
     image_url: primaryImage,
     gallery_images: JSON.stringify(uploadedUrls),
     variant_options: sanitizeStr(variant_options || ''),
+    free_delivery: req.body.free_delivery === 'on' || req.body.free_delivery === 'true',
     is_archived: false,
     is_active: true,
     created_at: new Date().toISOString()
@@ -1158,6 +1205,7 @@ app.post('/secret-admin-panel-2026/products/edit/:id', requireAdmin, upload.arra
     image_url: primaryImage,
     gallery_images: JSON.stringify(uploadedUrls),
     variant_options: sanitizeStr(variant_options || ''),
+    free_delivery: req.body.free_delivery === 'on' || req.body.free_delivery === 'true',
     is_archived: is_archived === 'true',
     is_active: is_archived !== 'true'
   };

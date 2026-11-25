@@ -12,8 +12,9 @@ module.exports = function registerFeatures(app, ctx) {
     'shipping-policy': {
       title: 'Shipping & Delivery',
       text: (s) => [
-        `Inside Dhaka: ৳${s.delivery_inside_dhaka || 70}, delivered in 24 to 48 hours.`,
-        `Outside Dhaka: ৳${s.delivery_outside_dhaka || 130}, delivered in 2 to 4 days.`,
+        `Inside Dhaka: ৳${s.delivery_inside_dhaka || 70}, delivered in ${s.delivery_eta_inside || '24 to 48 hours'}.`,
+        (s.delivery_mid_charge !== undefined && String(s.delivery_mid_charge).trim() !== '') ? `${s.delivery_mid_label || 'Dhaka Suburbs'}: ৳${s.delivery_mid_charge}, delivered in ${s.delivery_eta_mid || '2 to 3 days'}.` : '',
+        `Outside Dhaka: ৳${s.delivery_outside_dhaka || 130}, delivered in ${s.delivery_eta_outside || '2 to 4 days'}.`,
         s.free_shipping_threshold ? `Free delivery on orders of ৳${s.free_shipping_threshold} or more.` : '',
         'Cash on Delivery is available. You can open and inspect the parcel in front of the rider before you pay.',
         'We ship with trusted courier partners such as SteadFast, Pathao and REDX. After your order is confirmed you can follow it on our Order Tracking page using your mobile number.'

@@ -17,3 +17,15 @@ Dashboard: profit now uses cost of goods sold, not shelf stock value.
 - Wishlist (saved in the customer's browser): heart on every card plus a floating Wishlist filter.
 - PWA manifest, favicon route, security headers, 1 hour static cache, admin pages no-store and noindex.
 - Database: new `reviews` table (database/supabase-setup.sql has it, already applied on the live project).
+
+## v22.3.0
+- New professional storefront look (public/theme.css): clean white cards, navy hero and footer, trust strip, 2-column mobile grid.
+- SEO: clean product URLs (/product/12-name, old links redirect with 301), richer sitemap with images, robots.txt, JSON-LD (Product, rating, breadcrumbs, organization), Google Search Console and GA4 fields.
+- Admin: new "SEO & Marketing" pane (store search settings, per-product SEO health score) and live character counters on SEO fields.
+
+## v22.4.0
+- Coupons: unlimited coupons (percent or fixed, minimum order, use limit, expiry, pause/delete) in a new "Coupons & Fraud" pane. The old single code in settings still works. Discounts are always recalculated on the server.
+- Blocked phone numbers: blocked numbers cannot place orders. Orders list shows High risk / Watch badges from past cancelled or returned orders.
+- Products: duplicate (copy starts archived), bulk archive / restore / delete, CSV export (formula-injection safe), "Free delivery" flag per product, Top Selling Products on the dashboard.
+- Delivery: optional third zone with its own charge, and editable delivery time text for each zone. Checkout preview now also shows free delivery.
+- Needs the SQL at the end of database/supabase-setup.sql (already applied to the live project).

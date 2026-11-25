@@ -4,13 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= product.seo_title || product.title %> | <%= (settings.brand_name_first || 'Trendzz') + (settings.brand_name_second || 'Now') %></title>
-    <link rel="canonical" href="https://trendzznow.com/product/<%= product.id %>">
+    <meta name="description" content="<%= String(product.seo_description || product.description || product.title).replace(/\s+/g, ' ').slice(0, 160) %>">
+    <link rel="canonical" href="https://trendzznow.com<%= product.url %>">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta property="product:price:amount" content="<%= product.price %>">
+    <meta property="product:price:currency" content="BDT">
+    <%- include('partials/seo-extra', { settings: settings }) %>
     <meta property="og:title" content="<%= product.seo_title || product.title %> - ৳<%= product.price %> | TrendzzNow">
     <meta property="og:description" content="<%= product.seo_description || product.description || 'Stay on trend. Stay in style.' %>">
     <meta property="og:image" content="<%= product.image || settings.logo_light || 'https://trendzznow.com/images/banner.jpg' %>">
-    <meta property="og:url" content="https://trendzznow.com/product/<%= product.id %>">
+    <meta property="og:url" content="https://trendzznow.com<%= product.url %>">
     <meta property="og:type" content="product">
     <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/theme.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="theme-color" content="#1F1B5C">
@@ -22,11 +28,16 @@
             '@context': 'https://schema.org', '@type': 'Product', name: product.title,
             image: [product.image].filter(Boolean), description: product.description || product.title,
             sku: product.sku || String(product.id),
-            offers: { '@type': 'Offer', priceCurrency: 'BDT', price: String(product.price), availability: product.stock_quantity > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock', url: 'https://trendzznow.com/product/' + product.id }
+            offers: { '@type': 'Offer', priceCurrency: 'BDT', price: String(product.price), availability: product.stock_quantity > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock', url: 'https://trendzznow.com' + product.url }
         };
         if (rvCount) ld.aggregateRating = { '@type': 'AggregateRating', ratingValue: String(rvAvg), reviewCount: String(rvCount) };
     %>
     <script type="application/ld+json"><%- safeJson(ld) %></script>
+    <script type="application/ld+json"><%- safeJson({ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://trendzznow.com/' },
+        { '@type': 'ListItem', position: 2, name: product.category || 'Products', item: 'https://trendzznow.com/' },
+        { '@type': 'ListItem', position: 3, name: product.title, item: 'https://trendzznow.com' + product.url }
+    ] }) %></script>
 </head>
 <body>
     <div class="banner-notice">
@@ -146,8 +157,7 @@
                             <div class="form-group">
                                 <label>Delivery Area *</label>
                                 <select id="detailDeliveryArea" name="delivery_area" onchange="updateDetailTotal()">
-                                    <option value="Inside Dhaka" data-charge="<%= settings.delivery_inside_dhaka || 70 %>">Inside Dhaka (৳ <%= settings.delivery_inside_dhaka || 70 %>)</option>
-                                    <option value="Outside Dhaka" data-charge="<%= settings.delivery_outside_dhaka || 130 %>">Outside Dhaka (৳ <%= settings.delivery_outside_dhaka || 130 %>)</option>
+                            <%- include('partials/delivery-options', { settings }) %>
                                 </select>
                             </div>
                         </div>
@@ -227,8 +237,10 @@
         function updateDetailTotal() {
             const qty = parseInt(document.getElementById('detailQty').value, 10) || 1;
             const areaSelect = document.getElementById('detailDeliveryArea');
-            const dCharge = parseFloat(areaSelect.options[areaSelect.selectedIndex].getAttribute('data-charge')) || 0;
             const prodTotal = unitPrice * qty;
+            let dCharge = parseFloat(areaSelect.options[areaSelect.selectedIndex].getAttribute('data-charge')) || 0;
+            const freeMin = parseFloat("<%= settings.free_shipping_threshold || 0 %>") || 0;
+            if (<%= product.free_delivery ? 'true' : 'false' %> || (freeMin > 0 && prodTotal >= freeMin)) dCharge = 0;
             document.getElementById('detailSumProduct').innerText = '৳ ' + prodTotal;
             document.getElementById('detailSumDelivery').innerText = '৳ ' + dCharge;
             document.getElementById('detailSumTotal').innerText = '৳ ' + (prodTotal + dCharge);

@@ -1,0 +1,6 @@
+<% const _gsc = String(settings.google_site_verification || '').trim(); const _ga = String(settings.ga4_id || '').trim(); %>
+<% if (/^[A-Za-z0-9_-]{10,100}$/.test(_gsc)) { %><meta name="google-site-verification" content="<%= _gsc %>"><% } %>
+<% if (/^G-[A-Z0-9]{4,14}$/.test(_ga)) { %>
+<script async src="https://www.googletagmanager.com/gtag/js?id=<%= _ga %>"></script>
+<script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', <%- safeJson(_ga) %>);</script>
+<% } %>
