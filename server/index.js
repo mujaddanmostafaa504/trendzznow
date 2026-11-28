@@ -19,13 +19,16 @@ const supabase = createClient(supabaseUrl || 'http://localhost:54321', supabaseK
   auth: { persistSession: false, autoRefreshToken: false }
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+    fieldSize: 25 * 1024 * 1024
+  }
 });
 
-app.use(express.urlencoded({ extended: true, limit: '15mb' }));
-app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
+app.use(express.json({ limit: '25mb' }));
 app.disable('x-powered-by');
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -507,7 +510,14 @@ app.get('/healthz', (req, res) => res.status(200).send('OK'));
 
 app.get('/robots.txt', (req, res) => {
   res.type('text/plain');
-  res.send("User-agent: *\nAllow: /\nDisallow: /secret-admin-panel-2026\nDisallow: /order/\nDisallow: /api/\nSitemap: https://trendzznow.com/sitemap.xml");
+  res.send(
+    'User-agent: *\n' +
+    'Allow: /\n' +
+    'Disallow: /secret-admin-panel-2026\n' +
+    'Disallow: /order/\n' +
+    'Disallow: /api/\n' +
+    'Sitemap: https://www.trendzznow.com/sitemap.xml\n'
+  );
 });
 
 app.get('/sitemap.xml', async (req, res) => {
@@ -698,7 +708,7 @@ app.post('/api/ai-support', async (req, res) => {
 
 // Place Order Route (Supports both Single Product & Multi-Item Cart + Backend Price/Stock Validation!)
 app.post('/order/place', async (req, res) => {
-  const { 
+  const {
     customer_name, phone, customer_email, address, product_id, product_title, price, quantity,
     cart_items, delivery_area, payment_method, trx_id, courier_choice, variant, promo_code
   } = req.body;
@@ -1079,16 +1089,16 @@ app.get('/secret-admin-panel-2026/dashboard', requireAdmin, async (req, res) => 
     const { data: rawReviews } = await supabase.from('reviews').select('*').order('id', { ascending: false }).limit(200);
     const { data: rawCoupons } = await supabase.from('coupons').select('*').order('id', { ascending: false }).limit(100);
     const { data: rawBlocked } = await supabase.from('blocked_phones').select('*').limit(500);
-    res.render('admin-dashboard', { 
+    res.render('admin-dashboard', {
       couponsList: rawCoupons || [],
       blockedList: rawBlocked || [],
       phoneRisk: commerce.phoneRisk(orders),
       topSellers: commerce.topSellers(products, orders),
-      products, 
-      orders, 
+      products,
+      orders,
       reviewsList: rawReviews || [],
       customersList,
-      settings, 
+      settings,
       adminRole: req.session.adminRole || 'SuperAdmin',
       adminName: req.session.adminName || 'Super Admin',
       auditLogs,
@@ -1098,14 +1108,14 @@ app.get('/secret-admin-panel-2026/dashboard', requireAdmin, async (req, res) => 
       shareAnalytics,
       dailyRevenue,
       analytics: { totalRevenue, pendingCount, confirmedCount, deliveredCount, returnCount, netProfit, totalCustomers: customersList.length },
-      msg: req.query.msg || null 
+      msg: req.query.msg || null
     });
   } catch (err) {
-    res.render('admin-dashboard', { 
-      products: [], orders: [], reviewsList: [], couponsList: [], blockedList: [], phoneRisk: {}, topSellers: [], customersList: [], settings: defaultSettings, 
+    res.render('admin-dashboard', {
+      products: [], orders: [], reviewsList: [], couponsList: [], blockedList: [], phoneRisk: {}, topSellers: [], customersList: [], settings: defaultSettings,
       adminRole: 'SuperAdmin', adminName: 'Admin', auditLogs: [], stockLogs: [], subAdmins: [], aiConversations: [], shareAnalytics: {}, dailyRevenue: {},
-      analytics: { totalRevenue: 0, pendingCount: 0, confirmedCount: 0, deliveredCount: 0, returnCount: 0, netProfit: 0, totalCustomers: 0 }, 
-      msg: null 
+      analytics: { totalRevenue: 0, pendingCount: 0, confirmedCount: 0, deliveredCount: 0, returnCount: 0, netProfit: 0, totalCustomers: 0 },
+      msg: null
     });
   }
 });
@@ -1294,7 +1304,7 @@ app.post('/secret-admin-panel-2026/products/import-csv', requireAdmin, csrfProte
       const p = {
         title: sanitizeStr(r.title),
         name: sanitizeStr(r.title),
-        sku: sanitizeStr(r.sku || `TN-${Math.floor(Math.random()*9000+1000)}`),
+        sku: sanitizeStr(r.sku || `TN-${Math.floor(Math.random() * 9000 + 1000)}`),
         category: sanitizeStr(r.category || 'Trending'),
         price: Math.max(0, parseFloat(r.price) || 0),
         regular_price: Math.max(0, parseFloat(r.regular_price) || parseFloat(r.price) || 0),
@@ -1367,7 +1377,7 @@ app.post('/secret-admin-panel-2026/orders/status/:id', requireAdmin, csrfProtect
       return res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Order update failed: ' + ordErr.message));
     }
     await syncOrderStock(existing.product_title, existing.status, newStatus);
-    await appendAuditLog(req.session.adminName, 'Order Status Updated', `Order #${orderId} -> ${status}`);
+    await appendAuditLog(req.session.adminName, 'Order Status Updated', `Order #${orderId} -> ${newStatus}`);
 
     const settings = await getSettings();
     if (existing && existing.phone) {
@@ -1530,7 +1540,7 @@ app.post('/secret-admin-panel-2026/subadmin/add', requireAdmin, csrfProtect, asy
     const settings = await getSettings();
     let subAdmins = [];
     if (settings.sub_admins) {
-      try { subAdmins = JSON.parse(settings.sub_admins); } catch(e){}
+      try { subAdmins = JSON.parse(settings.sub_admins); } catch (e) {}
     }
     if (subAdmins.some(s => s.name === sanitizeStr(sub_name))) {
       return res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('A staff account with this name already exists.'));
@@ -1540,7 +1550,7 @@ app.post('/secret-admin-panel-2026/subadmin/add', requireAdmin, csrfProtect, asy
     if (saErr) throw saErr;
     await appendAuditLog(req.session.adminName, 'Sub-Admin Created', `Added ${sub_name} (${sub_role})`);
     res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Staff role account created!'));
-  } catch(e) {
+  } catch (e) {
     res.redirect('/secret-admin-panel-2026/dashboard?msg=' + encodeURIComponent('Failed to add sub-admin.'));
   }
 });
@@ -1552,7 +1562,7 @@ app.post('/secret-admin-panel-2026/subadmin/delete', requireAdmin, csrfProtect, 
     const settings = await getSettings();
     let subAdmins = [];
     if (settings.sub_admins) {
-      try { subAdmins = JSON.parse(settings.sub_admins); } catch(e){}
+      try { subAdmins = JSON.parse(settings.sub_admins); } catch (e) {}
     }
     subAdmins = subAdmins.filter(s => s.name !== sub_name);
     await supabase.from('settings').upsert({ key: 'sub_admins', value: JSON.stringify(subAdmins) }, { onConflict: 'key' });
@@ -1561,16 +1571,8 @@ app.post('/secret-admin-panel-2026/subadmin/delete', requireAdmin, csrfProtect, 
   } catch (e) {
     res.redirect('/secret-admin-panel-2026/dashboard');
   }
-  });
+});
 
-app.get('/robots.txt', (req, res) => {
-  res.type('text/plain');
-  res.send(
-    "User-agent: *\n" +
-    "Allow: /\n" +
-    "Disallow: /secret-admin-panel-2026\n" +
-    "Disallow: /order/\n" +
-    "Disallow: /api/\n" +
-    "Sitemap: https://www.trendzznow.com/sitemap.xml\n"
-  )
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
