@@ -1568,3 +1568,7 @@ require('./features').registerErrorHandlers(app, { getSettings });
 app.listen(PORT, () => {
   console.log(`TrendzzNow Enterprise Server v22 running on port ${PORT}`);
 });
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.send("User-agent: *\nAllow: /\nDisallow: /secret-admin-panel-2026\nSitemap: https://www.trendzznow.com/sitemap.xml\n");
+});
