@@ -1562,6 +1562,7 @@ app.post('/secret-admin-panel-2026/subadmin/delete', requireAdmin, csrfProtect, 
     res.redirect('/secret-admin-panel-2026/dashboard');
   }
   });
+
 app.get('/robots.txt', (req, res) => {
   res.type('text/plain');
   res.send(
@@ -1571,5 +1572,5 @@ app.get('/robots.txt', (req, res) => {
     "Disallow: /order/\n" +
     "Disallow: /api/\n" +
     "Sitemap: https://www.trendzznow.com/sitemap.xml\n"
-  );
+  )
 });
