@@ -1561,14 +1561,15 @@ app.post('/secret-admin-panel-2026/subadmin/delete', requireAdmin, csrfProtect, 
   } catch (e) {
     res.redirect('/secret-admin-panel-2026/dashboard');
   }
-});
-
-require('./features').registerErrorHandlers(app, { getSettings });
-
-app.listen(PORT, () => {
-  console.log(`TrendzzNow Enterprise Server v22 running on port ${PORT}`);
-});
+  });
 app.get('/robots.txt', (req, res) => {
   res.type('text/plain');
-  res.send("User-agent: *\nAllow: /\nDisallow: /secret-admin-panel-2026\nSitemap: https://www.trendzznow.com/sitemap.xml\n");
+  res.send(
+    "User-agent: *\n" +
+    "Allow: /\n" +
+    "Disallow: /secret-admin-panel-2026\n" +
+    "Disallow: /order/\n" +
+    "Disallow: /api/\n" +
+    "Sitemap: https://www.trendzznow.com/sitemap.xml\n"
+  );
 });
